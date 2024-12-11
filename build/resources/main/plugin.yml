@@ -1,0 +1,6 @@
+name: SkysongStats
+version: '1.0-SNAPSHOT'
+main: org.skysongdev.skysongstats.SkysongStats
+api-version: '1.20'
+
+softdepend: [PlaceholderAPI]
