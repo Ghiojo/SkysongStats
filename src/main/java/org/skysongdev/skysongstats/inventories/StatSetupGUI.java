@@ -2,6 +2,7 @@ package org.skysongdev.skysongstats.inventories;
 
 import net.kyori.adventure.text.Component;
 import org.bukkit.Material;
+import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.InventoryHolder;
 import org.bukkit.inventory.ItemStack;
@@ -15,8 +16,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static org.skysongdev.skysongstats.SkysongStats.getPlugin;
-import static org.skysongdev.skysongstats.Utils.Utils.statlineKey;
-import static org.skysongdev.skysongstats.Utils.Utils.selectableKey;
+import static org.skysongdev.skysongstats.Utils.Utils.*;
 
 public class StatSetupGUI implements InventoryHolder {
     private final Inventory inventory;
@@ -36,6 +36,15 @@ public class StatSetupGUI implements InventoryHolder {
         for(int i = 36; i < 45; i++){
             this.inventory.setItem(i, borderItem);
         }
+        ItemStack descriptionItem = new ItemStack(Material.NETHER_STAR);
+        ItemMeta descmeta = descriptionItem.getItemMeta();
+        descmeta.displayName(getPlugin().getUtils().getMiniMessage().deserialize("<gold>Base Statline Selection"));
+        List<Component> desclore = new ArrayList<>();
+        desclore.add(getPlugin().getUtils().getMiniMessage().deserialize("<gray>Select whichever base statline you believe fits your"));
+        desclore.add(getPlugin().getUtils().getMiniMessage().deserialize("<gray>character the best! Remember that your base stats don't have"));
+        desclore.add(getPlugin().getUtils().getMiniMessage().deserialize("<gray>to match the ancestry you are picking!"));
+        descmeta.lore(desclore);
+
         for(int i = 0; i < set.size() && i < 27; i++){
             Material mat = Material.getMaterial(getPlugin().getConfig().getString("base-stats." + set.get(i) + ".item"));
             if(mat == null){
@@ -58,6 +67,7 @@ public class StatSetupGUI implements InventoryHolder {
             this.inventory.setItem(i+9, statlineItem);
         }
     }
+
 
     @Override
     public @NotNull Inventory getInventory() {

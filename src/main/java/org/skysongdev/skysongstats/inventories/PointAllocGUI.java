@@ -39,7 +39,7 @@ public class PointAllocGUI implements InventoryHolder {
         this.inventory = getPlugin().getServer().createInventory(this, 27);;
     }
 
-    private void setupInventory(SetupProfile playerProfile) {
+    public void setupInventory(SetupProfile playerProfile) {
         str = playerProfile.getStrength();
         dex = playerProfile.getDexterity();
         con = playerProfile.getConstitution();

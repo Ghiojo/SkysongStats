@@ -14,11 +14,18 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static org.skysongdev.skysongstats.SkysongStats.getPlugin;
-import static org.skysongdev.skysongstats.Utils.Utils.selectableKey;
-import static org.skysongdev.skysongstats.Utils.Utils.skillButtonKey;
+import static org.skysongdev.skysongstats.Utils.Utils.*;
 
 public class SkillChoiceGUI implements InventoryHolder {
     Inventory inventory;
+
+    public int[] getSelectedSkills() {
+        int[] result = new int[2];
+        result[0] = selectedSkills[0].getValue();
+        result[1] = selectedSkills[1].getValue();
+        return result;
+    }
+
     Utils.Skills[] selectedSkills = new Utils.Skills[2];
     Player targetPlayer;
 
@@ -60,7 +67,6 @@ public class SkillChoiceGUI implements InventoryHolder {
         for(int i = 45; i < 54; i++){
             this.inventory.setItem(i, borderItem);
         }
-
 
         animalHandlingItem.getItemMeta().displayName(getPlugin().getUtils().getMiniMessage().deserialize("<dark_green><bold>Animal Handling</bold>"));
         lore.add(getPlugin().getUtils().getMiniMessage().deserialize("<gray>This skill has to do with your character's ability to interact with animals."));
@@ -234,8 +240,13 @@ public class SkillChoiceGUI implements InventoryHolder {
         tandeItem.getItemMeta().getPersistentDataContainer().set(skillButtonKey, PersistentDataType.INTEGER, 18);
         lore.clear();
         this.inventory.setItem(25, tandeItem);
-    }
 
+        ItemStack confirmItem = new ItemStack(Material.LIME_STAINED_GLASS_PANE);
+        confirmItem.getItemMeta().displayName(getPlugin().getUtils().getMiniMessage().deserialize("<green>Confirm"));
+        confirmItem.getItemMeta().getPersistentDataContainer().set(selectableKey, PersistentDataType.BOOLEAN, true);
+        confirmItem.getItemMeta().getPersistentDataContainer().set(optionButtonKey, PersistentDataType.STRING, "confirm");
+        this.inventory.setItem(49, confirmItem);
+    }
 
     public boolean setSelectedSkills(int skill){
        if(skillPoints == 0){

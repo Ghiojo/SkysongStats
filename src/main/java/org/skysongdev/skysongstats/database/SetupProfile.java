@@ -111,5 +111,23 @@ public class SetupProfile {
         playerSkills.setSkill(Utils.Skills.fromInt(skillsSelected[0]), 16);
         playerSkills.setSkill(Utils.Skills.fromInt(skillsSelected[1]), 16);
         getPlugin().getUtils().getSkillManager().updateSkillProfile(playerSkills);
+
+        this.isSetUp = true;
+    }
+
+    public StatSetupGUI getStatSetupGUI() {
+        return statSetupGUI;
+    }
+
+    public PointAllocGUI getPointAllocGUI() {
+        return pointAllocGUI;
+    }
+
+    public SkillChoiceGUI getSkillChoiceGUI() {
+        return skillChoiceGUI;
+    }
+
+    public void setupPointAllocGui(){
+        pointAllocGUI.setupInventory(this);
     }
 }
