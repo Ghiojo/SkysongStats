@@ -145,6 +145,8 @@ public class Utils {
             case "focus":
             case "foc":
             case "hp":
+            case "temphp":
+            case "maxhp":
             case "arcrot":
             case "fictis":
             case "potion":

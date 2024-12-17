@@ -15,14 +15,15 @@ public class AddSkillXP implements CommandExecutor {
 
     @Override
     public boolean onCommand(@NotNull CommandSender commandSender, @NotNull Command command, @NotNull String s, @NotNull String[] strings) {
-        Player player;
+        Player player = null;
         Player target;
         int xpammount;
         if(commandSender instanceof Player){
             player = (Player) commandSender;
         }
         if(strings.length < 2){
-            commandSender.sendMessage(Utils.getMiniMessage().deserialize(Utils.PLUGIN_TAG + "<gray>Too Little arguments! (Usage: /skill addxp (skill) (xp) (player (optional)))"));
+            if(player != null)
+                player.sendMessage(Utils.getMiniMessage().deserialize(Utils.PLUGIN_TAG + "<gray>Too Little arguments! (Usage: /skill addxp (skill) (xp) (player (optional)))"));
             return true;
         }
         if(strings.length < 3) {
@@ -35,32 +36,37 @@ public class AddSkillXP implements CommandExecutor {
         else{
             target = Bukkit.getPlayer(strings[2]);
             if(target == null){
-                commandSender.sendMessage(Utils.getMiniMessage().deserialize(Utils.PLUGIN_TAG + "<gray>Player not found!"));
+                if(player != null)
+                    player.sendMessage(Utils.getMiniMessage().deserialize(Utils.PLUGIN_TAG + "<gray>Player not found!"));
                 return true;
             }
         }
 
         if(!Utils.isASkill(strings[0])){
-            commandSender.sendMessage(Utils.getMiniMessage().deserialize(Utils.PLUGIN_TAG + "<gray>Invalid Skill!"));
+            if(player != null)
+                player.sendMessage(Utils.getMiniMessage().deserialize(Utils.PLUGIN_TAG + "<gray>Invalid Skill!"));
             return true;
         }
         try{
             xpammount = Integer.parseInt(strings[1]);
             if(xpammount < 0){
-                commandSender.sendMessage(Utils.getMiniMessage().deserialize(Utils.PLUGIN_TAG + "<gray>Invalid XP!"));
+                if(player != null)
+                    player.sendMessage(Utils.getMiniMessage().deserialize(Utils.PLUGIN_TAG + "<gray>Invalid XP!"));
                 return true;
             }
         } catch (NumberFormatException e) {
-            commandSender.sendMessage(Utils.getMiniMessage().deserialize(Utils.PLUGIN_TAG + "<gray>Invalid XP!"));
+            if(player != null)
+                player.sendMessage(Utils.getMiniMessage().deserialize(Utils.PLUGIN_TAG + "<gray>Invalid XP!"));
             return true;
         }
 
         getPlugin().getUtils().getSkillManager().addSkillXP(getPlugin().getUtils().getSkillManager().findSkills(target.getUniqueId().toString(), getPlugin().getUtils().getProfileManager().getActiveProfileName(target.getUniqueId().toString())), strings[0], xpammount);
 
         if(commandSender instanceof Player){
-            commandSender.sendMessage(Utils.getMiniMessage().deserialize(Utils.PLUGIN_TAG + "<gray>Added " + xpammount + " XP to " + target.getName() + "'s " + strings[0] + " skill!"));
+            player.sendMessage(Utils.getMiniMessage().deserialize(Utils.PLUGIN_TAG + "<gray>Added " + xpammount + " XP to " + target.getName() + "'s " + strings[0] + " skill!"));
         }
         Bukkit.getLogger().info("[SkysongStats] Added " + xpammount + " XP to " + target.getName() + "'s " + strings[0] + " skill!");
+        target.sendMessage(Utils.getMiniMessage().deserialize(Utils.PLUGIN_TAG + "<gray>You have gained <gold>" + xpammount + " XP <gray>in your " + strings[0] + " skill!"));
 
         return true;
     }

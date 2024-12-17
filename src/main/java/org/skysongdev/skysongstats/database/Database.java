@@ -52,7 +52,7 @@ public class Database {
 
     //Stats Handling
     public void createStatData(PlayerStats data) throws SQLException{
-        PreparedStatement statement = getConnection().prepareStatement("INSERT INTO skysong_stats(uuid, profile, strength, dexterity, focus, constitution, speed, arcrot, potion, fictis, hp, ac) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+        PreparedStatement statement = getConnection().prepareStatement("INSERT INTO skysong_stats(uuid, profile, strength, dexterity, focus, constitution, speed, arcrot, potion, fictis, hp, temphp, ac) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
         statement.setString(1, data.getUuid());
         statement.setString(2, data.getProfile());
         statement.setInt(3, data.getStrength());
@@ -213,6 +213,15 @@ public class Database {
         statement.executeUpdate();
         statement.close();
     }
+    public void createSetupData(SetupProfile profile) throws SQLException{
+        PreparedStatement statement = getConnection().prepareStatement("INSERT INTO skysong_setup(uuid, profile, setup) VALUES (?, ?, ?)");
+        statement.setString(1, profile.getUuid());
+        statement.setString(2, profile.getProfile());
+        statement.setBoolean(3, false);
+        statement.executeUpdate();
+        statement.close();
+    }
+
     public void updateSetupData(String uuid, String profile, boolean isSetUp) throws SQLException{
         PreparedStatement statement = getConnection().prepareStatement("UPDATE skysong_setup SET setup = ? WHERE uuid = ? AND profile = ?");
         statement.setBoolean(1, isSetUp);

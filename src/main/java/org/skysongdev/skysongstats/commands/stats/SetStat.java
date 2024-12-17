@@ -79,6 +79,9 @@ public class SetStat implements CommandExecutor {
             case "hp":
                 stats.setHP(num);
                 break;
+            case "temphp":
+                stats.setTemp_hp(num);
+                break;
             case "ac":
                 stats.setAC(num);
                 break;

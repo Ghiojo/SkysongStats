@@ -82,6 +82,9 @@ public class AddStat implements CommandExecutor {
             case "hp":
                 stats.addHP(num);
                 break;
+            case "temphp":
+                stats.addTemp_hp(num);
+                break;
             case "ac":
                 stats.addAC(num);
                 break;

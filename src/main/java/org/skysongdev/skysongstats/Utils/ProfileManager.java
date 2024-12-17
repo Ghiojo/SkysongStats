@@ -69,6 +69,10 @@ public class ProfileManager {
         return null;
     }
 
+    public void addSetupProfile(SetupProfile setupProfile){
+        ProfileManager.setupProfiles.add(setupProfile);
+    }
+
     public void createSetupProfile(String uuid){
         try {
             SetupProfile setupProfile = new SetupProfile(uuid);
@@ -78,6 +82,14 @@ public class ProfileManager {
             Bukkit.getLogger().warning("[SkysongStats] Unable to add a setup profile!");
             e.printStackTrace();
         }
+    }
+    public SetupProfile findSetupProfile(String uuid, String profile){
+        for(SetupProfile current : ProfileManager.setupProfiles){
+            if(Objects.equals(current.getUuid(), uuid) && Objects.equals(current.getProfile(), profile)){
+                return current;
+            }
+        }
+        return null;
     }
     public void setSetupProfile(String uuid, String profile, boolean isSetUp){
         for(SetupProfile current : ProfileManager.setupProfiles){
@@ -90,6 +102,15 @@ public class ProfileManager {
                     e.printStackTrace();
                 }
             }
+        }
+    }
+    public void deleteSetupProfile(SetupProfile setupProfile){
+        ProfileManager.setupProfiles.remove(setupProfile);
+        try {
+            getPlugin().getDatabase().deleteSetupData(setupProfile.getUuid(), setupProfile.getProfile());
+        }catch(SQLException e){
+            Bukkit.getLogger().warning("[SkysongStats] Unable to delete setup profile!");
+            e.printStackTrace();
         }
     }
 }

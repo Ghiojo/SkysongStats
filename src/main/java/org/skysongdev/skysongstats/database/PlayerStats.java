@@ -47,6 +47,7 @@ public class PlayerStats {
         this.ac = 0;
         this.hp = 60;
         this.hp_max = 60;
+        this.temp_hp = 0;
 
         this.modifiers = new ArrayList<Modifier>();
     }
@@ -68,6 +69,7 @@ public class PlayerStats {
         this.ac = 0;
         this.hp = 60;
         this.hp_max = 60;
+        this.temp_hp = 0;
 
         this.modifiers = new ArrayList<Modifier>();
     }
@@ -289,5 +291,17 @@ public class PlayerStats {
                 add += m.getModifier();
         }
         return add;
+    }
+
+    public void dealDamage(int damage){
+        if(temp_hp > 0){
+            temp_hp -= damage;
+            if(temp_hp < 0){
+                hp += temp_hp;
+                temp_hp = 0;
+            }
+        } else {
+            hp -= damage;
+        }
     }
 }

@@ -10,6 +10,7 @@ import org.skysongdev.skysongstats.SkysongStats;
 import org.skysongdev.skysongstats.Utils.Utils;
 import org.skysongdev.skysongstats.database.PlayerSkills;
 import org.skysongdev.skysongstats.database.PlayerStats;
+import org.skysongdev.skysongstats.database.SetupProfile;
 
 import static org.skysongdev.skysongstats.SkysongStats.getPlugin;
 
@@ -37,6 +38,15 @@ public class CreateProfile implements CommandExecutor {
         getPlugin().getUtils().getStatsManager().addStatProfile(profile);
         try {
             getPlugin().getDatabase().createStatData(profile);
+        }catch(Exception e){
+            e.printStackTrace();
+        }
+
+        //We add the Setup Profile to the list
+        SetupProfile setupProfile = new SetupProfile(player.getUniqueId().toString(), strings[0], false);
+        getPlugin().getUtils().getProfileManager().addSetupProfile(setupProfile);
+        try {
+            getPlugin().getDatabase().createSetupData(setupProfile);
         }catch(Exception e){
             e.printStackTrace();
         }

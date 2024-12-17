@@ -38,6 +38,7 @@ public class SkillAllocGUIListener implements Listener {
             if(itemData.has(optionButtonKey)){
                 if(itemData.get(optionButtonKey, PersistentDataType.STRING).equals("confirm")){
                     setup.setSkillsSelected(gui.getSelectedSkills());
+                    setup.finishProfileSetup();
                     event.getWhoClicked().closeInventory();
                     event.getWhoClicked().sendMessage(getPlugin().getUtils().getMiniMessage().deserialize(getPlugin().getUtils().PLUGIN_TAG + "<green>Your Setup have been Completed!"));
                 }

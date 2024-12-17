@@ -29,10 +29,9 @@ public class DeleteProfile implements CommandExecutor {
             return true;
         }
 
-
-
         SkysongStats.getPlugin().getUtils().getStatsManager().deleteStat(SkysongStats.getPlugin().getUtils().getStatsManager().findStats(player.getUniqueId().toString(), strings[0]));
         SkysongStats.getPlugin().getUtils().getSkillManager().deleteSkillProfile(SkysongStats.getPlugin().getUtils().getSkillManager().findSkills(player.getUniqueId().toString(), strings[0]));
+        SkysongStats.getPlugin().getUtils().getProfileManager().deleteSetupProfile(SkysongStats.getPlugin().getUtils().getProfileManager().findSetupProfile(player.getUniqueId().toString(), strings[0]));
 
         player.sendMessage(ChatColor.DARK_GRAY + "[" + ChatColor.GOLD + "SkysongStats" + ChatColor.DARK_GRAY + "] " + ChatColor.GRAY + " Profile \"" + strings[0] + "\" has been deleted!");
         return true;
