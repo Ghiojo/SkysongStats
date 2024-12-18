@@ -7,6 +7,7 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 import org.skysongdev.skysongstats.SkysongStats;
+import org.skysongdev.skysongstats.Utils.Utils;
 
 import java.util.Arrays;
 
@@ -26,7 +27,7 @@ public class StatsCommand implements CommandExecutor {
         String[] newArgs = Arrays.copyOfRange(strings, 1, strings.length);
         Player player = (Player) commandSender;
         if(strings.length < 1){
-            commandSender.sendMessage(ChatColor.DARK_GRAY + "[" + ChatColor.GOLD + "SkysongStats" + ChatColor.DARK_GRAY + "] " + ChatColor.GRAY + "Too Little arguments! (Usage: /stats (subcommand))");
+            commandSender.sendMessage(Utils.getMiniMessage().deserialize(Utils.PLUGIN_TAG + "<red>Too Little arguments! (Usage: /stats (subcommand))"));
             return true;
         }
 
@@ -35,19 +36,19 @@ public class StatsCommand implements CommandExecutor {
                 if(commandSender.hasPermission("skysongstats.view")){
                     viewStats.onCommand(commandSender, command, s, newArgs);
                 } else
-                    commandSender.sendMessage(ChatColor.of("DARK_GRAY") + "[" + ChatColor.of("GOLD") + "SkysongStats" + ChatColor.of("DARK_GRAY") + "]" +ChatColor.of("RED") + "You don't have permissions to run that command!");
+                    commandSender.sendMessage(Utils.getMiniMessage().deserialize(Utils.PLUGIN_TAG + "<red>You don't have permissions to run that command!"));
                 break;
             case "set":
                 if(commandSender.hasPermission("skysongstats.set")){
                     setStat.onCommand(commandSender, command, s, newArgs);
                 } else
-                    commandSender.sendMessage(ChatColor.of("DARK_GRAY") + "[" + ChatColor.of("GOLD") + "SkysongStats" + ChatColor.of("DARK_GRAY") + "]" +ChatColor.of("RED") + "You don't have permissions to run that command!");
+                    commandSender.sendMessage(Utils.getMiniMessage().deserialize(Utils.PLUGIN_TAG + "<red>You don't have permissions to run that command!"));
                 break;
             case "add":
                 if(commandSender.hasPermission("skysongstats.add")){
                     addStat.onCommand(commandSender, command, s, newArgs);
                 } else
-                    commandSender.sendMessage(ChatColor.of("DARK_GRAY") + "[" + ChatColor.of("GOLD") + "SkysongStats" + ChatColor.of("DARK_GRAY") + "]" +ChatColor.of("RED") + "You don't have permissions to run that command!");
+                    commandSender.sendMessage(Utils.getMiniMessage().deserialize(Utils.PLUGIN_TAG + "<red>You don't have permissions to run that command!"));
                 break;
         }
 

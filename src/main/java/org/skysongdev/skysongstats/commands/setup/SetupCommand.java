@@ -14,10 +14,10 @@ public class SetupCommand implements CommandExecutor {
     public boolean onCommand(@NotNull CommandSender commandSender, @NotNull Command command, @NotNull String s, @NotNull String[] strings) {
         Player target = (Player) commandSender;
         if(getPlugin().getUtils().getProfileManager().findActiveSetupProfile(target.getUniqueId().toString()).isSetUp()){
-            target.sendMessage(getPlugin().getUtils().getMiniMessage().deserialize(Utils.PLUGIN_TAG + "<gray>You have already set up your profile!"));
+            target.sendMessage(getPlugin().getUtils().getMiniMessage().deserialize(Utils.PLUGIN_TAG + "<red>You have already set up your profile!"));
             return true;
         }
-        target.sendMessage(getPlugin().getUtils().getMiniMessage().deserialize(Utils.PLUGIN_TAG + "<gray>You are now setting up your profile!"));
+        target.sendMessage(getPlugin().getUtils().getMiniMessage().deserialize(Utils.PLUGIN_TAG + "<red>You are now setting up your profile!"));
         target.openInventory(getPlugin().getUtils().getProfileManager().findActiveSetupProfile(target.getUniqueId().toString()).getStatSetupGUI().getInventory());
         return true;
     }

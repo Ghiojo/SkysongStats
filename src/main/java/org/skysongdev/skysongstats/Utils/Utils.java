@@ -101,6 +101,75 @@ public class Utils {
                 default -> null;
             };
         }
+        public static String getSkillName(Skills skill){
+            return switch(skill){
+                case ANIMAL_HANDLING -> "Animal Handling";
+                case FARMING -> "Farming";
+                case FORESTRY -> "Forestry";
+                case MINING -> "Mining";
+                case MIST_GATHERING -> "Mist Gathering";
+                case WOOD_PROCESSING -> "Wood Processing";
+                case ALCHEMY -> "Alchemy";
+                case ARTIFICING -> "Artificing";
+                case COOKING -> "Cooking";
+                case CRAFTSMAN -> "Craftsman";
+                case METALWORKING -> "Metalworking";
+                case TAILORING -> "Tailoring";
+                case WITCHCRAFT -> "Witchcraft";
+                case ECONOMICAL -> "Economical";
+                case SCHOLARLY -> "Scholarly";
+                case ENTERTAINMENT -> "Entertainment";
+                case MARTIAL -> "Martial";
+                case MEDICAL -> "Medical";
+                case TRANSPORTATION_AND_EXPLORATION -> "T&E";
+            };
+        }
+        public static String getSkillNameFormatted(Skills skill){
+            return switch(skill){
+                case ANIMAL_HANDLING -> "<#45c2ea>Animal Handling<reset>";
+                case FARMING -> "<#f9f36d>Farming<reset>";
+                case FORESTRY -> "<#54bf3e>Forestry<reset>";
+                case MINING -> "<#a0836f>Mining<reset>";
+                case MIST_GATHERING -> "<gold>Mist Gathering<reset>";
+                case WOOD_PROCESSING -> "<#ba7f3d>Wood Processing<reset>";
+                case ALCHEMY -> "<#aaeb38>Alchemy<reset>";
+                case ARTIFICING -> "<#2cf0f1>Artificing<reset>";
+                case COOKING -> "<#f77b3c>Cooking<reset>";
+                case CRAFTSMAN -> "<#eba751>Craftsman<reset>";
+                case METALWORKING -> "<#8d8d8d>Metalworking<reset>";
+                case TAILORING -> "<#ea5be7>Tailoring<reset>";
+                case WITCHCRAFT -> "<#8235b0>Witchcraft<reset>";
+                case ECONOMICAL -> "<gold>Economical<reset>";
+                case SCHOLARLY -> "<#5375e9>Scholarly<reset>";
+                case ENTERTAINMENT -> "<#f22a93>Entertainment<reset>";
+                case MARTIAL -> "<#e18048>Martial<reset>";
+                case MEDICAL -> "<#f14f4f>Medical<reset>";
+                case TRANSPORTATION_AND_EXPLORATION -> "<#7fe95b>T&E<reset>";
+            };
+        }
+        public static String getSkillid(Skills skill){
+            return switch(skill){
+                case ANIMAL_HANDLING -> "animalhandling";
+                case FARMING -> "farming";
+                case FORESTRY -> "forestry";
+                case MINING -> "mining";
+                case MIST_GATHERING -> "mistgathering";
+                case WOOD_PROCESSING -> "woodprocessing";
+                case ALCHEMY -> "alchemy";
+                case ARTIFICING -> "artificing";
+                case COOKING -> "cooking";
+                case CRAFTSMAN -> "craftsman";
+                case METALWORKING -> "metalworking";
+                case TAILORING -> "tailoring";
+                case WITCHCRAFT -> "witchcraft";
+                case ECONOMICAL -> "economical";
+                case SCHOLARLY -> "scholarly";
+                case ENTERTAINMENT -> "entertainment";
+                case MARTIAL -> "martial";
+                case MEDICAL -> "medical";
+                case TRANSPORTATION_AND_EXPLORATION -> "tande";
+            };
+        }
     }
 
     public static int toInt(StaticStats stat){

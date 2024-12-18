@@ -19,31 +19,31 @@ public class AddStat implements CommandExecutor {
     public boolean onCommand(@NotNull CommandSender commandSender, @NotNull Command command, @NotNull String s, @NotNull String[] strings) {
         Player target;
         if(strings.length < 2){
-            commandSender.sendMessage(ChatColor.of("DARK_GRAY") + "[" + ChatColor.of("GOLD") + "SkysongStats" + ChatColor.of("DARK_GRAY") + "]" +ChatColor.of("RED") + "Not enough arguments! (correct usage: /stats set [stat] [value])");
+            commandSender.sendMessage(Utils.getMiniMessage().deserialize(Utils.PLUGIN_TAG + "<red>Not enough arguments! (correct usage: /stats set [stat] [value])"));
         }
         if(strings.length < 3)
             target = (Player) commandSender;
         else{
             if(!commandSender.hasPermission("skysongstats.set.other")){
-                commandSender.sendMessage(ChatColor.of("DARK_GRAY") + "[" + ChatColor.of("GOLD") + "SkysongStats" + ChatColor.of("DARK_GRAY") + "]" +ChatColor.of("RED") + "You don't have permissions to set other players' stats!");
+                commandSender.sendMessage(Utils.getMiniMessage().deserialize(Utils.PLUGIN_TAG + "<red>You don't have permissions to set other players' stats!"));
                 return true;
             }
             target = Bukkit.getServer().getPlayer(strings[0]);
             if(target == null){
-                commandSender.sendMessage(ChatColor.DARK_GRAY + "[" + ChatColor.GOLD + "SkysongStats" + ChatColor.DARK_GRAY + "] " + ChatColor.GRAY + "No Player found with that username!");
+                commandSender.sendMessage(Utils.getMiniMessage().deserialize(Utils.PLUGIN_TAG + "<red>No Player found with that username!"));
                 return true;
             }
         }
 
         if(!Utils.isAStat(strings[0])){
-            commandSender.sendMessage(ChatColor.DARK_GRAY + "[" + ChatColor.GOLD + "SkysongStats" + ChatColor.DARK_GRAY + "] " + ChatColor.GRAY + "\"" + strings[0] + "\"" + " is not a stat!");
+            commandSender.sendMessage(Utils.getMiniMessage().deserialize(Utils.PLUGIN_TAG + "<yellow>\"" + strings[0] + "\"" + " <red>is not a stat!"));
             return true;
         } else
             stat = strings[0];
         try{
             num = Integer.parseInt(strings[1]);
         }catch (NumberFormatException e){
-            commandSender.sendMessage(ChatColor.DARK_GRAY + "[" + ChatColor.GOLD + "SkysongStats" + ChatColor.DARK_GRAY + "] " + ChatColor.RED + "\"" + strings[1] + "\" is not a number!");
+            commandSender.sendMessage(Utils.getMiniMessage().deserialize(Utils.PLUGIN_TAG + "<yellow>\"" + strings[1] + "\" <red>is not a number!"));
             return true;
         }
 
@@ -91,7 +91,7 @@ public class AddStat implements CommandExecutor {
         }
 
         SkysongStats.getPlugin().getUtils().getStatsManager().updateStats(stats);
-        commandSender.sendMessage(ChatColor.DARK_GRAY + "[" + ChatColor.GOLD + "SkysongStats" + ChatColor.DARK_GRAY + "] " + ChatColor.GRAY + strings[1] + " has been modified");
+        commandSender.sendMessage(Utils.getMiniMessage().deserialize(Utils.PLUGIN_TAG + "<yellow>" + strings[1] + " <red>has been modified"));
 
         return true;
     }

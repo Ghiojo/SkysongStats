@@ -17,15 +17,15 @@ public class DeleteProfile implements CommandExecutor {
     public boolean onCommand(@NotNull CommandSender commandSender, @NotNull Command command, @NotNull String s, @NotNull String[] strings) {
         Player player = (Player) commandSender;
         if(strings.length < 1){
-            commandSender.sendMessage(Utils.getMiniMessage().deserialize("<dark_gray>[<gold>SkysongStats<dark_gray>] <gray>Too Little arguments! (Usage: /profile create (name))"));
+            commandSender.sendMessage(Utils.getMiniMessage().deserialize(Utils.PLUGIN_TAG + "<red>Too Little arguments! (Usage: /profile create (name))"));
             return true;
         }
         if(SkysongStats.getPlugin().getUtils().getStatsManager().findStats(player.getUniqueId().toString(), strings[0]) == null){
-            commandSender.sendMessage(ChatColor.DARK_GRAY + "[" + ChatColor.GOLD + "SkysongStats" + ChatColor.DARK_GRAY + "] " + ChatColor.GRAY + "There's no profile with that name!");
+            commandSender.sendMessage(Utils.getMiniMessage().deserialize(Utils.PLUGIN_TAG + "<red>There's no profile with that name!"));
             return true;
         }
         if(Objects.equals(SkysongStats.getPlugin().getUtils().getStatsManager().findStats(player.getUniqueId().toString(), strings[0]).getProfile(), SkysongStats.getPlugin().getUtils().getProfileManager().findActiveStats(player.getUniqueId().toString()).getProfile())){
-            commandSender.sendMessage(ChatColor.DARK_GRAY + "[" + ChatColor.GOLD + "SkysongStats" + ChatColor.DARK_GRAY + "] " + ChatColor.GRAY + "You cannot delete the profile you are currently on, switch profiles before doing so!");
+            commandSender.sendMessage(Utils.getMiniMessage().deserialize(Utils.PLUGIN_TAG + "<red>You cannot delete the profile you are currently on, switch profiles before doing so!"));
             return true;
         }
 
@@ -33,7 +33,7 @@ public class DeleteProfile implements CommandExecutor {
         SkysongStats.getPlugin().getUtils().getSkillManager().deleteSkillProfile(SkysongStats.getPlugin().getUtils().getSkillManager().findSkills(player.getUniqueId().toString(), strings[0]));
         SkysongStats.getPlugin().getUtils().getProfileManager().deleteSetupProfile(SkysongStats.getPlugin().getUtils().getProfileManager().findSetupProfile(player.getUniqueId().toString(), strings[0]));
 
-        player.sendMessage(ChatColor.DARK_GRAY + "[" + ChatColor.GOLD + "SkysongStats" + ChatColor.DARK_GRAY + "] " + ChatColor.GRAY + " Profile \"" + strings[0] + "\" has been deleted!");
+        player.sendMessage(Utils.getMiniMessage().deserialize(Utils.PLUGIN_TAG + "<gray>Profile \"" + strings[0] + "\" has been deleted!"));
         return true;
     }
 }

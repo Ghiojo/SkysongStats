@@ -23,7 +23,7 @@ public class SkillsCommand implements CommandExecutor {
 
         String[] newArgs = Arrays.copyOfRange(strings, 1, strings.length);
         if(strings.length < 1){
-            commandSender.sendMessage(Utils.getMiniMessage().deserialize(Utils.PLUGIN_TAG + "<gray>Too Little arguments! (Usage: /skill (subcommand))"));
+            commandSender.sendMessage(Utils.getMiniMessage().deserialize(Utils.PLUGIN_TAG + "<red>Too Little arguments! (Usage: /skill (subcommand))"));
             return true;
         }
 

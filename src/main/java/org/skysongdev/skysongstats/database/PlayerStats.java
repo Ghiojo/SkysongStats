@@ -182,7 +182,12 @@ public class PlayerStats {
         this.speed = value;
     }
     public void setHP(int value){
-        this.hp = value;
+        if(value > hp_max + getMaxHPModifiers())
+            this.hp = hp_max + getMaxHPModifiers();
+        else if(value < 0)
+            this.hp = 0;
+        else
+            this.hp = value;
     }
     public void setTemp_hp(int value){
         this.temp_hp = value;

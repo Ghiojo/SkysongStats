@@ -22,7 +22,7 @@ public class ViewStats implements CommandExecutor {
         if(strings.length > 1){
             target = Bukkit.getServer().getPlayer(strings[0]);
             if(target == null){
-                player.sendMessage(ChatColor.DARK_GRAY + "[" + ChatColor.GOLD + "SkysongStats" + ChatColor.DARK_GRAY + "] " + ChatColor.GRAY + "No Player found with that username!");
+                player.sendMessage(Utils.getMiniMessage().deserialize(Utils.PLUGIN_TAG + "<red>No Player found with that username!"));
                 return true;
             }
         } else {

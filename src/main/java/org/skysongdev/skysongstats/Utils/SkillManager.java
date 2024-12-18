@@ -23,6 +23,69 @@ public class SkillManager {
     public void addSkillProfile(PlayerSkills skill){
         SkillManager.playerSkills.add(skill);
     }
+
+    public Utils.Skills getSkill(String skill){
+        switch(skill.toLowerCase()){
+            case "animalhandling":
+            case "ah":
+                return Utils.Skills.ANIMAL_HANDLING;
+            case "farming":
+            case "farm":
+                return Utils.Skills.FARMING;
+            case "forestry":
+            case "forest":
+                return Utils.Skills.FORESTRY;
+            case "mining":
+            case "min":
+                return Utils.Skills.MINING;
+            case "mistgathering":
+            case "mist":
+                return Utils.Skills.MIST_GATHERING;
+            case "woodprocessing":
+            case "wood":
+                return Utils.Skills.WOOD_PROCESSING;
+            case "alchemy":
+            case "alch":
+                return Utils.Skills.ALCHEMY;
+            case "artificing":
+            case "arti":
+                return Utils.Skills.ARTIFICING;
+            case "cooking":
+            case "cook":
+                return Utils.Skills.COOKING;
+            case "craftsman":
+            case "craft":
+                return Utils.Skills.CRAFTSMAN;
+            case "metalworking":
+            case "metal":
+                return Utils.Skills.METALWORKING;
+            case "witchcraft":
+            case "witch":
+                return Utils.Skills.WITCHCRAFT;
+            case "economical":
+            case "eco":
+                return Utils.Skills.ECONOMICAL;
+            case "scholarly":
+            case "scholar":
+                return Utils.Skills.SCHOLARLY;
+            case "entertainment":
+            case "ent":
+                return Utils.Skills.ENTERTAINMENT;
+            case "martial":
+                return Utils.Skills.MARTIAL;
+            case "medical":
+            case "med":
+            case "medic":
+                return Utils.Skills.MEDICAL;
+            case "transportationandexploration":
+            case "tande":
+            case "t&e":
+                return Utils.Skills.TRANSPORTATION_AND_EXPLORATION;
+            default:
+                return null;
+        }
+    }
+
     public void addSkillXP(PlayerSkills skills, String skill, int xp){
         switch(skill.toLowerCase()){
             case "animalhandling":
@@ -182,6 +245,11 @@ public class SkillManager {
         }
     }
 
+    public PlayerSkills findActiveSkills(String uuid){
+        String profile = getPlugin().getUtils().getProfileManager().getActiveProfileName(uuid);
+        return findSkills(uuid, profile);
+    }
+
     public void updateSkillProfile(PlayerSkills skillProfile){
         int index = playerSkills.indexOf(skillProfile);
         if(index != -1)
@@ -195,6 +263,33 @@ public class SkillManager {
         } catch (SQLException e) {
             Bukkit.getLogger().warning("[SkysongStats] Couldn't delete stat data!");
             e.printStackTrace();
+        }
+    }
+
+    public String getSkillLevel(int xp){
+        if(xp < 16){
+            return "Unskilled";
+        }else if(xp < 40){
+            return "Novice";
+        }else if(xp < 80){
+            return "Competent";
+        }else if(xp < 128){
+            return "Journeyman";
+        }else{
+            return "Expert";
+        }
+    }
+    public String getSkillLevelFormatted(int xp){
+        if(xp < 16){
+            return "<dark_gray>Unskilled";
+        }else if(xp < 40){
+            return "<green>Novice";
+        }else if(xp < 80){
+            return "<blue>Competent";
+        }else if(xp < 128){
+            return "<#cc6ce9>Journeyman";
+        }else{
+            return "<gold>Expert";
         }
     }
 }

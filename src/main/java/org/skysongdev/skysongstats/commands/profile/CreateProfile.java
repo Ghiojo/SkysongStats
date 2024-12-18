@@ -21,15 +21,15 @@ public class CreateProfile implements CommandExecutor {
     public boolean onCommand(@NotNull CommandSender commandSender, @NotNull Command command, @NotNull String s, @NotNull String[] strings) {
         Player player = (Player) commandSender;
         if(strings.length < 1){
-            commandSender.sendMessage(ChatColor.DARK_GRAY + "[" + ChatColor.GOLD + "SkysongStats" + ChatColor.DARK_GRAY + "] " + ChatColor.GRAY + "Too Little arguments! (Usage: /profile create (name))");
+            commandSender.sendMessage(Utils.getMiniMessage().deserialize(Utils.PLUGIN_TAG + "<gray>Too Little arguments! (Usage: /profile create (name))"));
             return true;
         }
         if(getPlugin().getUtils().getStatsManager().findStats(player.getUniqueId().toString(), strings[0]) != null){
-            commandSender.sendMessage(ChatColor.DARK_GRAY + "[" + ChatColor.GOLD + "SkysongStats" + ChatColor.DARK_GRAY + "] " + ChatColor.GRAY + "You already have a profile with this name!");
+            commandSender.sendMessage(Utils.getMiniMessage().deserialize(Utils.PLUGIN_TAG  + "<gray> already have a profile with this name!"));
             return true;
         }
         if(strings[0].length() > 20){
-            commandSender.sendMessage(ChatColor.DARK_GRAY + "[" + ChatColor.GOLD + "SkysongStats" + ChatColor.DARK_GRAY + "] " + ChatColor.GRAY + "Profile name is too long! (Max 20 characters)");
+            commandSender.sendMessage(Utils.getMiniMessage().deserialize(Utils.PLUGIN_TAG +  "<gray>Profile name is too long! (Max 20 characters)"));
             return true;
         }
 
@@ -61,7 +61,7 @@ public class CreateProfile implements CommandExecutor {
         }
 
 
-        player.sendMessage(ChatColor.DARK_GRAY + "[" + ChatColor.GOLD + "SkysongStats" + ChatColor.DARK_GRAY + "] " + ChatColor.GRAY + " Profile \"" + strings[0] + "\" has been created!");
+        player.sendMessage(Utils.getMiniMessage().deserialize(Utils.PLUGIN_TAG +  "<gray>Profile \"" + strings[0] + "\" has been created!"));
 
         return true;
     }
