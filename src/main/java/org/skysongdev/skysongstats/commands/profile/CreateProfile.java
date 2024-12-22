@@ -10,6 +10,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.skysongdev.skysongstats.SkysongStats;
 import org.skysongdev.skysongstats.Utils.Utils;
+import org.skysongdev.skysongstats.database.CharacterProfile;
 import org.skysongdev.skysongstats.database.PlayerSkills;
 import org.skysongdev.skysongstats.database.PlayerStats;
 import org.skysongdev.skysongstats.database.SetupProfile;
@@ -60,6 +61,14 @@ public class CreateProfile implements TabExecutor {
         getPlugin().getUtils().getSkillManager().addSkillProfile(skillProfile);
         try {
             getPlugin().getDatabase().createSkillsData(skillProfile);
+        }catch(Exception e){
+            e.printStackTrace();
+        }
+
+        CharacterProfile characterProfile = new CharacterProfile(player.getUniqueId().toString(), strings[0]);
+        getPlugin().getUtils().getCharacterManager().addCharacter(characterProfile);
+        try {
+            getPlugin().getDatabase().createCharacterData(characterProfile);
         }catch(Exception e){
             e.printStackTrace();
         }

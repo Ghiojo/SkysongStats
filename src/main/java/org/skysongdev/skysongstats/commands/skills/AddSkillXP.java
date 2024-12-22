@@ -24,6 +24,10 @@ public class AddSkillXP implements TabExecutor {
         Player target;
         int xpammount;
         if(commandSender instanceof Player){
+            if(!commandSender.hasPermission("skysongstats.addxp")){
+                commandSender.sendMessage(Utils.getMiniMessage().deserialize(Utils.PLUGIN_TAG + "<red>You do not have permission to use this command!"));
+                return true;
+            }
             player = (Player) commandSender;
         }
         if(strings.length < 2){

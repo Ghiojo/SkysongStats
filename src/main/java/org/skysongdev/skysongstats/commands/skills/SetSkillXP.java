@@ -24,6 +24,10 @@ public class SetSkillXP implements TabExecutor {
         int xpammount;
 
         if(commandSender instanceof Player){
+            if(!commandSender.hasPermission("skysongstats.command.setxp")){
+                commandSender.sendMessage(Utils.getMiniMessage().deserialize(Utils.PLUGIN_TAG + "<red>You do not have permission to use this command!"));
+                return true;
+            }
             player = (Player) commandSender;
         }
         if(strings.length < 2){

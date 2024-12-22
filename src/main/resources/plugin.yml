@@ -66,3 +66,45 @@ commands:
     description: "View your character"
     usage: "/schar [player]"
     permission: "skysongstats.schar"
+permissions:
+  skysongstats.heal.other:
+    description: "Allows you to heal other players"
+    default: op
+  skysongstats.damage.other:
+    description: "Allows you to damage other players"
+    default: op
+  skysongstats.temphp.other:
+    description: "Allows you to view other players temporary health"
+    default: op
+  skysongstats.reload:
+    description: "Allows you to reload the plugin"
+    default: op
+  skysongstats.modifier.add.other:
+    description: "Allows you to add modifiers to other players"
+    default: op
+  skysongstats.modifier.del.other:
+    description: "Allows you to remove modifiers from other players"
+    default: op
+  skysongstats.modifier.view.other:
+    description: "Allows you to view other players modifiers"
+    default: op
+  skysongstats.addxp:
+    description: "Allows you to add xp to yourself"
+    default: op
+  skysongstats.setxp:
+    description: "Allows you to set xp to yourself"
+    default: op
+  skysongstats.*:
+    description: "Wildcard permission"
+    default: op
+    children:
+        skysongstats.heal.other: true
+        skysongstats.damage.other: true
+        skysongstats.temphp.other: true
+        skysongstats.reload: true
+        skysongstats.modifier.add.other: true
+        skysongstats.modifier.del.other: true
+        skysongstats.modifier.view.other: true
+        skysongstats.addxp: true
+        skysongstats.setxp: true
+
