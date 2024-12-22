@@ -10,6 +10,17 @@ public class CharacterProfile {
     private String pronouns;
     private String description;
 
+    public CharacterProfile(String uuid) {
+        this.uuid = uuid;
+        this.profile = "Default";
+        this.name = "[Not Set]";
+        this.age = "[Not Set]";
+        this.gender = "[Not Set]";
+        this.ancestry = "[Not Set]";
+        this.pronouns = "[Not Set]";
+        this.description = "[Not Set]";
+    }
+
     public CharacterProfile(String uuid, String profile, String name, String age, String gender, String ancestry, String pronouns, String description) {
         this.uuid = uuid;
         this.profile = profile;

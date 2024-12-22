@@ -5,6 +5,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.skysongdev.skysongstats.SkysongStats;
+import org.skysongdev.skysongstats.database.CharacterProfile;
 import org.skysongdev.skysongstats.database.PlayerSkills;
 import org.skysongdev.skysongstats.database.PlayerStats;
 import org.skysongdev.skysongstats.database.SetupProfile;
@@ -31,6 +32,8 @@ public class PlayerRegisterListener implements Listener {
             PlayerSkills skills = new PlayerSkills(event.getPlayer().getUniqueId().toString());
             getPlugin().getUtils().getSkillManager().addSkillProfile(skills);
             getPlugin().getUtils().getProfileManager().createSetupProfile(event.getPlayer().getUniqueId().toString());
+            CharacterProfile character = new CharacterProfile(event.getPlayer().getUniqueId().toString());
+            getPlugin().getUtils().getCharacterManager().addCharacter(character);
         }
         if(!getPlugin().getUtils().getProfileManager().findActiveSetupProfile(event.getPlayer().getUniqueId().toString()).isSetUp()){
             event.getPlayer().sendMessage(getPlugin().getUtils().getMiniMessage().deserialize(getPlugin().getUtils().PLUGIN_TAG + "<green>You have yet to set up your profile! Use /setup to get started!"));

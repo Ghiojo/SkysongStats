@@ -34,7 +34,7 @@ public class ViewSkills implements TabExecutor {
         if(strings.length > 1){
             target = Bukkit.getServer().getPlayer(strings[0]);
             if(target == null){
-                player.sendMessage(ChatColor.DARK_GRAY + "[" + ChatColor.GOLD + "SkysongStats" + ChatColor.DARK_GRAY + "] " + ChatColor.GRAY + "No Player found with that username!");
+                player.sendMessage(getPlugin().getUtils().getMiniMessage().deserialize("<red>That player is not online!"));
                 return true;
             }
         } else {

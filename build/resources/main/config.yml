@@ -4,3 +4,14 @@ database:
   user: "root"
   password: ""
   database_name: "skysong_titles"
+
+base_stats:
+  default:
+    item: LIME_WOOL
+    name: "<gray>Default"
+    stats:
+      strength: 0
+      dexterity: 0
+      constitution: 0
+      focus: 0
+      speed: 6
