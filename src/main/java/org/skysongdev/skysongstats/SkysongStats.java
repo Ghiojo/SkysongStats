@@ -3,10 +3,12 @@ package org.skysongdev.skysongstats;
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.skysongdev.skysongstats.Utils.Utils;
+import org.skysongdev.skysongstats.commands.character.CharacterCommand;
 import org.skysongdev.skysongstats.commands.hpManagement.AddHP;
 import org.skysongdev.skysongstats.commands.hpManagement.DamageHP;
 import org.skysongdev.skysongstats.commands.hpManagement.ReduceHP;
 import org.skysongdev.skysongstats.commands.hpManagement.TempHp;
+import org.skysongdev.skysongstats.commands.misc.ReloadCommand;
 import org.skysongdev.skysongstats.commands.modifier.ModifierCommand;
 import org.skysongdev.skysongstats.commands.profile.ProfileCommand;
 import org.skysongdev.skysongstats.commands.setup.SetupCommand;
@@ -42,6 +44,7 @@ public final class SkysongStats extends JavaPlugin {
     public SetupCommand setupCommand = new SetupCommand();
     public SkillsCommand skillsCommand = new SkillsCommand();
     public StatsCommand statsCommand = new StatsCommand();
+    public CharacterCommand characterCommand = new CharacterCommand();
 
 
     public Database getDatabase() { return database; }
@@ -81,6 +84,9 @@ public final class SkysongStats extends JavaPlugin {
         this.getCommand("setup").setExecutor(setupCommand);
         this.getCommand("skills").setExecutor(skillsCommand);
         this.getCommand("stats").setExecutor(statsCommand);
+        this.getCommand("ssreload").setExecutor(new ReloadCommand());
+        this.getCommand("schar").setExecutor(characterCommand);
+
     }
 
     public void AssignListeners() {

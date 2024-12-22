@@ -241,8 +241,31 @@ public class StatsExpansion extends PlaceholderExpansion {
                 returnString = Integer.toString(stats.getFictis_max() + stats.getMaxFictisModifiers());
                 returnString = PlaceholderAPI.setPlaceholders(player, returnString);
                 return returnString;
-
-
+            //Character Sheet
+            case "character_name":
+                returnString = plugin.getUtils().getCharacterManager().findActiveCharacter(player.getUniqueId().toString()).getName();
+                returnString = PlaceholderAPI.setPlaceholders(player, returnString);
+                return returnString;
+            case "character_age":
+                returnString = plugin.getUtils().getCharacterManager().findActiveCharacter(player.getUniqueId().toString()).getAge();
+                returnString = PlaceholderAPI.setPlaceholders(player, returnString);
+                return returnString;
+            case "character_gender":
+                returnString = plugin.getUtils().getCharacterManager().findActiveCharacter(player.getUniqueId().toString()).getGender();
+                returnString = PlaceholderAPI.setPlaceholders(player, returnString);
+                return returnString;
+            case "character_pronouns":
+                returnString = plugin.getUtils().getCharacterManager().findActiveCharacter(player.getUniqueId().toString()).getPronouns();
+                returnString = PlaceholderAPI.setPlaceholders(player, returnString);
+                return returnString;
+            case "character_ancestry":
+                returnString = plugin.getUtils().getCharacterManager().findActiveCharacter(player.getUniqueId().toString()).getAncestry();
+                returnString = PlaceholderAPI.setPlaceholders(player, returnString);
+                return returnString;
+            case "character_description":
+                returnString = plugin.getUtils().getCharacterManager().findActiveCharacter(player.getUniqueId().toString()).getDescription();
+                returnString = PlaceholderAPI.setPlaceholders(player, returnString);
+                return returnString;
         }
 
         return null;

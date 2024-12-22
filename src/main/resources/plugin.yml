@@ -58,3 +58,11 @@ commands:
     description: "View your health"
     usage: "/hp [player]"
     permission: "skysongstats.hp"
+  ssreload:
+    description: "Reload the plugin"
+    usage: "/ssreload"
+    permission: "skysongstats.ssreload"
+  schar:
+    description: "View your character"
+    usage: "/schar [player]"
+    permission: "skysongstats.schar"

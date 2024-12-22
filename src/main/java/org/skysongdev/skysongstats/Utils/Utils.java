@@ -29,9 +29,14 @@ public class Utils {
         return profileManager;
     }
 
+    public CharacterManager getCharacterManager() {
+        return characterManager;
+    }
+
     private final SkillManager skillManager = new SkillManager();
     private final StatsManager statsManager = new StatsManager();
     private final ProfileManager profileManager = new ProfileManager();
+    private final CharacterManager characterManager = new CharacterManager();
 
     public Utils(SkysongStats plugin){
         this.plugin = plugin;

@@ -56,7 +56,7 @@ public class StatsManager {
             e.printStackTrace();
         }
     }
-    public void delteModifiers(PlayerStats stat){
+    public void deleteModifiers(PlayerStats stat){
         try {
             for(Modifier modifier : stat.getModifiers()){
                 getPlugin().getDatabase().deleteModifierData(stat, stat.getModifierIndex(modifier));

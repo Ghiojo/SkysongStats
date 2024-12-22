@@ -1,10 +1,7 @@
 package org.skysongdev.skysongstats.database;
 
 import org.bukkit.Bukkit;
-import org.skysongdev.skysongstats.Utils.ProfileManager;
-import org.skysongdev.skysongstats.Utils.SkillManager;
-import org.skysongdev.skysongstats.Utils.StatsManager;
-import org.skysongdev.skysongstats.Utils.Utils;
+import org.skysongdev.skysongstats.Utils.*;
 
 import java.sql.*;
 import java.util.ArrayList;
@@ -50,6 +47,8 @@ public class Database {
         buildStatement.execute(sqlSkills);
         String sqlSetup = "CREATE TABLE IF NOT EXISTS skysong_setup(id INT primary key NOT NULL auto increment, uuid varchar(36), profile varchar(20), setup BOOLEAN)";
         buildStatement.execute(sqlSetup);
+        String sqlCharacter = "CREATE TABLE IF NOT EXISTS skysong_characters(id INT primary key NOT NULL auto increment, uuid varchar(36), profile varchar(20), name varchar(100), age varchar(20), gender varchar(20), ancestry varchar(50), pronouns varchar(20), description varchar(MAX))";
+        buildStatement.execute(sqlCharacter);
     }
 
     //Stats Handling
@@ -240,6 +239,42 @@ public class Database {
         statement.close();
     }
 
+    //Character Handling
+    public void createCharacterData(CharacterProfile profile) throws SQLException{
+        PreparedStatement statement = getConnection().prepareStatement("INSERT INTO skysong_characters(uuid, profile, name, age, gender, ancestry, pronouns, description) VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
+        statement.setString(1, profile.getUuid());
+        statement.setString(2, profile.getProfile());
+        statement.setString(3, profile.getName());
+        statement.setString(4, profile.getAge());
+        statement.setString(5, profile.getGender());
+        statement.setString(6, profile.getAncestry());
+        statement.setString(7, profile.getPronouns());
+        statement.setString(8, profile.getDescription());
+        statement.executeUpdate();
+        statement.close();
+    }
+    public void updateCharacterData(CharacterProfile profile) throws SQLException{
+        PreparedStatement statement = getConnection().prepareStatement("UPDATE skysong_characters SET name = ?, age = ?, gender = ?, ancestry = ?, pronouns = ?, description = ? WHERE uuid = ? AND profile = ?");
+        statement.setString(1, profile.getName());
+        statement.setString(2, profile.getAge());
+        statement.setString(3, profile.getGender());
+        statement.setString(4, profile.getAncestry());
+        statement.setString(5, profile.getPronouns());
+        statement.setString(6, profile.getDescription());
+        statement.setString(7, profile.getUuid());
+        statement.setString(8, profile.getProfile());
+        statement.executeUpdate();
+        statement.close();
+    }
+    public void deleteCharacterData(CharacterProfile profile) throws SQLException{
+        PreparedStatement statement = getConnection().prepareStatement("DELETE FROM skysong_characters WHERE uuid = ? AND profile = ?");
+        statement.setString(1, profile.getUuid());
+        statement.setString(2, profile.getProfile());
+        statement.executeUpdate();
+        statement.close();
+    }
+
+
     //Data Dumping
     public void dumpDatabaseData() throws SQLException{
         dumpStatsDatabase();
@@ -247,6 +282,7 @@ public class Database {
         dumpSkillsDatabase();
         dumpSetupDatabase();
         dumpModifiersDatabase();
+        dumpCharacterDatabase();
     }
     public void dumpStatsDatabase() throws SQLException{
         StatsManager.statsProfileList = new ArrayList<PlayerStats>();
@@ -343,6 +379,27 @@ public class Database {
 
             Modifier mod = new Modifier(stat, modifier);
             getPlugin().getUtils().getStatsManager().findStats(uuid, profile).addModifier(mod);
+        }
+    }
+
+    public void dumpCharacterDatabase() throws SQLException {
+        CharacterManager.characterProfiles = new ArrayList<CharacterProfile>();
+        Statement statement = getConnection().createStatement();
+        String sql = "SELECT * FROM skysong_characters";
+        ResultSet results = statement.executeQuery(sql);
+
+        while (results.next()) {
+            String uuid = results.getString("uuid");
+            String profile = results.getString("profile");
+            String name = results.getString("name");
+            String age = results.getString("age");
+            String gender = results.getString("gender");
+            String ancestry = results.getString("ancestry");
+            String pronouns = results.getString("pronouns");
+            String description = results.getString("description");
+
+            CharacterProfile characterProfile = new CharacterProfile(uuid, profile, name, age, gender, ancestry, pronouns, description);
+            getPlugin().getUtils().getCharacterManager().characterProfiles.add(characterProfile);
         }
     }
 
