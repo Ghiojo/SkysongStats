@@ -25,6 +25,16 @@ public class ProfileManager {
         return null;
     }
 
+    public ArrayList<String> findAllProfiles(String uuid){
+        ArrayList<String> profiles = new ArrayList<>();
+        for(ProfileIndex current : ProfileManager.activeProfiles){
+            if(Objects.equals(current.getUuid(), uuid)){
+                profiles.add(current.getProfile());
+            }
+        }
+        return profiles;
+    }
+
     public void setProfile(PlayerStats stat){
         for(ProfileIndex current : ProfileManager.activeProfiles){
             if(Objects.equals(current.getUuid(), stat.getUuid())){

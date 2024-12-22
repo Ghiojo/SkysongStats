@@ -9,6 +9,8 @@ import org.skysongdev.skysongstats.Utils.Utils;
 import java.sql.*;
 import java.util.ArrayList;
 
+import static org.skysongdev.skysongstats.SkysongStats.getPlugin;
+
 public class Database {
     private final String HOST;
     private final String PORT;
@@ -243,6 +245,8 @@ public class Database {
         dumpStatsDatabase();
         dumpActiveStatsDatabase();
         dumpSkillsDatabase();
+        dumpSetupDatabase();
+        dumpModifiersDatabase();
     }
     public void dumpStatsDatabase() throws SQLException{
         StatsManager.statsProfileList = new ArrayList<PlayerStats>();
@@ -306,6 +310,39 @@ public class Database {
             }
             PlayerSkills playerSkills = new PlayerSkills(uuid, profile, skills);
             SkillManager.playerSkills.add(playerSkills);
+        }
+    }
+
+    public void dumpSetupDatabase() throws SQLException{
+        ProfileManager.setupProfiles = new ArrayList<SetupProfile>();
+        Statement statement = getConnection().createStatement();
+        String sql = "SELECT * FROM skysong_setup";
+        ResultSet results = statement.executeQuery(sql);
+
+        while(results.next()){
+            String uuid = results.getString("uuid");
+            String profile = results.getString("profile");
+            boolean setup = results.getBoolean("setup");
+
+            SetupProfile setupProfile = new SetupProfile(uuid, profile, setup);
+            ProfileManager.setupProfiles.add(setupProfile);
+        }
+    }
+
+    public void dumpModifiersDatabase() throws SQLException{
+        Statement statement = getConnection().createStatement();
+        String sql = "SELECT * FROM skysong_modifiers";
+        ResultSet results = statement.executeQuery(sql);
+
+        while(results.next()){
+            String uuid = results.getString("uuid");
+            String profile = results.getString("profile");
+            int index = results.getInt("index");
+            Utils.StaticStats stat = Utils.toStatEnum(results.getInt("stat"));
+            int modifier = results.getInt("modifier");
+
+            Modifier mod = new Modifier(stat, modifier);
+            getPlugin().getUtils().getStatsManager().findStats(uuid, profile).addModifier(mod);
         }
     }
 

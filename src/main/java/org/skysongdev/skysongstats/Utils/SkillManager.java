@@ -11,6 +11,32 @@ import static org.skysongdev.skysongstats.SkysongStats.getPlugin;
 
 public class SkillManager {
     public static ArrayList<PlayerSkills> playerSkills;
+    public ArrayList<String> skillList = new ArrayList<String>();
+
+    public SkillManager(){
+        skillList.add("AnimalHandling");
+        skillList.add("Farming");
+        skillList.add("Forestry");
+        skillList.add("Mining");
+        skillList.add("MistGathering");
+        skillList.add("WoodProcessing");
+        skillList.add("Alchemy");
+        skillList.add("Artificing");
+        skillList.add("Cooking");
+        skillList.add("Craftsman");
+        skillList.add("Metalworking");
+        skillList.add("Witchcraft");
+        skillList.add("Economical");
+        skillList.add("Scholarly");
+        skillList.add("Entertainment");
+        skillList.add("Martial");
+        skillList.add("Medical");
+        skillList.add("T&E");
+    }
+
+    public ArrayList<String> getSkillList(){
+        return skillList;
+    }
 
     public PlayerSkills findSkills(String uuid, String profile){
         for(PlayerSkills current : SkillManager.playerSkills){

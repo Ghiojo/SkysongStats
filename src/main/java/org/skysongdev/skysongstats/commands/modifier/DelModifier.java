@@ -4,12 +4,16 @@ import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
+import org.bukkit.command.TabExecutor;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.skysongdev.skysongstats.SkysongStats;
 import org.skysongdev.skysongstats.Utils.Utils;
 
-public class DelModifier implements CommandExecutor {
+import java.util.List;
+
+public class DelModifier implements TabExecutor {
     @Override
     public boolean onCommand(@NotNull CommandSender commandSender, @NotNull Command command, @NotNull String s, @NotNull String[] strings) {
         Player target;
@@ -43,5 +47,10 @@ public class DelModifier implements CommandExecutor {
 
         SkysongStats.getPlugin().getUtils().getProfileManager().findActiveStats(target.getUniqueId().toString()).getModifiers().remove(id-1);
         return true;
+    }
+
+    @Override
+    public @Nullable List<String> onTabComplete(@NotNull CommandSender commandSender, @NotNull Command command, @NotNull String s, @NotNull String[] strings) {
+        return List.of();
     }
 }

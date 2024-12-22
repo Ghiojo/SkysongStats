@@ -5,14 +5,22 @@ import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
+import org.bukkit.command.TabExecutor;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.skysongdev.skysongstats.SkysongStats;
 import org.skysongdev.skysongstats.Utils.Utils;
+import org.skysongdev.skysongstats.database.PlayerSkills;
 import org.skysongdev.skysongstats.database.PlayerStats;
 import org.skysongdev.skysongstats.events.ProfileUpdateEvent;
 
-public class SwitchProfile implements CommandExecutor {
+import java.util.ArrayList;
+import java.util.List;
+
+import static org.skysongdev.skysongstats.SkysongStats.getPlugin;
+
+public class SwitchProfile implements TabExecutor {
     @Override
     public boolean onCommand(@NotNull CommandSender commandSender, @NotNull Command command, @NotNull String s, @NotNull String[] strings) {
         Player player = (Player) commandSender;
@@ -31,9 +39,13 @@ public class SwitchProfile implements CommandExecutor {
         ProfileUpdateEvent event = new ProfileUpdateEvent(player.getUniqueId().toString(), strings[0]);
         Bukkit.getPluginManager().callEvent(event);
 
-        //Skills also need to be replaced
-
 
         return true;
+    }
+
+    @Override
+    public @Nullable List<String> onTabComplete(@NotNull CommandSender commandSender, @NotNull Command command, @NotNull String s, @NotNull String[] strings) {
+        ArrayList<String> profiles = getPlugin().getUtils().getProfileManager().findAllProfiles(((Player) commandSender).getUniqueId().toString());
+        return profiles.stream().filter(profile -> profile.startsWith(strings[0])).toList();
     }
 }

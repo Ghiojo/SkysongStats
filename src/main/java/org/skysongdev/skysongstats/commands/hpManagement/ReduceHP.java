@@ -19,25 +19,22 @@ public class ReduceHP implements CommandExecutor {
         if (commandSender instanceof Player) {
             sender = (Player) commandSender;
         }
-        if(strings.length < 2){
+        if(strings.length < 1){
             if(sender != null)
                 sender.sendMessage(Utils.getMiniMessage().deserialize(Utils.PLUGIN_TAG + "<gray>Too Little arguments! (Usage: /skill addxp (skill) (xp) (player (optional)))"));
             else
                 Bukkit.getLogger().warning("[Skysong Stats] Too Little arguments! (Usage: /skill addxp (skill) (xp) (player (optional)))");
             return true;
         }
-        if(strings.length < 3) {
+        if(strings.length < 2) {
             if(!(commandSender instanceof  Player)){
                 Bukkit.getLogger().warning("You must specify a player if you are running this command on console!");
                 return true;
             }
             target = (Player) commandSender;
-        } else{
-            if(!commandSender.hasPermission("skysongstats.heal.other")){
-                if(sender != null)
-                    sender.sendMessage(Utils.getMiniMessage().deserialize(Utils.PLUGIN_TAG + "<gray>You don't have permissions to set other players' stats!"));
-                else
-                    Bukkit.getLogger().warning("[Skysong Stats] You don't have permissions to heal other players!");
+        } else {
+            if(commandSender instanceof Player && !commandSender.hasPermission("skysongstats.damage.other")){
+                sender.sendMessage(Utils.getMiniMessage().deserialize(Utils.PLUGIN_TAG + "<gray>You don't have permissions to set other players' stats!"));
                 return true;
             }
             target = Bukkit.getPlayer(strings[2]);

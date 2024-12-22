@@ -3,6 +3,7 @@
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/SkysongStats.main.iml" filepath="$PROJECT_DIR$/.idea/modules/SkysongStats.main.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/org.skysongdev.SkysongStats.main.iml" filepath="$PROJECT_DIR$/.idea/modules/org.skysongdev.SkysongStats.main.iml" />
     </modules>
   </component>
 </project>

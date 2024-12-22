@@ -5,13 +5,19 @@ import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
+import org.bukkit.command.TabExecutor;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.skysongdev.skysongstats.SkysongStats;
 import org.skysongdev.skysongstats.Utils.Utils;
 import org.skysongdev.skysongstats.database.PlayerStats;
 
-public class AddStat implements CommandExecutor {
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+
+public class AddStat implements TabExecutor {
     int num;
     String stat;
 
@@ -94,5 +100,26 @@ public class AddStat implements CommandExecutor {
         commandSender.sendMessage(Utils.getMiniMessage().deserialize(Utils.PLUGIN_TAG + "<yellow>" + strings[1] + " <red>has been modified"));
 
         return true;
+    }
+
+    @Override
+    public @Nullable List<String> onTabComplete(@NotNull CommandSender commandSender, @NotNull Command command, @NotNull String s, @NotNull String[] strings) {
+        List<String> args = List.of("strength", "dexterity", "constitution", "focus", "speed", "arcrot", "potion", "fictis", "hp", "temphp", "ac");
+        if(strings.length == 1){
+            return args.stream().filter(a -> a.startsWith(strings[0])).toList();
+        }
+        if(strings.length == 2){
+            return List.of("");
+        }
+        if(strings.length == 3){
+            ArrayList<String> list = new ArrayList<>();
+            ArrayList<Player> players = new ArrayList<>(Bukkit.getServer().getOnlinePlayers());
+            for(int i = 0; i < Bukkit.getServer().getOnlinePlayers().size(); i++){
+                if(players.get(i).getName().startsWith(strings[2]))
+                    list.add(players.get(i).getName());
+            }
+            return list;
+        }
+        return args;
     }
 }

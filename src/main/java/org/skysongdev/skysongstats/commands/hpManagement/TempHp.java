@@ -8,22 +8,20 @@ import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 import org.skysongdev.skysongstats.Utils.Utils;
 
-import static org.skysongdev.skysongstats.SkysongStats.getPlugin;
-
-public class AddHP implements CommandExecutor {
+public class TempHp implements CommandExecutor {
     @Override
     public boolean onCommand(@NotNull CommandSender commandSender, @NotNull Command command, @NotNull String s, @NotNull String[] strings) {
         Player sender = null;
         Player target;
-        int hpAmount;
+        int tHpAmount;
         if (commandSender instanceof Player) {
             sender = (Player) commandSender;
         }
         if(strings.length < 1){
             if(sender != null)
-                sender.sendMessage(Utils.getMiniMessage().deserialize(Utils.PLUGIN_TAG + "<gray>Too Little arguments! (Usage: /heal (number) (player (optional)))"));
+                sender.sendMessage(Utils.getMiniMessage().deserialize(Utils.PLUGIN_TAG + "<gray>Too Little arguments! (Usage: /skill addxp (skill) (xp) (player (optional)))"));
             else
-                Bukkit.getLogger().warning("[Skysong Stats] Too Little arguments! (Usage: /heal (number) (player (optional)))");
+                Bukkit.getLogger().warning("[Skysong Stats] Too Little arguments! (Usage: /skill addhp (skill) (xp) (player (optional)))");
             return true;
         }
         if(strings.length < 2) {
@@ -33,7 +31,7 @@ public class AddHP implements CommandExecutor {
             }
             target = (Player) commandSender;
         } else{
-            if(commandSender instanceof Player && !commandSender.hasPermission("skysongstats.heal.other")){
+            if(commandSender instanceof Player && !commandSender.hasPermission("skysongstats.temphp.other")){
                 sender.sendMessage(Utils.getMiniMessage().deserialize(Utils.PLUGIN_TAG + "<gray>You don't have permissions to set other players' stats!"));
                 return true;
             }
@@ -46,28 +44,6 @@ public class AddHP implements CommandExecutor {
                 return true;
             }
         }
-
-        try{
-            hpAmount = Integer.parseInt(strings[1]);
-            if(hpAmount < 0){
-                if(sender != null)
-                    sender.sendMessage(Utils.getMiniMessage().deserialize(Utils.PLUGIN_TAG + "<gray>Invalid HP!"));
-                else
-                    Bukkit.getLogger().warning("[Skysong Stats] Invalid HP!");
-                return true;
-            }
-        } catch (NumberFormatException e) {
-            if(sender != null)
-                sender.sendMessage(Utils.getMiniMessage().deserialize(Utils.PLUGIN_TAG + "<gray>Invalid HP Amount!"));
-            else
-                Bukkit.getLogger().warning("[Skysong Stats] Invalid HP!");
-            return true;
-        }
-
-        getPlugin().getUtils().getProfileManager().findActiveStats(target.getUniqueId().toString()).addHP(hpAmount);
-        if(sender != null)
-            sender.sendMessage(Utils.getMiniMessage().deserialize(Utils.PLUGIN_TAG + "<gray>Added " + hpAmount + " HP to " + target.getName() + "!"));
-        Bukkit.getLogger().info("[SkysongStats] Added " + hpAmount + " HP to " + target.getName() + "!");
 
         return true;
     }

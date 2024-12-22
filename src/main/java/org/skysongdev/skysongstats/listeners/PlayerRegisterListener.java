@@ -11,29 +11,29 @@ import org.skysongdev.skysongstats.database.SetupProfile;
 
 import java.sql.SQLException;
 
+import static org.skysongdev.skysongstats.SkysongStats.getPlugin;
+
 public class PlayerRegisterListener implements Listener {
-    SkysongStats plugin;
-    public PlayerRegisterListener(SkysongStats plugin){ this.plugin = plugin; }
 
     @EventHandler
     public void onPlayerJoin(PlayerJoinEvent event){
         boolean isOldPlayer = false;
         try{
-            isOldPlayer = plugin.getUtils().isPlayerInDatabase(event.getPlayer().getUniqueId().toString());
+            isOldPlayer = getPlugin().getUtils().isPlayerInDatabase(event.getPlayer().getUniqueId().toString());
         } catch (SQLException e) {
             Bukkit.getLogger().warning("[SkysongStats] Some Error happened when looking for the player in the database!");
             e.printStackTrace();
         }
         if(!isOldPlayer){
             PlayerStats stats = new PlayerStats(event.getPlayer().getUniqueId().toString());
-            plugin.getUtils().getStatsManager().addStatProfile(stats);
-            plugin.getUtils().getProfileManager().createProfile(stats);
+            getPlugin().getUtils().getStatsManager().addStatProfile(stats);
+            getPlugin().getUtils().getProfileManager().createProfile(stats);
             PlayerSkills skills = new PlayerSkills(event.getPlayer().getUniqueId().toString());
-            plugin.getUtils().getSkillManager().addSkillProfile(skills);
-            plugin.getUtils().getProfileManager().createSetupProfile(event.getPlayer().getUniqueId().toString());
+            getPlugin().getUtils().getSkillManager().addSkillProfile(skills);
+            getPlugin().getUtils().getProfileManager().createSetupProfile(event.getPlayer().getUniqueId().toString());
         }
-        if(!SkysongStats.getPlugin().getUtils().getProfileManager().findActiveSetupProfile(event.getPlayer().getUniqueId().toString()).isSetUp()){
-            event.getPlayer().sendMessage(SkysongStats.getPlugin().getUtils().getMiniMessage().deserialize(SkysongStats.getPlugin().getUtils().PLUGIN_TAG + "<green>You have yet to set up your profile! Use /setup to get started!"));
+        if(!getPlugin().getUtils().getProfileManager().findActiveSetupProfile(event.getPlayer().getUniqueId().toString()).isSetUp()){
+            event.getPlayer().sendMessage(getPlugin().getUtils().getMiniMessage().deserialize(getPlugin().getUtils().PLUGIN_TAG + "<green>You have yet to set up your profile! Use /setup to get started!"));
         }
     }
 }

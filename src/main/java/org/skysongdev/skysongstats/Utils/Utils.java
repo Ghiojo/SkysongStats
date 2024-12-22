@@ -48,6 +48,20 @@ public class Utils {
         FICTIS_MAX,
         ARCROT_MAX,
         POTION_MAX;
+
+        public static String getStatName(StaticStats stat){
+            return switch(stat){
+                case STRENGTH -> "Strength";
+                case DEXTERITY -> "Dexterity";
+                case CONSTITUTION -> "Constitution";
+                case FOCUS -> "Focus";
+                case SPEED -> "Speed";
+                case MAXHP -> "Max HP";
+                case FICTIS_MAX -> "Fictis Max";
+                case ARCROT_MAX -> "Arcrot Max";
+                case POTION_MAX -> "Potion Max";
+            };
+        }
     }
     public enum Skills{
         ANIMAL_HANDLING(0),

@@ -7,10 +7,12 @@ import org.bukkit.Material;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
+import org.bukkit.command.TabExecutor;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.BookMeta;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.skysongdev.skysongstats.SkysongStats;
 import org.skysongdev.skysongstats.Utils.Utils;
 import org.skysongdev.skysongstats.database.PlayerSkills;
@@ -18,10 +20,11 @@ import org.skysongdev.skysongstats.database.PlayerStats;
 
 import java.awt.*;
 import java.util.ArrayList;
+import java.util.List;
 
 import static org.skysongdev.skysongstats.SkysongStats.getPlugin;
 
-public class ViewSkills implements CommandExecutor {
+public class ViewSkills implements TabExecutor {
     @Override
     public boolean onCommand(@NotNull CommandSender commandSender, @NotNull Command command, @NotNull String s, @NotNull String[] strings) {
         Player player = (Player) commandSender;
@@ -71,5 +74,17 @@ public class ViewSkills implements CommandExecutor {
 
         player.openBook(gui);
         return true;
+    }
+
+    @Override
+    public @Nullable List<String> onTabComplete(@NotNull CommandSender commandSender, @NotNull Command command, @NotNull String s, @NotNull String[] strings) {
+        if(strings.length == 1){
+            List<String> players = new ArrayList<String>();
+            for(Player player : Bukkit.getOnlinePlayers()){
+                players.add(player.getName());
+            }
+            return players;
+        }
+        return null;
     }
 }

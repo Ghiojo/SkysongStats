@@ -4,17 +4,21 @@ import net.md_5.bungee.api.ChatColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
+import org.bukkit.command.TabExecutor;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.skysongdev.skysongstats.SkysongStats;
 import org.skysongdev.skysongstats.Utils.Utils;
 import org.skysongdev.skysongstats.database.PlayerSkills;
 import org.skysongdev.skysongstats.database.PlayerStats;
 import org.skysongdev.skysongstats.database.SetupProfile;
 
+import java.util.List;
+
 import static org.skysongdev.skysongstats.SkysongStats.getPlugin;
 
-public class CreateProfile implements CommandExecutor {
+public class CreateProfile implements TabExecutor {
 
     public CreateProfile() { }
     @Override
@@ -64,5 +68,10 @@ public class CreateProfile implements CommandExecutor {
         player.sendMessage(Utils.getMiniMessage().deserialize(Utils.PLUGIN_TAG +  "<gray>Profile \"" + strings[0] + "\" has been created!"));
 
         return true;
+    }
+
+    @Override
+    public @Nullable List<String> onTabComplete(@NotNull CommandSender commandSender, @NotNull Command command, @NotNull String s, @NotNull String[] strings) {
+        return List.of("");
     }
 }

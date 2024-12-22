@@ -4,3 +4,57 @@ main: org.skysongdev.skysongstats.SkysongStats
 api-version: '1.20'
 
 softdepend: [PlaceholderAPI]
+
+commands:
+  stats:
+    description: "View your stats"
+    usage: "/stats [player]"
+    permission: "skysongstats.stats"
+  statsreload:
+    description: "Reload the plugin"
+    usage: "/statsreload"
+    permission: "skysongstats.reload"
+  damage:
+    description: "deal damage to yourself"
+    usage: "/damage [player]"
+    permission: "skysongstats.damage"
+  dhp:
+    description: "deal damage to yourself"
+    usage: "/dhp [player]"
+    permission: "skysongstats.dhp"
+  reducehp:
+    description: "reduce your health"
+    usage: "/reducehp [player]"
+    permission: "skysongstats.reducehp"
+  rhp:
+    description: "reduce your health"
+    usage: "/rhp [player]"
+    permission: "skysongstats.rhp"
+  temphp:
+    description: "View your temporary health"
+    usage: "/temphp [player]"
+    permission: "skysongstats.temphp"
+  heal:
+    description: "heal yourself"
+    usage: "/heal [player]"
+    permission: "skysongstats.heal"
+  addhp:
+    description: "heal yourself"
+    usage: "/damagehp [player]"
+    permission: "skysongstats.damagehp"
+  skills:
+    description: "View your skills"
+    usage: "/skills [player]"
+    permission: "skysongstats.skills"
+  setup:
+    description: "Setup the plugin"
+    usage: "/setup"
+    permission: "skysongstats.setup"
+  modifier:
+    description: "View your modifiers"
+    usage: "/modifier [player]"
+    permission: "skysongstats.modifier"
+  hp:
+    description: "View your health"
+    usage: "/hp [player]"
+    permission: "skysongstats.hp"

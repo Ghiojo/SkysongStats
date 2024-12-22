@@ -4,14 +4,18 @@ import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
+import org.bukkit.command.TabExecutor;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.skysongdev.skysongstats.Utils.Utils;
 import org.skysongdev.skysongstats.events.SkillUpdateEvent;
 
+import java.util.List;
+
 import static org.skysongdev.skysongstats.SkysongStats.getPlugin;
 
-public class SetSkillXP implements CommandExecutor {
+public class SetSkillXP implements TabExecutor {
 
     @Override
     public boolean onCommand(@NotNull CommandSender commandSender, @NotNull Command command, @NotNull String s, @NotNull String[] strings) {
@@ -67,5 +71,19 @@ public class SetSkillXP implements CommandExecutor {
         Bukkit.getPluginManager().callEvent(event);
 
         return true;
+    }
+
+    @Override
+    public @Nullable List<String> onTabComplete(@NotNull CommandSender commandSender, @NotNull Command command, @NotNull String s, @NotNull String[] strings) {
+        if(strings.length == 1){
+            return getPlugin().getUtils().getSkillManager().getSkillList().stream().filter(a -> a.startsWith(strings[0])).toList();
+        }
+        if(strings.length == 2){
+            return List.of("");
+        }
+        if(strings.length == 3){
+            return Bukkit.getOnlinePlayers().stream().map(Player::getName).filter(a -> a.startsWith(strings[2])).toList();
+        }
+        return null;
     }
 }

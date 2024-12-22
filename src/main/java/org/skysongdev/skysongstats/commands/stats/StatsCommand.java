@@ -4,19 +4,22 @@ import net.md_5.bungee.api.ChatColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
+import org.bukkit.command.TabExecutor;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.skysongdev.skysongstats.SkysongStats;
 import org.skysongdev.skysongstats.Utils.Utils;
 
 import java.util.Arrays;
+import java.util.List;
 
-public class StatsCommand implements CommandExecutor {
+public class StatsCommand implements TabExecutor {
     ViewStats viewStats;
     SetStat setStat;
     AddStat addStat;
 
-    public StatsCommand(SkysongStats plugin){
+    public StatsCommand(){
         this.viewStats = new ViewStats();
         this.setStat = new SetStat();
         this.addStat = new AddStat();
@@ -53,5 +56,23 @@ public class StatsCommand implements CommandExecutor {
         }
 
         return true;
+    }
+
+    @Override
+    public @Nullable List<String> onTabComplete(@NotNull CommandSender commandSender, @NotNull Command command, @NotNull String s, @NotNull String[] strings) {
+        String[] newstrings = Arrays.copyOfRange(strings, 1, strings.length);
+        if(strings.length == 1){
+            return Arrays.asList("view", "set", "add").stream().filter(a -> a.startsWith(strings[0])).toList();
+        } if(strings.length > 1){
+            switch(strings[0].toLowerCase()){
+                case "view":
+                    return List.of("");
+                case "set":
+                    return setStat.onTabComplete(commandSender, command, s, newstrings);
+                case "add":
+                    return addStat.onTabComplete(commandSender, command, s, newstrings);
+            }
+        }
+        return null;
     }
 }
