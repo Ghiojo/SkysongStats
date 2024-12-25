@@ -37,7 +37,7 @@ public class AddHP implements CommandExecutor {
                 sender.sendMessage(Utils.getMiniMessage().deserialize(Utils.PLUGIN_TAG + "<gray>You don't have permissions to set other players' stats!"));
                 return true;
             }
-            target = Bukkit.getPlayer(strings[2]);
+            target = Bukkit.getPlayer(strings[1]);
             if(target == null){
                 if(sender != null)
                     sender.sendMessage(Utils.getMiniMessage().deserialize(Utils.PLUGIN_TAG + "<gray>Player not found!"));
@@ -48,7 +48,7 @@ public class AddHP implements CommandExecutor {
         }
 
         try{
-            hpAmount = Integer.parseInt(strings[1]);
+            hpAmount = Integer.parseInt(strings[0]);
             if(hpAmount < 0){
                 if(sender != null)
                     sender.sendMessage(Utils.getMiniMessage().deserialize(Utils.PLUGIN_TAG + "<gray>Invalid HP!"));
@@ -65,7 +65,19 @@ public class AddHP implements CommandExecutor {
         }
 
         getPlugin().getUtils().getProfileManager().findActiveStats(target.getUniqueId().toString()).addHP(hpAmount);
-        if(sender != null)
+        try{
+            getPlugin().getDatabase().updateStatData( getPlugin().getUtils().getProfileManager().findActiveStats(target.getUniqueId().toString()));
+        } catch (Exception e){
+            if(sender != null)
+                sender.sendMessage(Utils.getMiniMessage().deserialize(Utils.PLUGIN_TAG + "<red>Failed to update player stats!"));
+            else
+                Bukkit.getLogger().warning("[Skysong Stats] Failed to update player stats!");
+            return true;
+        }
+
+        target.sendMessage(Utils.getMiniMessage().deserialize(Utils.PLUGIN_TAG + "<green>You have been healed for<gold> " + hpAmount + " HP<green>! Your health is now <gold>" + getPlugin().getUtils().getProfileManager().findActiveStats(target.getUniqueId().toString()).getHp() + "<green>!"));
+
+        if(sender != null && sender != target)
             sender.sendMessage(Utils.getMiniMessage().deserialize(Utils.PLUGIN_TAG + "<gray>Added " + hpAmount + " HP to " + target.getName() + "!"));
         Bukkit.getLogger().info("[SkysongStats] Added " + hpAmount + " HP to " + target.getName() + "!");
 

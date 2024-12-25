@@ -27,7 +27,7 @@ public class ProfileManager {
 
     public ArrayList<String> findAllProfiles(String uuid){
         ArrayList<String> profiles = new ArrayList<>();
-        for(ProfileIndex current : ProfileManager.activeProfiles){
+        for(PlayerStats current : StatsManager.statsProfileList){
             if(Objects.equals(current.getUuid(), uuid)){
                 profiles.add(current.getProfile());
             }
@@ -58,6 +58,15 @@ public class ProfileManager {
         return null;
     }
 
+    public ProfileIndex findActiveProfile(String uuid){
+        for(ProfileIndex current : ProfileManager.activeProfiles){
+            if(Objects.equals(current.getUuid(), uuid)){
+                return current;
+            }
+        }
+        return null;
+    }
+
     public void createProfile(PlayerStats stat){
         ProfileIndex newindex = new ProfileIndex(stat.getUuid(), stat.getProfile());
         try {
@@ -81,6 +90,12 @@ public class ProfileManager {
 
     public void addSetupProfile(SetupProfile setupProfile){
         ProfileManager.setupProfiles.add(setupProfile);
+        try {
+            getPlugin().getDatabase().createSetupData(setupProfile.getUuid(), setupProfile.getProfile());
+        }catch(SQLException e){
+            Bukkit.getLogger().warning("[SkysongStats] Unable to add a setup profile!");
+            e.printStackTrace();
+        }
     }
 
     public void createSetupProfile(String uuid){

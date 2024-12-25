@@ -37,17 +37,17 @@ public class Database {
     }
     public void initializeDatabase() throws SQLException{
         Statement buildStatement = getConnection().createStatement();
-        String sql = "CREATE TABLE IF NOT EXISTS skysong_stats(INT id primary key NOT NULL auto increment, uuid varchar(36), profile varchar(20), strength INT, dexterity INT, focus INT, constitution INT, speed INT, arcrot INT, potion INT, fictis INT, hp INT, temphp INT, ac INT)";
+        String sql = "CREATE TABLE IF NOT EXISTS skysong_stats(id INT AUTO_INCREMENT primary key , uuid varchar(36), profile varchar(20), strength INT, dexterity INT, focus INT, constitution INT, speed INT, arcrot INT, potion INT, fictis INT, hp INT, temphp INT, ac INT)";
         buildStatement.execute(sql);
         String sqlactive = "CREATE TABLE IF NOT EXISTS skysong_active_stats(uuid varchar(36) primary key, profile varchar(20))";
         buildStatement.execute(sqlactive);
-        String sqlmodifiers = "CREATE TABLE IF NOT EXISTS skysong_modifiers(id INT primary key NOT NULL auto increment, uuid varchar(36), profile varchar(20), index INT, stat INT, modifier INT)";
+        String sqlmodifiers = "CREATE TABLE IF NOT EXISTS skysong_modifiers(id INT AUTO_INCREMENT primary key, uuid varchar(36), profile varchar(20), modid INT, stat INT, modifier INT)";
         buildStatement.execute(sqlmodifiers);
-        String sqlSkills = "CREATE TABLE IF NOT EXISTS skysong_skills(id INT primary key NOT NULL auto increment, uuid varchar(36), profile varchar(20), animal INT, farming INT, forestry INT, mining INT, mist_gathering INT, wood_process INT, alchemy INT, artificing INT, cooking INT, craftsman INT, metalworking INT, tailoring INT, witchcraft INT, economical INT, scholarly INT, entertainment INT, martial INT, medical INT, tande INT)";
+        String sqlSkills = "CREATE TABLE IF NOT EXISTS skysong_skills(id INT AUTO_INCREMENT primary key, uuid varchar(36), profile varchar(20), animal_handling INT, farming INT, forestry INT, mining INT, mist_gathering INT, wood_processing INT, alchemy INT, artificing INT, cooking INT, craftsman INT, metalworking INT, tailoring INT, witchcraft INT, economical INT, scholarly INT, entertainment INT, martial INT, medical INT, transportation_and_exploration INT)";
         buildStatement.execute(sqlSkills);
-        String sqlSetup = "CREATE TABLE IF NOT EXISTS skysong_setup(id INT primary key NOT NULL auto increment, uuid varchar(36), profile varchar(20), setup BOOLEAN)";
+        String sqlSetup = "CREATE TABLE IF NOT EXISTS skysong_setup(id INT AUTO_INCREMENT primary key, uuid varchar(36), profile varchar(20), setup BOOLEAN)";
         buildStatement.execute(sqlSetup);
-        String sqlCharacter = "CREATE TABLE IF NOT EXISTS skysong_characters(id INT primary key NOT NULL auto increment, uuid varchar(36), profile varchar(20), name varchar(100), age varchar(20), gender varchar(20), ancestry varchar(50), pronouns varchar(20), description varchar(MAX))";
+        String sqlCharacter = "CREATE TABLE IF NOT EXISTS skysong_characters(id INT AUTO_INCREMENT primary key, uuid varchar(36), profile varchar(20), name varchar(100), age varchar(20), gender varchar(20), ancestry varchar(50), pronouns varchar(20), description varchar(500))";
         buildStatement.execute(sqlCharacter);
     }
 
@@ -102,8 +102,9 @@ public class Database {
         Statement statement = getConnection().createStatement();
         String sql = "SELECT * FROM skysong_stats WHERE uuid = \"" + uuid + "\" AND profile = \"" + profile + "\"";
         ResultSet results = statement.executeQuery(sql);
+        Statement modStatement = getConnection().createStatement();
         String modsql = "SELECT * FROM skysong_modifiers WHERE uuid = \"" + uuid + "\" AND profile = \"" + profile + "\"";
-        ResultSet modifiers = statement.executeQuery(modsql);
+        ResultSet modifiers = modStatement.executeQuery(modsql);
 
         if(results.next()){
             int strength = results.getInt("strength");
@@ -124,11 +125,16 @@ public class Database {
 
             PlayerStats playerStats = new PlayerStats(uuid, profile, strength, dexterity, constitution, focus, speed, ac, potion, arcrot, fictis, hp, temphp, modarray);
             statement.close();
+            results.close();
+            modifiers.close();
 
             return playerStats;
         }
 
         statement.close();
+        results.close();
+        modifiers.close();
+        modStatement.close();
         return null;
     }
 
@@ -144,8 +150,8 @@ public class Database {
     }
     public void updateActiveProfileData(ProfileIndex activestat) throws SQLException{
         PreparedStatement statement = getConnection().prepareStatement("UPDATE skysong_active_stats SET profile = ? WHERE uuid = ?");
-        statement.setString(1, activestat.getUuid());
-        statement.setString(2, activestat.getProfile());
+        statement.setString(1, activestat.getProfile());
+        statement.setString(2, activestat.getUuid());
 
         statement.executeUpdate();
         statement.close();
@@ -153,24 +159,27 @@ public class Database {
 
     //Modifier Handling
     public void createModifierData(PlayerStats data, int index) throws SQLException{
-        PreparedStatement statement = getConnection().prepareStatement("INSERT INTO skysong_modifiers(uuid, profile, index, stat, modifier) VALUES (?, ?, ?, ?, ?)");
+        PreparedStatement statement = getConnection().prepareStatement("INSERT INTO skysong_modifiers(uuid, profile, modid, stat, modifier) VALUES (?, ?, ?, ?, ?)");
         statement.setString(1, data.getUuid());
         statement.setString(2, data.getProfile());
         statement.setInt(3, index);
         statement.setInt(4, Utils.toInt(data.getModifierFromList(index).getStat()));
         statement.setInt(5, data.getModifierFromList(index).getModifier());
+        statement.executeUpdate();
+        statement.close();
     }
     public void updateModifierData(PlayerStats data, int index) throws SQLException{
-        PreparedStatement statement = getConnection().prepareStatement("UPDATE skysong_modifiers SET stat = ?, modifier = ? WHERE uuid = ? AND profile = ? AND index = ?");
+        PreparedStatement statement = getConnection().prepareStatement("UPDATE skysong_modifiers SET stat = ?, modifier = ? WHERE uuid = ? AND profile = ? AND modid = ?");
         statement.setInt(1, Utils.toInt(data.getModifierFromList(index).getStat()));
         statement.setInt(2, data.getModifierFromList(index).getModifier());
         statement.setString(3, data.getUuid());
         statement.setString(4, data.getProfile());
         statement.setInt(5, index);
         statement.executeUpdate();
+        statement.close();
     }
     public void deleteModifierData(PlayerStats data, int index) throws SQLException{
-        PreparedStatement statement = getConnection().prepareStatement("DELETE FROM skysong_modifiers WHERE uuid = ? AND profile = ? AND index = ?");
+        PreparedStatement statement = getConnection().prepareStatement("DELETE FROM skysong_modifiers WHERE uuid = ? AND profile = ? AND modid = ?");
         statement.setString(1, data.getUuid());
         statement.setString(2, data.getProfile());
         statement.setInt(3, index);
@@ -180,22 +189,24 @@ public class Database {
 
     //Skill Handling
     public void createSkillsData(PlayerSkills data) throws SQLException {
-        PreparedStatement statement = getConnection().prepareStatement("INSERT INTO skysong_skills(uuid, profile, animal, farming, forestry, mining, mist_gathering, wood_process, alchemy, artificing, cooking, craftsman, metalworking, tailoring, witchcraft, economical, scholarly, entertainment, martial, medical, tande) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)");
+        PreparedStatement statement = getConnection().prepareStatement("INSERT INTO skysong_skills(uuid, profile, animal_handling, farming, forestry, mining, mist_gathering, wood_processing, alchemy, artificing, cooking, craftsman, metalworking, tailoring, witchcraft, economical, scholarly, entertainment, martial, medical, transportation_and_exploration) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)");
         statement.setString(1, data.getUuid());
         statement.setString(2, data.getProfile());
         for (int i = 0; i < 19; i++) {
             statement.setInt(i + 3, data.getSkill(Utils.Skills.values()[i]));
         }
         statement.executeUpdate();
+        statement.close();
     }
     public void updateSkillsData(PlayerSkills data) throws SQLException{
-        PreparedStatement statement = getConnection().prepareStatement("UPDATE skysong_skills SET animal = ?, farming = ?, forestry = ?, mining = ?, mist_gathering = ?, wood_process = ?, alchemy = ?, artificing = ?, cooking = ?, craftsman = ?, metalworking = ?, tailoring = ?, witchcraft = ?, economical = ?, scholarly = ?, entertainment = ?, martial = ?, medical = ?, tande = ? WHERE uuid = ? AND profile = ?");
+        PreparedStatement statement = getConnection().prepareStatement("UPDATE skysong_skills SET animal_handling = ?, farming = ?, forestry = ?, mining = ?, mist_gathering = ?, wood_processing = ?, alchemy = ?, artificing = ?, cooking = ?, craftsman = ?, metalworking = ?, tailoring = ?, witchcraft = ?, economical = ?, scholarly = ?, entertainment = ?, martial = ?, medical = ?, transportation_and_exploration = ? WHERE uuid = ? AND profile = ?");
         for(int i = 0; i < 19; i++){
             statement.setInt(i + 1, data.getSkill(Utils.Skills.values()[i]));
         }
         statement.setString(20, data.getUuid());
         statement.setString(21, data.getProfile());
         statement.executeUpdate();
+        statement.close();
     }
     public void deleteSkillData(PlayerSkills data) throws SQLException{
         PreparedStatement statement = getConnection().prepareStatement("DELETE FROM skysong_skills WHERE uuid = ? AND profile = ?");
@@ -286,10 +297,10 @@ public class Database {
     }
     public void dumpStatsDatabase() throws SQLException{
         StatsManager.statsProfileList = new ArrayList<PlayerStats>();
+        ArrayList<Modifier> modarray = new ArrayList<Modifier>();
         Statement statement = getConnection().createStatement();
         String sql = "SELECT * FROM skysong_stats";
         ResultSet results = statement.executeQuery(sql);
-        ArrayList<Modifier> modarray = new ArrayList<Modifier>();
 
         while(results.next()){
             String uuid = results.getString("uuid");
@@ -305,8 +316,9 @@ public class Database {
             int hp = results.getInt("hp");
             int temp_hp = results.getInt("temphp");
             int ac = results.getInt("ac");
+            Statement modStatement = getConnection().createStatement();
             String modsql = "SELECT * FROM skysong_modifiers WHERE uuid = \"" + uuid + "\" AND profile = \"" + profile + "\"";
-            ResultSet modifiers = statement.executeQuery(modsql);
+            ResultSet modifiers = modStatement.executeQuery(modsql);
 
             while(modifiers.next()){
                 modarray.add(new Modifier(Utils.toStatEnum(modifiers.getInt("stat")), modifiers.getInt("modifier")));
@@ -314,7 +326,11 @@ public class Database {
 
             PlayerStats playerStats = new PlayerStats(uuid, profile, strength, dexterity, constitution, focus, speed, ac, potion, arcrot, fictis, hp, temp_hp, modarray);
             StatsManager.statsProfileList.add(playerStats);
+
+            modifiers.close();
+            modStatement.close();
         }
+        statement.close();
     }
     public void dumpActiveStatsDatabase() throws SQLException{
         ProfileManager.activeProfiles = new ArrayList<ProfileIndex>();
@@ -329,6 +345,7 @@ public class Database {
             ProfileIndex statIndex = new ProfileIndex(uuid, profile);
             ProfileManager.activeProfiles.add(statIndex);
         }
+        statement.close();
     }
 
     public void dumpSkillsDatabase() throws SQLException{
@@ -347,6 +364,7 @@ public class Database {
             PlayerSkills playerSkills = new PlayerSkills(uuid, profile, skills);
             SkillManager.playerSkills.add(playerSkills);
         }
+        statement.close();
     }
 
     public void dumpSetupDatabase() throws SQLException{
@@ -363,6 +381,7 @@ public class Database {
             SetupProfile setupProfile = new SetupProfile(uuid, profile, setup);
             ProfileManager.setupProfiles.add(setupProfile);
         }
+        statement.close();
     }
 
     public void dumpModifiersDatabase() throws SQLException{
@@ -373,13 +392,14 @@ public class Database {
         while(results.next()){
             String uuid = results.getString("uuid");
             String profile = results.getString("profile");
-            int index = results.getInt("index");
+            int index = results.getInt("modid");
             Utils.StaticStats stat = Utils.toStatEnum(results.getInt("stat"));
             int modifier = results.getInt("modifier");
 
             Modifier mod = new Modifier(stat, modifier);
             getPlugin().getUtils().getStatsManager().findStats(uuid, profile).addModifier(mod);
         }
+        statement.close();
     }
 
     public void dumpCharacterDatabase() throws SQLException {
@@ -401,6 +421,7 @@ public class Database {
             CharacterProfile characterProfile = new CharacterProfile(uuid, profile, name, age, gender, ancestry, pronouns, description);
             getPlugin().getUtils().getCharacterManager().characterProfiles.add(characterProfile);
         }
+        statement.close();
     }
 
     //Miscellaneous
@@ -408,7 +429,16 @@ public class Database {
         Statement statement = getConnection().createStatement();
         String sql = "SELECT * from skysong_stats WHERE uuid = \"" + uuid + "\"";
         ResultSet results = statement.executeQuery(sql);
-        return results.next();
+        boolean isPlayer = results.next();
+        statement.close();
+        return isPlayer;
+    }
+
+    public void Ping() throws SQLException{
+        Statement statement = getConnection().createStatement();
+        String sql = "SELECT * from skysong_stats";
+        ResultSet results = statement.executeQuery(sql);
+        statement.close();
     }
     
 }

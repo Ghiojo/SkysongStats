@@ -13,6 +13,8 @@ import org.skysongdev.skysongstats.Utils.Utils;
 
 import java.util.List;
 
+import static org.skysongdev.skysongstats.SkysongStats.getPlugin;
+
 public class DelModifier implements TabExecutor {
     @Override
     public boolean onCommand(@NotNull CommandSender commandSender, @NotNull Command command, @NotNull String s, @NotNull String[] strings) {
@@ -40,12 +42,14 @@ public class DelModifier implements TabExecutor {
             commandSender.sendMessage(Utils.getMiniMessage().deserialize(Utils.PLUGIN_TAG + "<gray>\"" + strings[1] + "\" is not a number!"));
             return true;
         }
-        if(id > SkysongStats.getPlugin().getUtils().getProfileManager().findActiveStats(target.getUniqueId().toString()).getModifiers().size() || id <= 0){
+        if(id > getPlugin().getUtils().getProfileManager().findActiveStats(target.getUniqueId().toString()).getModifiers().size() || id <= 0){
             commandSender.sendMessage(Utils.getMiniMessage().deserialize(Utils.PLUGIN_TAG + "<gray>index \"" + strings[1] + "\" is out of bounds! There's no modifier with that id"));
             return true;
         }
 
-        SkysongStats.getPlugin().getUtils().getProfileManager().findActiveStats(target.getUniqueId().toString()).getModifiers().remove(id-1);
+        getPlugin().getUtils().getProfileManager().findActiveStats(target.getUniqueId().toString()).getModifiers().remove(id-1);
+        getPlugin().getUtils().getStatsManager().updateStats(getPlugin().getUtils().getProfileManager().findActiveStats(target.getUniqueId().toString()));
+        commandSender.sendMessage(Utils.getMiniMessage().deserialize(Utils.PLUGIN_TAG + "<gray>Modifier removed!"));
         return true;
     }
 

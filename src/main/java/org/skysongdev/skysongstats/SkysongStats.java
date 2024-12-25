@@ -4,10 +4,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.skysongdev.skysongstats.Utils.Utils;
 import org.skysongdev.skysongstats.commands.character.CharacterCommand;
-import org.skysongdev.skysongstats.commands.hpManagement.AddHP;
-import org.skysongdev.skysongstats.commands.hpManagement.DamageHP;
-import org.skysongdev.skysongstats.commands.hpManagement.ReduceHP;
-import org.skysongdev.skysongstats.commands.hpManagement.TempHp;
+import org.skysongdev.skysongstats.commands.hpManagement.*;
 import org.skysongdev.skysongstats.commands.misc.ReloadCommand;
 import org.skysongdev.skysongstats.commands.modifier.ModifierCommand;
 import org.skysongdev.skysongstats.commands.profile.ProfileCommand;
@@ -15,10 +12,9 @@ import org.skysongdev.skysongstats.commands.setup.SetupCommand;
 import org.skysongdev.skysongstats.commands.skills.SkillsCommand;
 import org.skysongdev.skysongstats.commands.stats.StatsCommand;
 import org.skysongdev.skysongstats.database.Database;
-import org.skysongdev.skysongstats.listeners.PlayerRegisterListener;
-import org.skysongdev.skysongstats.listeners.ProfileUpdateListener;
-import org.skysongdev.skysongstats.listeners.SkillLevelListener;
-import org.skysongdev.skysongstats.listeners.StatlineGUIListener;
+import org.skysongdev.skysongstats.database.Pinger;
+import org.skysongdev.skysongstats.listeners.*;
+import org.skysongdev.skysongstats.placeholders.StatsExpansion;
 
 import java.sql.SQLException;
 
@@ -60,6 +56,11 @@ public final class SkysongStats extends JavaPlugin {
         InitializeCommands();
         AssignListeners();
 
+        if (Bukkit.getPluginManager().isPluginEnabled("PlaceholderAPI")) { //
+            new StatsExpansion(this).register();
+        }
+
+
         super.onEnable();
 
         try {
@@ -68,25 +69,29 @@ public final class SkysongStats extends JavaPlugin {
             Bukkit.getLogger().warning("[SkysongStats] Unable to dump stats into the plugin!");
             e.printStackTrace();
         }
+        Bukkit.getScheduler().runTaskTimer(this, new Pinger(), 0L, 6000L);
 
     }
 
     public void InitializeCommands(){
-        this.getCommand("heal").setExecutor(addHP);
-        this.getCommand("addhp").setExecutor(addHP);
-        this.getCommand("damage").setExecutor(damageHP);
-        this.getCommand("reducehp").setExecutor(reduceHP);
-        this.getCommand("rhp").setExecutor(reduceHP);
-        this.getCommand("temphp").setExecutor(tempHp);
+        getCommand("heal").setExecutor(addHP);
+        getCommand("addhp").setExecutor(addHP);
+        getCommand("damage").setExecutor(damageHP);
+        getCommand("reducehp").setExecutor(reduceHP);
+        getCommand("rhp").setExecutor(reduceHP);
+        getCommand("dhp").setExecutor(damageHP);
+        getCommand("temphp").setExecutor(tempHp);
 
-        this.getCommand("modifier").setExecutor(modifierCommand);
-        this.getCommand("profile").setExecutor(profileCommand);
-        this.getCommand("setup").setExecutor(setupCommand);
-        this.getCommand("skills").setExecutor(skillsCommand);
-        this.getCommand("stats").setExecutor(statsCommand);
-        this.getCommand("ssreload").setExecutor(new ReloadCommand());
-        this.getCommand("schar").setExecutor(characterCommand);
-
+        getCommand("modifier").setExecutor(modifierCommand);
+        getCommand("profile").setExecutor(profileCommand);
+        getCommand("setup").setExecutor(setupCommand);
+        getCommand("skills").setExecutor(skillsCommand);
+        getCommand("sstats").setExecutor(statsCommand);
+        getCommand("ssreload").setExecutor(new ReloadCommand());
+        getCommand("schar").setExecutor(characterCommand);
+        getCommand("char").setExecutor(characterCommand);
+        getCommand("stats").setExecutor(statsCommand);
+        getCommand("ac").setExecutor(new ACCommand());
     }
 
     public void AssignListeners() {
@@ -94,8 +99,11 @@ public final class SkysongStats extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new ProfileUpdateListener(), this);
         getServer().getPluginManager().registerEvents(new SkillLevelListener(), this);
         getServer().getPluginManager().registerEvents(new StatlineGUIListener(), this);
-        getServer().getPluginManager().registerEvents(new StatlineGUIListener(), this);
+        getServer().getPluginManager().registerEvents(new StatPointsGUIListener(), this);
+        getServer().getPluginManager().registerEvents(new SkillAllocGUIListener(), this);
+        getServer().getPluginManager().registerEvents(new PlayerShiftRightClickListener(), this);
     }
+
     public void InitializeDatabase(){
         try{
             this.database = new Database(

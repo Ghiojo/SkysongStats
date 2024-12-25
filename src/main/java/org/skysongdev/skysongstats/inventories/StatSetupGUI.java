@@ -28,7 +28,7 @@ public class StatSetupGUI implements InventoryHolder {
         setupInventory();
     }
 
-    private void setupInventory(){
+    public void setupInventory(){
         ItemStack borderItem = new ItemStack(Material.GRAY_STAINED_GLASS_PANE);
         for(int i = 0; i < 9; i++){
             this.inventory.setItem(i, borderItem);
@@ -44,25 +44,27 @@ public class StatSetupGUI implements InventoryHolder {
         desclore.add(getPlugin().getUtils().getMiniMessage().deserialize("<gray>character the best! Remember that your base stats don't have"));
         desclore.add(getPlugin().getUtils().getMiniMessage().deserialize("<gray>to match the ancestry you are picking!"));
         descmeta.lore(desclore);
+        descriptionItem.setItemMeta(descmeta);
+        this.inventory.setItem(4, descriptionItem);
 
         for(int i = 0; i < set.size() && i < 27; i++){
-            Material mat = Material.getMaterial(getPlugin().getConfig().getString("base-stats." + set.get(i) + ".item"));
+            Material mat = Material.getMaterial(getPlugin().getConfig().getString("base_stats." + set.get(i) + ".item"));
             if(mat == null){
                 mat = Material.BARRIER;
             }
             ItemStack statlineItem = new ItemStack(mat);
             ItemMeta meta = statlineItem.getItemMeta();
-            meta.displayName(getPlugin().getUtils().getMiniMessage().deserialize(SkysongStats.getPlugin().getConfig().getString("base-stats." + set.get(i) + ".name")));
-            PersistentDataContainer container = statlineItem.getItemMeta().getPersistentDataContainer();
+            meta.displayName(getPlugin().getUtils().getMiniMessage().deserialize(SkysongStats.getPlugin().getConfig().getString("base_stats." + set.get(i) + ".name")));
+            PersistentDataContainer container = meta.getPersistentDataContainer();
             container.set(selectableKey, PersistentDataType.BOOLEAN, true);
             container.set(statlineKey, PersistentDataType.STRING, set.get(i));
             statlineItem.setItemMeta(meta);
             List<Component> lore = new ArrayList<>();
-            lore.add(getPlugin().getUtils().getMiniMessage().deserialize("<red>Strength: " + getPlugin().getConfig().getInt("base-stats." + set.get(i) + ".strength")));
-            lore.add(getPlugin().getUtils().getMiniMessage().deserialize("<green>Dexterity: " + getPlugin().getConfig().getInt("base-stats." + set.get(i) + ".dexterity")));
-            lore.add(getPlugin().getUtils().getMiniMessage().deserialize("<light_purple>Constitution: " + getPlugin().getConfig().getInt("base-stats." + set.get(i) + ".constitution")));
-            lore.add(getPlugin().getUtils().getMiniMessage().deserialize("<blue>Focus: " + getPlugin().getConfig().getInt("base-stats." + set.get(i) + ".focus")));
-            lore.add(getPlugin().getUtils().getMiniMessage().deserialize("<yellow>Speed: " + getPlugin().getConfig().getInt("base-stats." + set.get(i) + ".speed")));
+            lore.add(getPlugin().getUtils().getMiniMessage().deserialize("<red>Strength: " + getPlugin().getConfig().getInt("base_stats." + set.get(i) + ".stats.strength")));
+            lore.add(getPlugin().getUtils().getMiniMessage().deserialize("<green>Dexterity: " + getPlugin().getConfig().getInt("base_stats." + set.get(i) + ".stats.dexterity")));
+            lore.add(getPlugin().getUtils().getMiniMessage().deserialize("<light_purple>Constitution: " + getPlugin().getConfig().getInt("base_stats." + set.get(i) + ".stats.constitution")));
+            lore.add(getPlugin().getUtils().getMiniMessage().deserialize("<blue>Focus: " + getPlugin().getConfig().getInt("base_stats." + set.get(i) + ".stats.focus")));
+            lore.add(getPlugin().getUtils().getMiniMessage().deserialize("<yellow>Speed: " + getPlugin().getConfig().getInt("base_stats." + set.get(i) + ".stats.speed")));
             statlineItem.lore(lore);
             this.inventory.setItem(i+9, statlineItem);
         }

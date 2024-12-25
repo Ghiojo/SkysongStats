@@ -24,13 +24,11 @@ public class SkillsCommand implements TabExecutor {
 
     @Override
     public boolean onCommand(@NotNull CommandSender commandSender, @NotNull Command command, @NotNull String s, @NotNull String[] strings) {
-
-
-        String[] newArgs = Arrays.copyOfRange(strings, 1, strings.length);
         if(strings.length < 1){
             commandSender.sendMessage(Utils.getMiniMessage().deserialize(Utils.PLUGIN_TAG + "<red>Too Little arguments! (Usage: /skill (subcommand))"));
             return true;
         }
+        String[] newArgs = Arrays.copyOfRange(strings, 1, strings.length);
 
         switch(strings[0].toLowerCase()) {
             case "addxp":
@@ -52,17 +50,18 @@ public class SkillsCommand implements TabExecutor {
 
     @Override
     public @Nullable List<String> onTabComplete(@NotNull CommandSender commandSender, @NotNull Command command, @NotNull String s, @NotNull String[] strings) {
+        String[] newArgs = Arrays.copyOfRange(strings, 1, strings.length);
         if(strings.length == 1){
             return Arrays.asList("addxp", "setxp", "view").stream().filter(a -> a.startsWith(strings[0])).toList();
         }
         if(strings.length > 1){
             switch(strings[0].toLowerCase()){
                 case "addxp":
-                    return addSkillXP.onTabComplete(commandSender, command, s, strings);
+                    return addSkillXP.onTabComplete(commandSender, command, s, newArgs);
                 case "setxp":
-                    return setSkillXP.onTabComplete(commandSender, command, s, strings);
+                    return setSkillXP.onTabComplete(commandSender, command, s, newArgs);
                 case "view":
-                    return viewSkills.onTabComplete(commandSender, command, s, strings);
+                    return viewSkills.onTabComplete(commandSender, command, s, newArgs);
             }
         }
         return List.of("");

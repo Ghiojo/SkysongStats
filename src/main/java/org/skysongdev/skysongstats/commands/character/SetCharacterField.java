@@ -35,49 +35,58 @@ public class SetCharacterField implements TabExecutor {
         for(int i = 1; i < strings.length; i++){
             field.append(strings[i]).append(" ");
         }
+        String finalField = field.toString().replace("\"", "''");
+        finalField = finalField.substring(0, finalField.length() - 1);
         switch(strings[0].toLowerCase()){
             case "name":
                 if(field.length() > 100){
                     commandSender.sendMessage(Utils.getMiniMessage().deserialize(Utils.PLUGIN_TAG + "<red>Name is too long!"));
                     return true;
                 }
-                profile.setName(field.toString());
+                profile.setName(finalField);
                 break;
             case "age":
                 if(field.length() > 20){
                     commandSender.sendMessage(Utils.getMiniMessage().deserialize(Utils.PLUGIN_TAG + "<red>Age is too long!"));
                     return true;
                 }
-                profile.setAge(field.toString());
+                profile.setAge(finalField);
                 break;
             case "gender":
                 if(field.length() > 20){
                     commandSender.sendMessage(Utils.getMiniMessage().deserialize(Utils.PLUGIN_TAG + "<red>Gender is too long!"));
                     return true;
                 }
-                profile.setGender(field.toString());
+                profile.setGender(finalField);
                 break;
             case "pronouns":
                 if(field.length() > 20){
                     commandSender.sendMessage(Utils.getMiniMessage().deserialize(Utils.PLUGIN_TAG + "<red>Pronouns are too long!"));
                     return true;
                 }
-                profile.setPronouns(field.toString());
+                profile.setPronouns(finalField);
                 break;
             case "ancestry":
                 if(field.length() > 50){
                     commandSender.sendMessage(Utils.getMiniMessage().deserialize(Utils.PLUGIN_TAG + "<red>Ancestry is too long!"));
                     return true;
                 }
-                profile.setAncestry(field.toString());
+                profile.setAncestry(finalField);
                 break;
             case "description":
-                profile.setDescription(field.toString());
+                profile.setDescription(finalField);
                 break;
             default:
                 commandSender.sendMessage("Invalid field!");
                 break;
         }
+        try{
+            getPlugin().getDatabase().updateCharacterData(profile);
+        } catch (Exception e){
+            commandSender.sendMessage(Utils.getMiniMessage().deserialize(Utils.PLUGIN_TAG + "<red>Failed to update character data!"));
+            return true;
+        }
+        commandSender.sendMessage(Utils.getMiniMessage().deserialize(Utils.PLUGIN_TAG + "<green>Updated " + strings[0] + " to " + finalField));
         return true;
     }
 

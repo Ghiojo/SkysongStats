@@ -37,7 +37,7 @@ public class ReduceHP implements CommandExecutor {
                 sender.sendMessage(Utils.getMiniMessage().deserialize(Utils.PLUGIN_TAG + "<gray>You don't have permissions to set other players' stats!"));
                 return true;
             }
-            target = Bukkit.getPlayer(strings[2]);
+            target = Bukkit.getPlayer(strings[1]);
             if(target == null){
                 if(sender != null)
                     sender.sendMessage(Utils.getMiniMessage().deserialize(Utils.PLUGIN_TAG + "<gray>Player not found!"));
@@ -48,7 +48,7 @@ public class ReduceHP implements CommandExecutor {
         }
 
         try{
-            hpAmount = Integer.parseInt(strings[1]);
+            hpAmount = Integer.parseInt(strings[0]);
             if(hpAmount < 0){
                 if(sender != null)
                     sender.sendMessage(Utils.getMiniMessage().deserialize(Utils.PLUGIN_TAG + "<gray>Invalid HP!"));
@@ -65,7 +65,19 @@ public class ReduceHP implements CommandExecutor {
         }
 
         getPlugin().getUtils().getProfileManager().findActiveStats(target.getUniqueId().toString()).addHP(-hpAmount);
-        if(sender != null)
+        try{
+            getPlugin().getDatabase().updateStatData( getPlugin().getUtils().getProfileManager().findActiveStats(target.getUniqueId().toString()));
+        } catch (Exception e){
+            if(sender != null)
+                sender.sendMessage(Utils.getMiniMessage().deserialize(Utils.PLUGIN_TAG + "<red>Failed to update player stats!"));
+            else
+                Bukkit.getLogger().warning("[Skysong Stats] Failed to update player stats!");
+            return true;
+        }
+
+        target.sendMessage(Utils.getMiniMessage().deserialize(Utils.PLUGIN_TAG + "<red>Your HP has been reduced by <gold> " + hpAmount + "<red>! Your current HP is <gold> " + getPlugin().getUtils().getProfileManager().findActiveStats(target.getUniqueId().toString()).getHp() + "<red>!"));
+
+        if(sender != null && sender != target)
             sender.sendMessage(Utils.getMiniMessage().deserialize(Utils.PLUGIN_TAG + "<gray>Reduced " + hpAmount + " HP to " + target.getName() + "!"));
         Bukkit.getLogger().info("[SkysongStats] Reduced " + hpAmount + " HP to " + target.getName() + "!");
 

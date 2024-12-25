@@ -28,13 +28,12 @@ public class ModifierCommand implements TabExecutor {
     }
     @Override
     public boolean onCommand(@NotNull CommandSender commandSender, @NotNull Command command, @NotNull String s, @NotNull String[] strings) {
-        String[] newArgs = Arrays.copyOfRange(strings, 1, strings.length);
         Player player = (Player) commandSender;
-
         if(strings.length < 1){
             commandSender.sendMessage(Utils.getMiniMessage().deserialize(Utils.PLUGIN_TAG + "<gray>Too Little arguments! (Usage: /profile (subcommand))"));
             return true;
         }
+        String[] newArgs = Arrays.copyOfRange(strings, 1, strings.length);
 
         switch(strings[0].toLowerCase()){
             case "add":
@@ -60,7 +59,7 @@ public class ModifierCommand implements TabExecutor {
     public @Nullable List<String> onTabComplete(@NotNull CommandSender commandSender, @NotNull Command command, @NotNull String s, @NotNull String[] strings) {
         String[] newstrings = Arrays.copyOfRange(strings, 1, strings.length);
         if(strings.length == 1){
-            return Arrays.asList("add", "del");
+            return Arrays.asList("add", "del", "view").stream().filter(a -> a.startsWith(strings[0])).toList();
         }
         if(strings.length > 1){
             switch(strings[0].toLowerCase()){

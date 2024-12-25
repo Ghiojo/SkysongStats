@@ -15,6 +15,10 @@ public class PlayerShiftRightClickListener implements Listener {
     public void onPlayerShiftRightClick(PlayerInteractEntityEvent event) {
         if(event.getRightClicked() instanceof Player){
             if(!event.getPlayer().isSneaking()) return;
+            if(event.isCancelled()) return;
+
+            event.setCancelled(true);
+
             Player player = event.getPlayer();
             Player target = (Player) event.getRightClicked();
             ViewCharacter viewCharacter = new ViewCharacter();

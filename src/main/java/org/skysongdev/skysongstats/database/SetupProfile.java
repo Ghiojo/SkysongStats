@@ -1,9 +1,13 @@
 package org.skysongdev.skysongstats.database;
 
+import org.bukkit.Bukkit;
 import org.skysongdev.skysongstats.Utils.Utils;
 import org.skysongdev.skysongstats.inventories.PointAllocGUI;
 import org.skysongdev.skysongstats.inventories.SkillChoiceGUI;
 import org.skysongdev.skysongstats.inventories.StatSetupGUI;
+
+import java.util.ArrayList;
+import java.util.UUID;
 
 import static org.skysongdev.skysongstats.SkysongStats.getPlugin;
 
@@ -14,15 +18,16 @@ public class SetupProfile {
 
     private StatSetupGUI statSetupGUI = new StatSetupGUI();
     private PointAllocGUI pointAllocGUI = new PointAllocGUI();
-    private SkillChoiceGUI skillChoiceGUI = new SkillChoiceGUI();
+    private SkillChoiceGUI skillChoiceGUI = new SkillChoiceGUI(this);
 
-    private int[] strength = new int[2];
-    private int[] dexterity = new int[2];
-    private int[] constitution = new int[2];
-    private int[] focus = new int[2];
-    private int[] speed = new int[2];
+    private int[] strength;
+    private int[] dexterity;
+    private int[] constitution;
+    private int[] focus;
+    private int[] speed;
 
-    private int[] skillsSelected = new int[2];
+    public ArrayList<Integer> skillsSelected = new ArrayList<Integer>();
+    public int skillPoints = 2;
 
     public int[] getStrength() {
         return strength;
@@ -64,11 +69,11 @@ public class SetupProfile {
         this.speed = speed;
     }
 
-    public int[] getSkillsSelected() {
+    public ArrayList<Integer> getSkillsSelected() {
         return skillsSelected;
     }
 
-    public void setSkillsSelected(int[] skillsSelected) {
+    public void setSkillsSelected(ArrayList<Integer> skillsSelected) {
         this.skillsSelected = skillsSelected;
     }
 
@@ -90,6 +95,11 @@ public class SetupProfile {
         this.uuid = uuid;
         this.profile = "Default";
         this.isSetUp = false;
+        this.strength = new int[]{0, 0};
+        this.dexterity = new int[]{0, 0};
+        this.constitution = new int[]{0, 0};
+        this.focus = new int[]{0, 0};
+        this.speed = new int[]{0, 0};
     }
 
     public SetupProfile(String uuid, String profile, boolean isSetUp) {
@@ -108,8 +118,8 @@ public class SetupProfile {
         getPlugin().getUtils().getStatsManager().updateStats(playerStats);
 
         PlayerSkills playerSkills = getPlugin().getUtils().getSkillManager().findSkills(uuid, profile);
-        playerSkills.setSkill(Utils.Skills.fromInt(skillsSelected[0]), 16);
-        playerSkills.setSkill(Utils.Skills.fromInt(skillsSelected[1]), 16);
+        playerSkills.setSkill(Utils.Skills.fromInt(skillsSelected.get(0)), 16);
+        playerSkills.setSkill(Utils.Skills.fromInt(skillsSelected.get(1)), 16);
         getPlugin().getUtils().getSkillManager().updateSkillProfile(playerSkills);
 
         this.isSetUp = true;
@@ -129,5 +139,9 @@ public class SetupProfile {
 
     public void setupPointAllocGui(){
         pointAllocGUI.setupInventory(this);
+    }
+
+    public void setupSkillChoiceGui(){
+        skillChoiceGUI.setupInventory(Bukkit.getPlayer(UUID.fromString(uuid)));
     }
 }

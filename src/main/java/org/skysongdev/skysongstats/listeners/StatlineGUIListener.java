@@ -15,24 +15,23 @@ public class StatlineGUIListener implements Listener {
     @EventHandler
     public void onInventoryClick(InventoryClickEvent event) {
         if (event.getInventory().getHolder() instanceof StatSetupGUI) {
+           event.setCancelled(true);
+            if(event.getCurrentItem() == null){
+                return;
+            }
            if(!event.getCurrentItem().getItemMeta().getPersistentDataContainer().has(selectableKey)){
-                event.setCancelled(true);
                 return;
            }
            SetupProfile setup = getPlugin().getUtils().getProfileManager().findActiveSetupProfile(event.getWhoClicked().getUniqueId().toString());
            if(event.getCurrentItem().getItemMeta().getPersistentDataContainer().has(statlineKey)){
                String key = event.getCurrentItem().getItemMeta().getPersistentDataContainer().get(statlineKey, PersistentDataType.STRING);
-               int[] stat = {getPlugin().getConfig().getInt("base-stats." + key + ".strength"), 0};
-               setup.setStrength(stat);
-               stat[0] = getPlugin().getConfig().getInt("base-stats." + key + ".dexterity");
-               setup.setDexterity(stat);
-               stat[0] = getPlugin().getConfig().getInt("base-stats." + key + ".constitution");
-               setup.setConstitution(stat);
-               stat[0] = getPlugin().getConfig().getInt("base-stats." + key + ".focus");
-               setup.setFocus(stat);
-               stat[0] = getPlugin().getConfig().getInt("base-stats." + key + ".speed");
-               setup.setSpeed(stat);
+               setup.setStrength(new int[]{getPlugin().getConfig().getInt("base_stats." + key + ".stats.strength"), 0});
+               setup.setDexterity(new int[]{getPlugin().getConfig().getInt("base_stats." + key + ".stats.dexterity"), 0});
+               setup.setConstitution(new int[]{getPlugin().getConfig().getInt("base_stats." + key + ".stats.constitution"), 0});
+               setup.setFocus(new int[]{getPlugin().getConfig().getInt("base_stats." + key + ".stats.focus"), 0});
+               setup.setSpeed(new int[]{getPlugin().getConfig().getInt("base_stats." + key + ".stats.speed"), 0});
                setup.setupPointAllocGui();
+               event.getWhoClicked().closeInventory();
                event.getWhoClicked().openInventory(setup.getPointAllocGUI().getInventory());
            }
         }

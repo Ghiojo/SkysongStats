@@ -15,6 +15,8 @@ import org.skysongdev.skysongstats.database.Modifier;
 
 import java.util.List;
 
+import static org.skysongdev.skysongstats.SkysongStats.getPlugin;
+
 public class AddModifier implements TabExecutor {
     int num;
     String stat;
@@ -53,40 +55,39 @@ public class AddModifier implements TabExecutor {
         switch(stat.toLowerCase()){
             case "strength":
             case "str":
-                SkysongStats.getPlugin().getUtils().getStatsManager().addModifier(SkysongStats.getPlugin().getUtils().getProfileManager().findActiveStats(target.getUniqueId().toString()), new Modifier(Utils.StaticStats.STRENGTH, num));
+                getPlugin().getUtils().getStatsManager().addModifier(getPlugin().getUtils().getProfileManager().findActiveStats(target.getUniqueId().toString()), new Modifier(Utils.StaticStats.STRENGTH, num));
                 break;
             case "dexterity":
             case "dex":
-                SkysongStats.getPlugin().getUtils().getStatsManager().addModifier(SkysongStats.getPlugin().getUtils().getProfileManager().findActiveStats(target.getUniqueId().toString()), new Modifier(Utils.StaticStats.DEXTERITY, num));
+                getPlugin().getUtils().getStatsManager().addModifier(getPlugin().getUtils().getProfileManager().findActiveStats(target.getUniqueId().toString()), new Modifier(Utils.StaticStats.DEXTERITY, num));
                 break;
             case "constitution":
             case "con":
-                SkysongStats.getPlugin().getUtils().getStatsManager().addModifier(SkysongStats.getPlugin().getUtils().getProfileManager().findActiveStats(target.getUniqueId().toString()), new Modifier(Utils.StaticStats.CONSTITUTION, num));
+                getPlugin().getUtils().getStatsManager().addModifier(getPlugin().getUtils().getProfileManager().findActiveStats(target.getUniqueId().toString()), new Modifier(Utils.StaticStats.CONSTITUTION, num));
                 break;
             case "focus":
             case "foc":
-                SkysongStats.getPlugin().getUtils().getStatsManager().addModifier(SkysongStats.getPlugin().getUtils().getProfileManager().findActiveStats(target.getUniqueId().toString()), new Modifier(Utils.StaticStats.FOCUS, num));
+                getPlugin().getUtils().getStatsManager().addModifier(getPlugin().getUtils().getProfileManager().findActiveStats(target.getUniqueId().toString()), new Modifier(Utils.StaticStats.FOCUS, num));
                 break;
             case "speed":
             case "spd":
-                SkysongStats.getPlugin().getUtils().getStatsManager().addModifier(SkysongStats.getPlugin().getUtils().getProfileManager().findActiveStats(target.getUniqueId().toString()), new Modifier(Utils.StaticStats.SPEED, num));
+                getPlugin().getUtils().getStatsManager().addModifier(getPlugin().getUtils().getProfileManager().findActiveStats(target.getUniqueId().toString()), new Modifier(Utils.StaticStats.SPEED, num));
                 break;
             case "arcrot-max":
-                SkysongStats.getPlugin().getUtils().getStatsManager().addModifier(SkysongStats.getPlugin().getUtils().getProfileManager().findActiveStats(target.getUniqueId().toString()), new Modifier(Utils.StaticStats.ARCROT_MAX, num));
+                getPlugin().getUtils().getStatsManager().addModifier(getPlugin().getUtils().getProfileManager().findActiveStats(target.getUniqueId().toString()), new Modifier(Utils.StaticStats.ARCROT_MAX, num));
                 break;
             case "fictis-max":
-                SkysongStats.getPlugin().getUtils().getStatsManager().addModifier(SkysongStats.getPlugin().getUtils().getProfileManager().findActiveStats(target.getUniqueId().toString()), new Modifier(Utils.StaticStats.FICTIS_MAX, num));
+                getPlugin().getUtils().getStatsManager().addModifier(getPlugin().getUtils().getProfileManager().findActiveStats(target.getUniqueId().toString()), new Modifier(Utils.StaticStats.FICTIS_MAX, num));
                 break;
             case "potion-max":
-                SkysongStats.getPlugin().getUtils().getStatsManager().addModifier(SkysongStats.getPlugin().getUtils().getProfileManager().findActiveStats(target.getUniqueId().toString()), new Modifier(Utils.StaticStats.POTION_MAX, num));
+                getPlugin().getUtils().getStatsManager().addModifier(getPlugin().getUtils().getProfileManager().findActiveStats(target.getUniqueId().toString()), new Modifier(Utils.StaticStats.POTION_MAX, num));
                 break;
             case "maxhp":
-                SkysongStats.getPlugin().getUtils().getStatsManager().addModifier(SkysongStats.getPlugin().getUtils().getProfileManager().findActiveStats(target.getUniqueId().toString()), new Modifier(Utils.StaticStats.MAXHP, num));
+                getPlugin().getUtils().getStatsManager().addModifier(getPlugin().getUtils().getProfileManager().findActiveStats(target.getUniqueId().toString()), new Modifier(Utils.StaticStats.MAXHP, num));
                 break;
         }
 
         commandSender.sendMessage(Utils.getMiniMessage().deserialize(Utils.PLUGIN_TAG + " <gray> "+ strings[1] + " has been modified"));
-        
 
         return true;
     }

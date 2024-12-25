@@ -41,37 +41,17 @@ public class CreateProfile implements TabExecutor {
         //We add the Stat Profile to the list of profiles
         PlayerStats profile = new PlayerStats(player.getUniqueId().toString(), strings[0]);
         getPlugin().getUtils().getStatsManager().addStatProfile(profile);
-        try {
-            getPlugin().getDatabase().createStatData(profile);
-        }catch(Exception e){
-            e.printStackTrace();
-        }
 
         //We add the Setup Profile to the list
         SetupProfile setupProfile = new SetupProfile(player.getUniqueId().toString(), strings[0], false);
         getPlugin().getUtils().getProfileManager().addSetupProfile(setupProfile);
-        try {
-            getPlugin().getDatabase().createSetupData(setupProfile);
-        }catch(Exception e){
-            e.printStackTrace();
-        }
 
         //We add the Skill profile to the list
         PlayerSkills skillProfile = new PlayerSkills(player.getUniqueId().toString(), strings[0]);
         getPlugin().getUtils().getSkillManager().addSkillProfile(skillProfile);
-        try {
-            getPlugin().getDatabase().createSkillsData(skillProfile);
-        }catch(Exception e){
-            e.printStackTrace();
-        }
 
         CharacterProfile characterProfile = new CharacterProfile(player.getUniqueId().toString(), strings[0]);
         getPlugin().getUtils().getCharacterManager().addCharacter(characterProfile);
-        try {
-            getPlugin().getDatabase().createCharacterData(characterProfile);
-        }catch(Exception e){
-            e.printStackTrace();
-        }
 
 
         player.sendMessage(Utils.getMiniMessage().deserialize(Utils.PLUGIN_TAG +  "<gray>Profile \"" + strings[0] + "\" has been created!"));

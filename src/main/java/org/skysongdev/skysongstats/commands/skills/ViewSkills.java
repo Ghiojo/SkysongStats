@@ -30,8 +30,7 @@ public class ViewSkills implements TabExecutor {
         Player player = (Player) commandSender;
         Player target;
 
-
-        if(strings.length > 1){
+        if(strings.length > 0){
             target = Bukkit.getServer().getPlayer(strings[0]);
             if(target == null){
                 player.sendMessage(getPlugin().getUtils().getMiniMessage().deserialize("<red>That player is not online!"));
@@ -51,27 +50,32 @@ public class ViewSkills implements TabExecutor {
         String pageoutput = "";
         Utils.Skills currentSkill;
 
-        for(skillIndex = 0; skillIndex < 19; skillIndex++) {
-            for (int i = 0; i < 5; i++) {
-                if (skillIndex == 6 || skillIndex == 13) {
-                    break;
-                }
-                currentSkill = Utils.Skills.fromInt(skillIndex);
-                pageoutput += Utils.Skills.getSkillNameFormatted(currentSkill) + ": " + getPlugin().getUtils().getSkillManager().getSkillLevelFormatted(skills.getSkill(currentSkill)) + "(" + skills.getSkill(currentSkill) + ")\n";
-
-            }
-            pages.add(getPlugin().getUtils().getMiniMessage().deserialize(sections[sectionIndex] + pageoutput));
-            if(skillIndex == 6 || skillIndex == 13) {
-                currentSkill = Utils.Skills.fromInt(skillIndex);
-                pageoutput = Utils.Skills.getSkillNameFormatted(currentSkill) + ": " + getPlugin().getUtils().getSkillManager().getSkillLevelFormatted(skills.getSkill(currentSkill)) + "(" + skills.getSkill(currentSkill) + ")\n";
-                skillIndex++;
-            }
+        for(skillIndex = 0; skillIndex < 6; skillIndex++) {
+            currentSkill = Utils.Skills.fromInt(skillIndex);
+            pageoutput += Utils.Skills.getSkillNameFormatted(currentSkill) + ": " + getPlugin().getUtils().getSkillManager().getSkillLevelFormatted(skills.getSkill(currentSkill)) + "(" + skills.getSkill(currentSkill) + ")\n";
         }
+        pages.add(getPlugin().getUtils().getMiniMessage().deserialize(sections[sectionIndex] + pageoutput));
+        pageoutput = "";
+        for(sectionIndex++; skillIndex < 13; skillIndex++) {
+            currentSkill = Utils.Skills.fromInt(skillIndex);
+            pageoutput += Utils.Skills.getSkillNameFormatted(currentSkill) + ": " + getPlugin().getUtils().getSkillManager().getSkillLevelFormatted(skills.getSkill(currentSkill)) + "(" + skills.getSkill(currentSkill) + ")\n";
+        }
+        pages.add(getPlugin().getUtils().getMiniMessage().deserialize(sections[sectionIndex] + pageoutput));
+        pageoutput = "";
+        for(sectionIndex++; skillIndex < 19; skillIndex++) {
+            currentSkill = Utils.Skills.fromInt(skillIndex);
+            pageoutput += Utils.Skills.getSkillNameFormatted(currentSkill) + ": " + getPlugin().getUtils().getSkillManager().getSkillLevelFormatted(skills.getSkill(currentSkill)) + "(" + skills.getSkill(currentSkill) + ")\n";
+        }
+        pages.add(getPlugin().getUtils().getMiniMessage().deserialize(sections[sectionIndex] + pageoutput));
+        pageoutput = "";
 
         for(Component page : pages) {
             meta.addPages(page);
         }
 
+        meta.setTitle("Skills");
+        meta.setAuthor("Skysong");
+        gui.setItemMeta(meta);
         player.openBook(gui);
         return true;
     }

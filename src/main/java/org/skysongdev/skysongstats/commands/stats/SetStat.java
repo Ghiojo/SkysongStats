@@ -16,6 +16,8 @@ import org.skysongdev.skysongstats.database.PlayerStats;
 import java.util.ArrayList;
 import java.util.List;
 
+import static org.skysongdev.skysongstats.SkysongStats.getPlugin;
+
 public class SetStat implements TabExecutor {
     int num;
     String stat;
@@ -28,7 +30,7 @@ public class SetStat implements TabExecutor {
         if(strings.length < 2){
             commandSender.sendMessage(Utils.getMiniMessage().deserialize(Utils.PLUGIN_TAG + "<red>Not enough arguments! (correct usage: /stats set [stat] [value])"));
         }
-        if(!(strings.length < 3))
+        if(strings.length < 3)
             target = (Player) commandSender;
         else{
             if(!commandSender.hasPermission("skysongstats.set.other")){
@@ -54,7 +56,7 @@ public class SetStat implements TabExecutor {
             return true;
         }
 
-        PlayerStats stats = SkysongStats.getPlugin().getUtils().getProfileManager().findActiveStats(target.getUniqueId().toString());
+        PlayerStats stats = getPlugin().getUtils().getProfileManager().findActiveStats(target.getUniqueId().toString());
 
         switch(stat.toLowerCase()){
             case "strength":
@@ -92,8 +94,13 @@ public class SetStat implements TabExecutor {
                 break;
         }
 
-        SkysongStats.getPlugin().getUtils().getStatsManager().updateStats(stats);
-        commandSender.sendMessage(Utils.getMiniMessage().deserialize(Utils.PLUGIN_TAG + "<yellow>" +strings[1] + " <red>has been set to <yellow>" + strings[0]));
+        getPlugin().getUtils().getStatsManager().updateStats(stats);
+        commandSender.sendMessage(Utils.getMiniMessage().deserialize(Utils.PLUGIN_TAG + "<yellow>" +strings[0] + " <gray>has been set to <yellow>" + strings[1]));
+        try{
+            getPlugin().getDatabase().updateStatData(stats);
+        } catch (Exception e){
+            e.printStackTrace();
+        }
 
         return true;
     }

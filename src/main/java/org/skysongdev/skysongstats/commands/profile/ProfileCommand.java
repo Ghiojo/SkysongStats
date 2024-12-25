@@ -37,23 +37,17 @@ public class ProfileCommand implements TabExecutor {
 
         switch(strings[0].toLowerCase()) {
             case "create":
-                if(commandSender.hasPermission("skysongstats.profile.create")){
-                    createProfile.onCommand(commandSender, command, s, newArgs);
-                } else
-                    commandSender.sendMessage(Utils.getMiniMessage().deserialize(Utils.PLUGIN_TAG + "<red>You don't have permissions to run that command!"));
+                createProfile.onCommand(commandSender, command, s, newArgs);
                 break;
             case "switch":
-                if(commandSender.hasPermission("skysongstats.profile.switch")){
-                    switchProfile.onCommand(commandSender, command, s, newArgs);
-                } else
-                    commandSender.sendMessage(Utils.getMiniMessage().deserialize(Utils.PLUGIN_TAG + "<red>You don't have permissions to run that command!"));
+                switchProfile.onCommand(commandSender, command, s, newArgs);
                 break;
             case "delete":
             case "del":
-                if(commandSender.hasPermission("skysongstats.profile.delete")){
-                    deleteProfile.onCommand(commandSender, command, s, newArgs);
-                } else
-                    commandSender.sendMessage(Utils.getMiniMessage().deserialize(Utils.PLUGIN_TAG + "<red>You don't have permissions to run that command!"));
+                deleteProfile.onCommand(commandSender, command, s, newArgs);
+                break;
+            case "view":
+                commandSender.sendMessage(Utils.getMiniMessage().deserialize(Utils.PLUGIN_TAG + "<gray> Your current profile is <yellow>" + SkysongStats.getPlugin().getUtils().getProfileManager().findActiveStats(player.getUniqueId().toString()).getProfile()));
                 break;
             default:
                 commandSender.sendMessage(Utils.getMiniMessage().deserialize(Utils.PLUGIN_TAG + "<red>Incorrect Arguments! Usage: /profile (create/switch/delete) (profile)"));
@@ -68,7 +62,7 @@ public class ProfileCommand implements TabExecutor {
     public @Nullable List<String> onTabComplete(@NotNull CommandSender commandSender, @NotNull Command command, @NotNull String s, @NotNull String[] strings) {
         String[] newstrings = Arrays.copyOfRange(strings, 1, strings.length);
         if(strings.length == 1){
-            return Arrays.asList("create", "switch", "delete").stream().filter(a -> a.startsWith(strings[0])).toList();
+            return Arrays.asList("create", "switch", "delete", "view").stream().filter(a -> a.startsWith(strings[0])).toList();
         }
         if(strings.length > 1){
             switch(strings[0].toLowerCase()){

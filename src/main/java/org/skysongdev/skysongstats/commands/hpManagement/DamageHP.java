@@ -37,7 +37,7 @@ public class DamageHP implements CommandExecutor {
                 sender.sendMessage(Utils.getMiniMessage().deserialize(Utils.PLUGIN_TAG + "<gray>You don't have permissions to set other players' stats!"));
                 return true;
             }
-            target = Bukkit.getPlayer(strings[2]);
+            target = Bukkit.getPlayer(strings[1]);
             if(target == null){
                 if(sender != null)
                     sender.sendMessage(Utils.getMiniMessage().deserialize(Utils.PLUGIN_TAG + "<gray>Player not found!"));
@@ -48,7 +48,7 @@ public class DamageHP implements CommandExecutor {
         }
 
         try{
-            hpAmount = Integer.parseInt(strings[1]);
+            hpAmount = Integer.parseInt(strings[0]);
             if(hpAmount < 0){
                 if(sender != null)
                     sender.sendMessage(Utils.getMiniMessage().deserialize(Utils.PLUGIN_TAG + "<gray>Invalid HP!"));
@@ -64,8 +64,20 @@ public class DamageHP implements CommandExecutor {
             return true;
         }
 
-        getPlugin().getUtils().getProfileManager().findActiveStats(target.getUniqueId().toString()).dealDamage(-hpAmount);
-        if(sender != null)
+        getPlugin().getUtils().getProfileManager().findActiveStats(target.getUniqueId().toString()).dealDamage(hpAmount);
+        try{
+            getPlugin().getDatabase().updateStatData( getPlugin().getUtils().getProfileManager().findActiveStats(target.getUniqueId().toString()));
+        } catch (Exception e){
+            if(sender != null)
+                sender.sendMessage(Utils.getMiniMessage().deserialize(Utils.PLUGIN_TAG + "<red>Failed to update player stats!"));
+            else
+                Bukkit.getLogger().warning("[Skysong Stats] Failed to update player stats!");
+            return true;
+        }
+
+        target.sendMessage(Utils.getMiniMessage().deserialize(Utils.PLUGIN_TAG + "<gray>You have been damaged for <red> " + hpAmount + " <gray>hp! Your health is now <red>" + getPlugin().getUtils().getProfileManager().findActiveStats(target.getUniqueId().toString()).getHp() + "<gray>!"));
+
+        if(sender != null && sender != target)
             sender.sendMessage(Utils.getMiniMessage().deserialize(Utils.PLUGIN_TAG + "<gray>Damaged " + target.getName() + " for <red>" + hpAmount + " <gray>hp! Their health is now <red>" + getPlugin().getUtils().getProfileManager().findActiveStats(target.getUniqueId().toString()).getHp() + "<gray>!"));
         Bukkit.getLogger().info("[SkysongStats] Damaged " + target.getName() + " for " + hpAmount + " hp!");
 

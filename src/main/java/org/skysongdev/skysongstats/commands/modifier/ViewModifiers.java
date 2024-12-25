@@ -22,26 +22,15 @@ public class ViewModifiers implements TabExecutor {
     public boolean onCommand(@NotNull CommandSender commandSender, @NotNull Command command, @NotNull String s, @NotNull String[] strings) {
         Player target;
         int page = 0;
-        if(!(commandSender instanceof Player)){
-            if(strings.length < 1){
-                Bukkit.getLogger().info("Too Little arguments! (Usage: /modifier view (player))");
-                return true;
-            }
-            target = Bukkit.getPlayer(strings[0]);
-            if(target == null){
-                Bukkit.getLogger().info("Player not found!");
-                return true;
-            }
-        }
         if(strings.length < 1){
-            commandSender.sendMessage("Too Little arguments! (Usage: /modifier view (player))");
-            return true;
-        }
-        try{
-            page = Integer.parseInt(strings[0]);
-        }catch (NumberFormatException e){
-            commandSender.sendMessage("Invalid page number!");
-            return true;
+            page = 1;
+        } else {
+            try {
+                page = Integer.parseInt(strings[0]);
+            } catch (NumberFormatException e) {
+                commandSender.sendMessage("Invalid page number!");
+                return true;
+            }
         }
         if(page < 1){
             commandSender.sendMessage("Invalid page number!");
@@ -76,7 +65,6 @@ public class ViewModifiers implements TabExecutor {
             commandSender.sendMessage(Utils.getMiniMessage().deserialize("                <#F6DA23>"+ target.getName() + "' s <#864811>Modifiers (page " + page +"):"));
             if(modifiers.size() == 0){
                 commandSender.sendMessage(Utils.getMiniMessage().deserialize("<#F6DA23>No modifiers found!"));
-                return true;
             } else
                 for(int i = ((page-1)*10); i < 10+((page-1)*10) && i < modifiers.size(); i++){
                     commandSender.sendMessage(Utils.getMiniMessage().deserialize("<#F6DA23>" + (i+1) + ". <#864811>" + Utils.StaticStats.getStatName(modifiers.get(i).getStat()) + ": <#63C934>" + modifiers.get(i).getModifier()));

@@ -35,10 +35,16 @@ public class SwitchProfile implements TabExecutor {
         PlayerStats stat = SkysongStats.getPlugin().getUtils().getStatsManager().findStats(player.getUniqueId().toString(), strings[0]);
 
         SkysongStats.getPlugin().getUtils().getProfileManager().setProfile(stat);
+        try{
+            getPlugin().getDatabase().updateActiveProfileData(getPlugin().getUtils().getProfileManager().findActiveProfile(player.getUniqueId().toString()));
+        } catch (Exception e){
+            e.printStackTrace();
+        }
 
-        ProfileUpdateEvent event = new ProfileUpdateEvent(player.getUniqueId().toString(), strings[0]);
+        ProfileUpdateEvent event = new ProfileUpdateEvent(player, player.getUniqueId().toString(), strings[0]);
         Bukkit.getPluginManager().callEvent(event);
 
+        commandSender.sendMessage(Utils.getMiniMessage().deserialize(Utils.PLUGIN_TAG + "<green>Profile switched to " + strings[0]));
 
         return true;
     }

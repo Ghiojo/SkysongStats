@@ -27,31 +27,33 @@ public class StatsCommand implements TabExecutor {
 
     @Override
     public boolean onCommand(@NotNull CommandSender commandSender, @NotNull Command command, @NotNull String s, @NotNull String[] strings) {
-        String[] newArgs = Arrays.copyOfRange(strings, 1, strings.length);
         Player player = (Player) commandSender;
         if(strings.length < 1){
             commandSender.sendMessage(Utils.getMiniMessage().deserialize(Utils.PLUGIN_TAG + "<red>Too Little arguments! (Usage: /stats (subcommand))"));
             return true;
         }
+        String[] newArgs = Arrays.copyOfRange(strings, 1, strings.length);
 
         switch(strings[0].toLowerCase()){
             case "view":
-                if(commandSender.hasPermission("skysongstats.view")){
-                    viewStats.onCommand(commandSender, command, s, newArgs);
-                } else
-                    commandSender.sendMessage(Utils.getMiniMessage().deserialize(Utils.PLUGIN_TAG + "<red>You don't have permissions to run that command!"));
+                viewStats.onCommand(commandSender, command, s, newArgs);
                 break;
             case "set":
-                if(commandSender.hasPermission("skysongstats.set")){
-                    setStat.onCommand(commandSender, command, s, newArgs);
-                } else
-                    commandSender.sendMessage(Utils.getMiniMessage().deserialize(Utils.PLUGIN_TAG + "<red>You don't have permissions to run that command!"));
+                if(!commandSender.hasPermission("skysongstats.stats.set")){
+                    commandSender.sendMessage(Utils.getMiniMessage().deserialize(Utils.PLUGIN_TAG + "<red>You don't have permission to set stats!"));
+                    return true;
+                }
+                setStat.onCommand(commandSender, command, s, newArgs);
                 break;
             case "add":
-                if(commandSender.hasPermission("skysongstats.add")){
-                    addStat.onCommand(commandSender, command, s, newArgs);
-                } else
-                    commandSender.sendMessage(Utils.getMiniMessage().deserialize(Utils.PLUGIN_TAG + "<red>You don't have permissions to run that command!"));
+                if(!commandSender.hasPermission("skysongstats.stats.add")){
+                    commandSender.sendMessage(Utils.getMiniMessage().deserialize(Utils.PLUGIN_TAG + "<red>You don't have permission to add stats!"));
+                    return true;
+                }
+                addStat.onCommand(commandSender, command, s, newArgs);
+                break;
+            default:
+                commandSender.sendMessage(Utils.getMiniMessage().deserialize(Utils.PLUGIN_TAG + "<red>Incorrect Arguments! Usage: /stats (view/set/add) (stat) (value)"));
                 break;
         }
 

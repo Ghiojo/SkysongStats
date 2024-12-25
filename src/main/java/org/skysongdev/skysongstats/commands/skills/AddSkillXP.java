@@ -70,15 +70,21 @@ public class AddSkillXP implements TabExecutor {
         }
 
         getPlugin().getUtils().getSkillManager().addSkillXP(getPlugin().getUtils().getSkillManager().findSkills(target.getUniqueId().toString(), getPlugin().getUtils().getProfileManager().getActiveProfileName(target.getUniqueId().toString())), strings[0], xpammount);
+        try{
+            getPlugin().getDatabase().updateSkillsData(getPlugin().getUtils().getSkillManager().findSkills(target.getUniqueId().toString(), getPlugin().getUtils().getProfileManager().getActiveProfileName(target.getUniqueId().toString())));
+        } catch (Exception e){
+            e.printStackTrace();
+        }
+
 
         if(commandSender instanceof Player){
             player.sendMessage(Utils.getMiniMessage().deserialize(Utils.PLUGIN_TAG + "<red>Added " + xpammount + " XP to " + target.getName() + "'s " + strings[0] + " skill!"));
         }
         Bukkit.getLogger().info("[SkysongStats] Added " + xpammount + " XP to " + target.getName() + "'s " + strings[0] + " skill!");
         if(target != player)
-            target.sendMessage(Utils.getMiniMessage().deserialize(Utils.PLUGIN_TAG + "<red>You have gained <gold>" + xpammount + " XP <gray>in your " + strings[0] + " skill!"));
+            target.sendMessage(Utils.getMiniMessage().deserialize(Utils.PLUGIN_TAG + "<green>You have gained <gold>" + xpammount + " XP <green>in your " + strings[0] + " skill!"));
 
-        SkillUpdateEvent event = new SkillUpdateEvent(target.getUniqueId().toString(), getPlugin().getUtils().getSkillManager().getSkill(strings[0]));
+        SkillUpdateEvent event = new SkillUpdateEvent(target, target.getUniqueId().toString(), getPlugin().getUtils().getSkillManager().getSkill(strings[0]));
         Bukkit.getPluginManager().callEvent(event);
         return true;
     }

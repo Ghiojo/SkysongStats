@@ -18,6 +18,7 @@ public class SetupCommand implements CommandExecutor {
             return true;
         }
         target.sendMessage(getPlugin().getUtils().getMiniMessage().deserialize(Utils.PLUGIN_TAG + "<red>You are now setting up your profile!"));
+        getPlugin().getUtils().getProfileManager().findActiveSetupProfile(target.getUniqueId().toString()).getStatSetupGUI().setupInventory();
         target.openInventory(getPlugin().getUtils().getProfileManager().findActiveSetupProfile(target.getUniqueId().toString()).getStatSetupGUI().getInventory());
         return true;
     }

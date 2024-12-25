@@ -30,7 +30,9 @@ public class DeleteProfile implements TabExecutor {
             commandSender.sendMessage(Utils.getMiniMessage().deserialize(Utils.PLUGIN_TAG + "<red>There's no profile with that name!"));
             return true;
         }
-        if(Objects.equals(getPlugin().getUtils().getStatsManager().findStats(player.getUniqueId().toString(), strings[0]).getProfile(), getPlugin().getUtils().getProfileManager().findActiveStats(player.getUniqueId().toString()).getProfile())){
+        String activeProfile = getPlugin().getUtils().getProfileManager().findActiveStats(player.getUniqueId().toString()).getProfile();
+        String targetProfile = getPlugin().getUtils().getStatsManager().findStats(player.getUniqueId().toString(), strings[0]).getProfile();
+        if(activeProfile.equals(targetProfile)){
             commandSender.sendMessage(Utils.getMiniMessage().deserialize(Utils.PLUGIN_TAG + "<red>You cannot delete the profile you are currently on, switch profiles before doing so!"));
             return true;
         }
@@ -38,6 +40,9 @@ public class DeleteProfile implements TabExecutor {
         getPlugin().getUtils().getStatsManager().deleteStat(getPlugin().getUtils().getStatsManager().findStats(player.getUniqueId().toString(), strings[0]));
         getPlugin().getUtils().getSkillManager().deleteSkillProfile(getPlugin().getUtils().getSkillManager().findSkills(player.getUniqueId().toString(), strings[0]));
         getPlugin().getUtils().getProfileManager().deleteSetupProfile(getPlugin().getUtils().getProfileManager().findSetupProfile(player.getUniqueId().toString(), strings[0]));
+        getPlugin().getUtils().getCharacterManager().deleteCharacterProfile(getPlugin().getUtils().getCharacterManager().findCharacterProfile(player.getUniqueId().toString(), strings[0]));
+
+        getPlugin().getUtils().getProfileManager().findAllProfiles(player.getUniqueId().toString()).remove(strings[0]);
 
         player.sendMessage(Utils.getMiniMessage().deserialize(Utils.PLUGIN_TAG + "<gray>Profile \"" + strings[0] + "\" has been deleted!"));
         return true;

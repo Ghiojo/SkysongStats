@@ -36,7 +36,7 @@ public class ViewCharacter implements TabExecutor {
         if(commandSender instanceof Player){
             Player player = (Player) commandSender;
             player.sendMessage(Utils.getMiniMessage().deserialize("<#864811>|====================<<<#63C934>₪<#864811>>>====================|"));
-            player.sendMessage(Utils.getMiniMessage().deserialize("                <#F6DA23>"+ player.getName() + "' s <#864811>Character Sheet:"));
+            player.sendMessage(Utils.getMiniMessage().deserialize("                <#F6DA23>"+ target.getName() + "' s <#864811>Character Sheet:"));
             player.sendMessage("");
             player.sendMessage(Utils.getMiniMessage().deserialize("<#D0530C><bold>Name:</bold> <#f8e886>" + profile.getName()));
             player.sendMessage(Utils.getMiniMessage().deserialize("<#D0530C><bold>Age:</bold> <#f8e886>" + profile.getAge()));
@@ -48,10 +48,11 @@ public class ViewCharacter implements TabExecutor {
             for(String word : input){
                 if(buffer.length() + word.length() > 60){
                     player.sendMessage(Utils.getMiniMessage().deserialize("<#f8e886>" + buffer));
-                    buffer = new StringBuilder();
-                }
-                buffer.append(word).append(" ");
+                    buffer = new StringBuilder().append(word).append(" ");
+                } else
+                    buffer.append(word).append(" ");
             }
+            player.sendMessage(Utils.getMiniMessage().deserialize("<#f8e886>" + buffer));
             player.sendMessage(Utils.getMiniMessage().deserialize("<#864811>|====================<<<#63C934>₪<#864811>>>====================|"));
         }
         return true;

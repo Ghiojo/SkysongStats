@@ -65,13 +65,19 @@ public class SetSkillXP implements TabExecutor {
         }
 
         getPlugin().getUtils().getSkillManager().setSkillXP(getPlugin().getUtils().getSkillManager().findSkills(target.getUniqueId().toString(), getPlugin().getUtils().getProfileManager().getActiveProfileName(target.getUniqueId().toString())), strings[0], xpammount);
+        try{
+            getPlugin().getDatabase().updateSkillsData(getPlugin().getUtils().getSkillManager().findSkills(target.getUniqueId().toString(), getPlugin().getUtils().getProfileManager().getActiveProfileName(target.getUniqueId().toString())));
+        } catch (Exception e){
+            e.printStackTrace();
+        }
+
 
         if(commandSender instanceof Player){
             commandSender.sendMessage(Utils.getMiniMessage().deserialize(Utils.PLUGIN_TAG + "<red>Set " + strings[0] + " XP to " + xpammount + " for " + target.getName()));
         }
         Bukkit.getLogger().info("[SkysongStats] Set " + strings[0] + " XP to " + xpammount + " for " + target.getName());
 
-        SkillUpdateEvent event = new SkillUpdateEvent(target.getUniqueId().toString(), getPlugin().getUtils().getSkillManager().getSkill(strings[0]));
+        SkillUpdateEvent event = new SkillUpdateEvent(target, target.getUniqueId().toString(), getPlugin().getUtils().getSkillManager().getSkill(strings[0]));
         Bukkit.getPluginManager().callEvent(event);
 
         return true;

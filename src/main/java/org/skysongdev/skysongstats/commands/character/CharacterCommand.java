@@ -17,12 +17,12 @@ public class CharacterCommand implements TabExecutor {
 
     @Override
     public boolean onCommand(@NotNull CommandSender commandSender, @NotNull Command command, @NotNull String s, @NotNull String[] strings) {
-        String[] newArgs = Arrays.copyOfRange(strings, 1, strings.length);
         Player player = (Player) commandSender;
         if(strings.length < 1){
             commandSender.sendMessage(Utils.getMiniMessage().deserialize(Utils.PLUGIN_TAG + "<red>Too Little arguments! (Usage: /stats (subcommand))"));
             return true;
         }
+        String[] newArgs = Arrays.copyOfRange(strings, 1, strings.length);
 
         switch(strings[0].toLowerCase()){
             case "view":
@@ -40,6 +40,18 @@ public class CharacterCommand implements TabExecutor {
 
     @Override
     public @Nullable List<String> onTabComplete(@NotNull CommandSender commandSender, @NotNull Command command, @NotNull String s, @NotNull String[] strings) {
+        String[] newArgs = Arrays.copyOfRange(strings, 1, strings.length);
+        if(strings.length == 1){
+            return List.of("view", "set");
+        }
+        if(strings.length > 1){
+            switch(strings[0].toLowerCase()){
+                case "view":
+                    return viewCharacter.onTabComplete(commandSender, command, s, newArgs);
+                case "set":
+                    return setField.onTabComplete(commandSender, command, s, newArgs);
+            }
+        }
         return List.of();
     }
 }

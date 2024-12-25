@@ -4,9 +4,11 @@ main: org.skysongdev.skysongstats.SkysongStats
 api-version: '1.20'
 
 softdepend: [PlaceholderAPI]
+loadbefore: [CMI, CMILib]
+
 
 commands:
-  stats:
+  sstats:
     description: "View your stats"
     usage: "/stats [player]"
     permission: "skysongstats.stats"
@@ -66,3 +68,294 @@ commands:
     description: "View your character"
     usage: "/schar [player]"
     permission: "skysongstats.schar"
+  profile:
+    description: "View your profile"
+    usage: "/profile [player]"
+    permission: "skysongstats.profile"
+  char:
+    description: "View your character"
+    usage: "/char [player]"
+    permission: "skysongstats.char"
+  stats:
+    description: "View your stats"
+    usage: "/stats [player]"
+    permission: "skysongstats.stats"
+  ac:
+    description: "Set your AC"
+    usage: "/ac [player] [amount]"
+    permission: "skysongstats.ac"
+permissions:
+  skysongstats.heal.other:
+    description: "Allows you to heal other players"
+    default: op
+  skysongstats.damage.other:
+    description: "Allows you to damage other players"
+    default: op
+  skysongstats.temphp.other:
+    description: "Allows you to view other players temporary health"
+    default: op
+  skysongstats.reload:
+    description: "Allows you to reload the plugin"
+    default: op
+  skysongstats.modifier.add.other:
+    description: "Allows you to add modifiers to other players"
+    default: op
+  skysongstats.modifier.del.other:
+    description: "Allows you to remove modifiers from other players"
+    default: op
+  skysongstats.modifier.view.other:
+    description: "Allows you to view other players modifiers"
+    default: op
+  skysongstats.addxp:
+    description: "Allows you to add xp to yourself"
+    default: op
+  skysongstats.setxp:
+    description: "Allows you to set xp to yourself"
+    default: op
+  skysongstats.stats.add:
+    description: "Allows you to add stats to yourself"
+    default: op
+  skysongstats.stats.set:
+    description: "Allows you to set stats to yourself"
+    default: op
+  skysongstats.*:
+    description: "Wildcard permission"
+    default: op
+    children:
+        skysongstats.heal.other: true
+        skysongstats.damage.other: true
+        skysongstats.temphp.other: true
+        skysongstats.reload: true
+        skysongstats.modifier.add.other: true
+        skysongstats.modifier.del.other: true
+        skysongstats.modifier.view.other: true
+        skysongstats.addxp: true
+        skysongstats.setxp: true
+        skysongstats.stats.add: true
+        skysongstats.stats.set: true
+
+  skysongstats.skill.animalhandling.novice:
+    description: "Allows you to use the novice animal handling skill"
+    default: op
+  skysongstats.skill.animalhandling.competent:
+    description: "Allows you to use the competent animal handling skill"
+    default: op
+  skysongstats.skill.animalhandling.journeyman:
+    description: "Allows you to use the journeyman animal handling skill"
+    default: op
+  skysongstats.skill.animalhandling.expert:
+    description: "Allows you to use the expert animal handling skill"
+    default: op
+  skysongstats.skill.farming.novice:
+    description: "Allows you to use the novice farming skill"
+    default: op
+  skysongstats.skill.farming.competent:
+    description: "Allows you to use the competent farming skill"
+    default: op
+  skysongstats.skill.farming.journeyman:
+    description: "Allows you to use the journeyman farming skill"
+    default: op
+  skysongstats.skill.farming.expert:
+    description: "Allows you to use the expert farming skill"
+    default: op
+  skysongstats.skill.forestry.novice:
+    description: "Allows you to use the novice forestry skill"
+    default: op
+  skysongstats.skill.forestry.competent:
+    description: "Allows you to use the competent forestry skill"
+    default: op
+  skysongstats.skill.forestry.journeyman:
+    description: "Allows you to use the journeyman forestry skill"
+    default: op
+  skysongstats.skill.mining.novice:
+    description: "Allows you to use the novice mining skill"
+    default: op
+  skysongstats.skill.mining.competent:
+    description: "Allows you to use the competent mining skill"
+    default: op
+  skysongstats.skill.mining.journeyman:
+    description: "Allows you to use the journeyman mining skill"
+    default: op
+  skysongstats.skill.mining.expert:
+      description: "Allows you to use the expert mining skill"
+      default: op
+  skysongstats.skill.mistgathering.novice:
+    description: "Allows you to use the novice mist gathering skill"
+    default: op
+  skysongstats.skill.mistgathering.competent:
+    description: "Allows you to use the competent mist gathering skill"
+    default: op
+  skysongstats.skill.mistgathering.journeyman:
+    description: "Allows you to use the journeyman mist gathering skill"
+    default: op
+  skysongstats.skill.mistgathering.expert:
+    description: "Allows you to use the expert mist gathering skill"
+    default: op
+  skysongstats.skill.woodprocessing.novice:
+    description: "Allows you to use the novice wood processing skill"
+    default: op
+  skysongstats.skill.woodprocessing.competent:
+    description: "Allows you to use the competent wood processing skill"
+    default: op
+  skysongstats.skill.woodprocessing.journeyman:
+    description: "Allows you to use the journeyman wood processing skill"
+    default: op
+  skysongstats.skill.woodprocessing.expert:
+    description: "Allows you to use the expert wood processing skill"
+    default: op
+  skysongstats.skill.alchemy.novice:
+    description: "Allows you to use the novice alchemy skill"
+    default: op
+  skysongstats.skill.alchemy.competent:
+    description: "Allows you to use the competent alchemy skill"
+    default: op
+  skysongstats.skill.alchemy.journeyman:
+    description: "Allows you to use the journeyman alchemy skill"
+    default: op
+  skysongstats.skill.alchemy.expert:
+    description: "Allows you to use the expert alchemy skill"
+    default: op
+  skysongstats.skill.artificing.novice:
+    description: "Allows you to use the novice artificing skill"
+    default: op
+  skysongstats.skill.artificing.competent:
+    description: "Allows you to use the competent artificing skill"
+    default: op
+  skysongstats.skill.artificing.journeyman:
+    description: "Allows you to use the journeyman artificing skill"
+    default: op
+  skysongstats.skill.artificing.expert:
+    description: "Allows you to use the expert artificing skill"
+    default: op
+  skysongstats.skill.cooking.novice:
+    description: "Allows you to use the novice cooking skill"
+    default: op
+  skysongstats.skill.cooking.competent:
+    description: "Allows you to use the competent cooking skill"
+    default: op
+  skysongstats.skill.cooking.journeyman:
+    description: "Allows you to use the journeyman cooking skill"
+    default: op
+  skysongstats.skill.cooking.expert:
+    description: "Allows you to use the expert cooking skill"
+    default: op
+  skysongstats.skill.craftsman.novice:
+    description: "Allows you to use the novice craftsman skill"
+    default: op
+  skysongstats.skill.craftsman.competent:
+    description: "Allows you to use the competent craftsman skill"
+    default: op
+  skysongstats.skill.craftsman.journeyman:
+    description: "Allows you to use the journeyman craftsman skill"
+    default: op
+  skysongstats.skill.craftsman.expert:
+    description: "Allows you to use the expert craftsman skill"
+    default: op
+  skysongstats.skill.metalworking.novice:
+    description: "Allows you to use the novice metalworking skill"
+    default: op
+  skysongstats.skill.metalworking.competent:
+    description: "Allows you to use the competent metalworking skill"
+    default: op
+  skysongstats.skill.metalworking.journeyman:
+    description: "Allows you to use the journeyman metalworking skill"
+    default: op
+  skysongstats.skill.metalworking.expert:
+    description: "Allows you to use the expert metalworking skill"
+    default: op
+  skysongstats.skill.tailoring.novice:
+    description: "Allows you to use the novice tailoring skill"
+    default: op
+  skysongstats.skill.tailoring.competent:
+    description: "Allows you to use the competent tailoring skill"
+    default: op
+  skysongstats.skill.tailoring.journeyman:
+    description: "Allows you to use the journeyman tailoring skill"
+    default: op
+  skysongstats.skill.tailoring.expert:
+    description: "Allows you to use the expert tailoring skill"
+    default: op
+  skysongstats.skill.witchcraft.novice:
+    description: "Allows you to use the novice witchcraft skill"
+    default: op
+  skysongstats.skill.witchcraft.competent:
+    description: "Allows you to use the competent witchcraft skill"
+    default: op
+  skysongstats.skill.witchcraft.journeyman:
+    description: "Allows you to use the journeyman witchcraft skill"
+    default: op
+  skysongstats.skill.witchcraft.expert:
+    description: "Allows you to use the expert witchcraft skill"
+    default: op
+  skysongstats.skill.economical.novice:
+    description: "Allows you to use the novice economical skill"
+    default: op
+  skysongstats.skill.economical.competent:
+    description: "Allows you to use the competent economical skill"
+    default: op
+  skysongstats.skill.economical.journeyman:
+    description: "Allows you to use the journeyman economical skill"
+    default: op
+  skysongstats.skill.economical.expert:
+    description: "Allows you to use the expert economical skill"
+    default: op
+  skysongstats.skill.scholarly.novice:
+    description: "Allows you to use the novice scholarly skill"
+    default: op
+  skysongstats.skill.scholarly.competent:
+    description: "Allows you to use the competent scholarly skill"
+    default: op
+  skysongstats.skill.scholarly.journeyman:
+    description: "Allows you to use the journeyman scholarly skill"
+    default: op
+  skysongstats.skill.scholarly.expert:
+    description: "Allows you to use the expert scholarly skill"
+    default: op
+  skysongstats.skill.entertainment.novice:
+    description: "Allows you to use the novice entertainment skill"
+    default: op
+  skysongstats.skill.entertainment.competent:
+    description: "Allows you to use the competent entertainment skill"
+    default: op
+  skysongstats.skill.entertainment.journeyman:
+    description: "Allows you to use the journeyman entertainment skill"
+    default: op
+  skysongstats.skill.entertainment.expert:
+    description: "Allows you to use the expert entertainment skill"
+    default: op
+  skysongstats.skill.martial.novice:
+    description: "Allows you to use the novice martial skill"
+    default: op
+  skysongstats.skill.martial.competent:
+    description: "Allows you to use the competent martial skill"
+    default: op
+  skysongstats.skill.martial.journeyman:
+    description: "Allows you to use the journeyman martial skill"
+    default: op
+  skysongstats.skill.martial.expert:
+    description: "Allows you to use the expert martial skill"
+    default: op
+  skysongstats.skill.medical.novice:
+    description: "Allows you to use the novice medical skill"
+    default: op
+  skysongstats.skill.medical.competent:
+    description: "Allows you to use the competent medical skill"
+    default: op
+  skysongstats.skill.medical.journeyman:
+    description: "Allows you to use the journeyman medical skill"
+    default: op
+  skysongstats.skill.medical.expert:
+    description: "Allows you to use the expert medical skill"
+    default: op
+  skysongstats.skill.tande.novice:
+    description: "Allows you to use the novice transportation and exploration skill"
+    default: op
+  skysongstats.skill.tande.competent:
+    description: "Allows you to use the competent transportation and exploration skill"
+    default: op
+  skysongstats.skill.tande.journeyman:
+    description: "Allows you to use the journeyman transportation and exploration skill"
+    default: op
+  skysongstats.skill.tande.expert:
+    description: "Allows you to use the expert transportation and exploration skill"
+    default: op

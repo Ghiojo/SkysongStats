@@ -97,7 +97,12 @@ public class AddStat implements TabExecutor {
         }
 
         SkysongStats.getPlugin().getUtils().getStatsManager().updateStats(stats);
-        commandSender.sendMessage(Utils.getMiniMessage().deserialize(Utils.PLUGIN_TAG + "<yellow>" + strings[1] + " <red>has been modified"));
+        commandSender.sendMessage(Utils.getMiniMessage().deserialize(Utils.PLUGIN_TAG + "<yellow>" + strings[0] + " <gray>has been modified"));
+        try{
+            SkysongStats.getPlugin().getDatabase().updateStatData(stats);
+        } catch (Exception e){
+            e.printStackTrace();
+        }
 
         return true;
     }

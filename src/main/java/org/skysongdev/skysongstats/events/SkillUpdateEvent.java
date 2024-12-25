@@ -1,5 +1,6 @@
 package org.skysongdev.skysongstats.events;
 
+import org.bukkit.entity.Player;
 import org.bukkit.event.Event;
 import org.bukkit.event.HandlerList;
 import org.skysongdev.skysongstats.Utils.Utils;
@@ -11,16 +12,19 @@ public class SkillUpdateEvent extends Event {
     private final String playerUUID;
     private final Utils.Skills skill;
     private final String profile;
+    private final Player player;
 
-    public SkillUpdateEvent(String playerUUID, Utils.Skills skill) {
+    public SkillUpdateEvent(Player player, String playerUUID, Utils.Skills skill) {
         this.playerUUID = playerUUID;
         this.skill = skill;
         this.profile = getPlugin().getUtils().getSkillManager().findActiveSkills(playerUUID).getProfile();
+        this.player = player;
     }
-    public SkillUpdateEvent(String playerUUID, Utils.Skills skill, String profile) {
+    public SkillUpdateEvent(Player player, String playerUUID, Utils.Skills skill, String profile) {
         this.playerUUID = playerUUID;
         this.skill = skill;
         this.profile = profile;
+        this.player = player;
     }
 
     public Utils.Skills getSkill() {
@@ -37,6 +41,10 @@ public class SkillUpdateEvent extends Event {
 
     public HandlerList getHandlers() {
         return handlers;
+    }
+
+    public Player getPlayer() {
+        return player;
     }
 
     public static HandlerList getHandlerList() {

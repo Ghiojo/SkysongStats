@@ -48,6 +48,12 @@ public class SkillManager {
     }
     public void addSkillProfile(PlayerSkills skill){
         SkillManager.playerSkills.add(skill);
+        try {
+            getPlugin().getDatabase().createSkillsData(skill);
+        }catch (SQLException e){
+            Bukkit.getLogger().warning("[SkysongStats] Unable to add a skill profile!");
+            e.printStackTrace();
+        }
     }
 
     public Utils.Skills getSkill(String skill){
@@ -190,6 +196,12 @@ public class SkillManager {
             default:
                 break;
         }
+        try{
+            getPlugin().getDatabase().updateSkillsData(skills);
+        }catch (SQLException e){
+            Bukkit.getLogger().warning("[SkysongStats] Couldn't update skill data!");
+            e.printStackTrace();
+        }
     }
 
     public void setSkillXP(PlayerSkills skills, String skill, int xp) {
@@ -268,6 +280,12 @@ public class SkillManager {
                 break;
             default:
                 break;
+        }
+        try{
+            getPlugin().getDatabase().updateSkillsData(skills);
+        }catch (SQLException e){
+            Bukkit.getLogger().warning("[SkysongStats] Couldn't update skill data!");
+            e.printStackTrace();
         }
     }
 
