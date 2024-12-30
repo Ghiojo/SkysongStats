@@ -3,6 +3,9 @@ package org.skysongdev.skysongstats;
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.skysongdev.skysongstats.Utils.Utils;
+import org.skysongdev.skysongstats.commands.afflictions.Arcrot;
+import org.skysongdev.skysongstats.commands.afflictions.Fictis;
+import org.skysongdev.skysongstats.commands.afflictions.PotionSickness;
 import org.skysongdev.skysongstats.commands.character.CharacterCommand;
 import org.skysongdev.skysongstats.commands.hpManagement.*;
 import org.skysongdev.skysongstats.commands.misc.ReloadCommand;
@@ -92,6 +95,9 @@ public final class SkysongStats extends JavaPlugin {
         getCommand("char").setExecutor(characterCommand);
         getCommand("stats").setExecutor(statsCommand);
         getCommand("ac").setExecutor(new ACCommand());
+        getCommand("potionsickness").setExecutor(new PotionSickness());
+        getCommand("fictis").setExecutor(new Fictis());
+        getCommand("arcrot").setExecutor(new Arcrot());
     }
 
     public void AssignListeners() {

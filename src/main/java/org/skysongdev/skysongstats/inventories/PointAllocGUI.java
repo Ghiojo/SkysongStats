@@ -184,12 +184,12 @@ public class PointAllocGUI implements InventoryHolder {
         switch(stat){
             case STRENGTH:
                 if (num > 0) {
-                    if (str + num > 2) {
-                        return;
-                    }
                     if(str < 0){
                         if(negativePoints <= 0){
                             if(points <= 1){
+                                return;
+                            }
+                            if(str == 3 || dex == 3 || con == 3 || foc == 3 || spd == 3){
                                 return;
                             }
                             points--;
@@ -198,6 +198,12 @@ public class PointAllocGUI implements InventoryHolder {
                         str += num;
                     }else {
                         if(points <= 0){
+                            return;
+                        }
+                        if (str + num > 2 && negativePoints > 0) {
+                            return;
+                        }
+                        if(str + num > 3){
                             return;
                         }
                         str += num;
@@ -222,12 +228,12 @@ public class PointAllocGUI implements InventoryHolder {
                 break;
             case DEXTERITY:
                 if (num > 0) {
-                    if (dex + num > 2) {
-                        return;
-                    }
                     if(dex < 0){
                         if(negativePoints <= 0){
                             if(points <= 1){
+                                return;
+                            }
+                            if(str == 3 || dex == 3 || con == 3 || foc == 3 || spd == 3){
                                 return;
                             }
                             points--;
@@ -236,6 +242,12 @@ public class PointAllocGUI implements InventoryHolder {
                         dex += num;
                     }else {
                         if(points <= 0){
+                            return;
+                        }
+                        if (dex + num > 2 && negativePoints > 0) {
+                            return;
+                        }
+                        if(dex + num > 3){
                             return;
                         }
                         dex += num;
@@ -260,12 +272,12 @@ public class PointAllocGUI implements InventoryHolder {
                 break;
             case CONSTITUTION:
                 if (num > 0) {
-                    if (con + num > 2) {
-                        return;
-                    }
                     if(con < 0){
                         if(negativePoints <= 0){
                             if(points <= 1){
+                                return;
+                            }
+                            if(str == 3 || dex == 3 || con == 3 || foc == 3 || spd == 3){
                                 return;
                             }
                             points--;
@@ -274,6 +286,12 @@ public class PointAllocGUI implements InventoryHolder {
                         con += num;
                     }else {
                         if(points <= 0){
+                            return;
+                        }
+                        if (con + num > 2 && negativePoints > 0) {
+                            return;
+                        }
+                        if(con + num > 3){
                             return;
                         }
                         con += num;
@@ -298,12 +316,12 @@ public class PointAllocGUI implements InventoryHolder {
                 break;
             case FOCUS:
                 if (num > 0) {
-                    if (foc + num > 2) {
-                        return;
-                    }
                     if(foc < 0){
                         if(negativePoints <= 0){
                             if(points <= 1){
+                                return;
+                            }
+                            if(str == 3 || dex == 3 || con == 3 || foc == 3 || spd == 3){
                                 return;
                             }
                             points--;
@@ -312,6 +330,12 @@ public class PointAllocGUI implements InventoryHolder {
                         foc += num;
                     }else {
                         if(points <= 0){
+                            return;
+                        }
+                        if (foc + num > 2 && negativePoints > 0) {
+                            return;
+                        }
+                        if(foc + num > 3){
                             return;
                         }
                         foc += num;
@@ -336,12 +360,12 @@ public class PointAllocGUI implements InventoryHolder {
                 break;
             case SPEED:
                 if (num > 0) {
-                    if (spd + num > 2) {
-                        return;
-                    }
                     if(spd < 0){
                         if(negativePoints <= 0){
                             if(points <= 1){
+                                return;
+                            }
+                            if(str == 3 || dex == 3 || con == 3 || foc == 3 || spd == 3){
                                 return;
                             }
                             points--;
@@ -350,6 +374,12 @@ public class PointAllocGUI implements InventoryHolder {
                         spd += num;
                     }else {
                         if(points <= 0){
+                            return;
+                        }
+                        if (spd + num > 2 && negativePoints > 0) {
+                            return;
+                        }
+                        if(spd + num > 3){
                             return;
                         }
                         spd += num;

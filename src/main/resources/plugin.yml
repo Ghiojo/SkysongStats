@@ -84,6 +84,15 @@ commands:
     description: "Set your AC"
     usage: "/ac [player] [amount]"
     permission: "skysongstats.ac"
+  arcrot:
+    description: "Set your Arcane Resistance"
+    usage: "/arcrot [player] [amount]"
+  potionsickness:
+    description: "Set your potion sickness"
+    usage: "/potionsickness [player] [amount]"
+  fictis:
+    description: "Set your fictis"
+    usage: "/fictis [player] [amount]"
 permissions:
   skysongstats.heal.other:
     description: "Allows you to heal other players"

@@ -54,7 +54,7 @@ public class SkillAllocGUIListener implements Listener {
                 else
                     meta.setEnchantmentGlintOverride(!gui.removeSelectedSkills(skill));
                 item.setItemMeta(meta);
-                event.getWhoClicked().sendMessage("Skills: " + setup.skillsSelected.toString());
+                //event.getWhoClicked().sendMessage("Skills: " + setup.skillsSelected.toString());
                 gui.updateHeader();
             }
             if(itemData.has(optionButtonKey)){

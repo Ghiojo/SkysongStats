@@ -146,7 +146,7 @@ public class Utils {
         public static String getSkillNameFormatted(Skills skill){
             return switch(skill){
                 case ANIMAL_HANDLING -> "<#45c2ea>Animal Handling<reset>";
-                case FARMING -> "<#f9f36d>Farming<reset>";
+                case FARMING -> "<#cdaf22>Farming<reset>";
                 case FORESTRY -> "<#54bf3e>Forestry<reset>";
                 case MINING -> "<#a0836f>Mining<reset>";
                 case MIST_GATHERING -> "<gold>Mist Gathering<reset>";
@@ -269,6 +269,7 @@ public class Utils {
             case "craft":
             case "metalworking":
             case "metal":
+            case "tailoring":
             case "witchcraft":
             case "witch":
             case "economical":

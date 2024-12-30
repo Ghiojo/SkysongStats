@@ -25,6 +25,7 @@ public class SkillManager {
         skillList.add("Cooking");
         skillList.add("Craftsman");
         skillList.add("Metalworking");
+        skillList.add("Tailoring");
         skillList.add("Witchcraft");
         skillList.add("Economical");
         skillList.add("Scholarly");
@@ -91,6 +92,9 @@ public class SkillManager {
             case "metalworking":
             case "metal":
                 return Utils.Skills.METALWORKING;
+            case "tailoring":
+            case "tailor":
+                return Utils.Skills.TAILORING;
             case "witchcraft":
             case "witch":
                 return Utils.Skills.WITCHCRAFT;
@@ -163,6 +167,10 @@ public class SkillManager {
             case "metalworking":
             case "metal":
                 skills.addSkill(Utils.Skills.METALWORKING, xp);
+                break;
+            case "tailoring":
+            case "tailor":
+                skills.addSkill(Utils.Skills.TAILORING, xp);
                 break;
             case "witchcraft":
             case "witch":
@@ -250,6 +258,10 @@ public class SkillManager {
             case "metal":
                 skills.setSkill(Utils.Skills.METALWORKING, xp);
                 break;
+            case "tailoring":
+            case "tailor":
+                skills.setSkill(Utils.Skills.TAILORING, xp);
+                break;
             case "witchcraft":
             case "witch":
                 skills.setSkill(Utils.Skills.WITCHCRAFT, xp);
@@ -327,7 +339,7 @@ public class SkillManager {
         if(xp < 16){
             return "<dark_gray>Unskilled";
         }else if(xp < 40){
-            return "<green>Novice";
+            return "<#6cda33>Novice";
         }else if(xp < 80){
             return "<blue>Competent";
         }else if(xp < 128){

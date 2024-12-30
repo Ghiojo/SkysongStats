@@ -123,6 +123,11 @@ public class SetupProfile {
         getPlugin().getUtils().getSkillManager().updateSkillProfile(playerSkills);
 
         this.isSetUp = true;
+        try{
+        getPlugin().getDatabase().updateSetupData(uuid, profile, true);
+        } catch (Exception e){
+            Bukkit.getLogger().warning("[Skysong Stats] Failed to update player setup data!");
+        }
     }
 
     public StatSetupGUI getStatSetupGUI() {
