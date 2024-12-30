@@ -11,6 +11,7 @@ import org.jetbrains.annotations.Nullable;
 import org.skysongdev.skysongstats.SkysongStats;
 import org.skysongdev.skysongstats.Utils.Utils;
 
+import java.sql.SQLException;
 import java.util.List;
 
 import static org.skysongdev.skysongstats.SkysongStats.getPlugin;
@@ -46,7 +47,13 @@ public class DelModifier implements TabExecutor {
             commandSender.sendMessage(Utils.getMiniMessage().deserialize(Utils.PLUGIN_TAG + "<gray>index \"" + strings[1] + "\" is out of bounds! There's no modifier with that id"));
             return true;
         }
-
+        try {
+            getPlugin().getDatabase().deleteModifierData(getPlugin().getUtils().getProfileManager().findActiveStats(target.getUniqueId().toString()), id - 1);
+        } catch (SQLException e){
+            e.printStackTrace();
+            commandSender.sendMessage(Utils.getMiniMessage().deserialize(Utils.PLUGIN_TAG + "<gray>Failed to remove modifier!"));
+            return true;
+        }
         getPlugin().getUtils().getProfileManager().findActiveStats(target.getUniqueId().toString()).getModifiers().remove(id-1);
         getPlugin().getUtils().getStatsManager().updateStats(getPlugin().getUtils().getProfileManager().findActiveStats(target.getUniqueId().toString()));
         commandSender.sendMessage(Utils.getMiniMessage().deserialize(Utils.PLUGIN_TAG + "<gray>Modifier removed!"));

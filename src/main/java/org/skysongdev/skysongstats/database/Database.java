@@ -297,12 +297,12 @@ public class Database {
     }
     public void dumpStatsDatabase() throws SQLException{
         StatsManager.statsProfileList = new ArrayList<PlayerStats>();
-        ArrayList<Modifier> modarray = new ArrayList<Modifier>();
         Statement statement = getConnection().createStatement();
         String sql = "SELECT * FROM skysong_stats";
         ResultSet results = statement.executeQuery(sql);
 
         while(results.next()){
+            ArrayList<Modifier> modarray = new ArrayList<Modifier>();
             String uuid = results.getString("uuid");
             String profile = results.getString("profile");
             int strength = results.getInt("strength");
