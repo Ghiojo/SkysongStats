@@ -29,7 +29,7 @@ public class StatsCommand implements TabExecutor {
     public boolean onCommand(@NotNull CommandSender commandSender, @NotNull Command command, @NotNull String s, @NotNull String[] strings) {
         Player player = (Player) commandSender;
         if(strings.length < 1){
-            commandSender.sendMessage(Utils.getMiniMessage().deserialize(Utils.PLUGIN_TAG + "<red>Too Little arguments! (Usage: /stats (subcommand))"));
+            viewStats.onCommand(commandSender, command, s, strings);
             return true;
         }
         String[] newArgs = Arrays.copyOfRange(strings, 1, strings.length);
@@ -68,7 +68,7 @@ public class StatsCommand implements TabExecutor {
         } if(strings.length > 1){
             switch(strings[0].toLowerCase()){
                 case "view":
-                    return List.of("");
+                    return viewStats.onTabComplete(commandSender, command, s, newstrings);
                 case "set":
                     return setStat.onTabComplete(commandSender, command, s, newstrings);
                 case "add":

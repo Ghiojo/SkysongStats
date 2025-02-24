@@ -28,7 +28,7 @@ public class ProfileUpdateListener implements Listener {
             return;
         }
 
-        for(int i = 0; i < 19; i++) {
+        for(int i = 0; i < 18; i++) {
             skill = Utils.Skills.fromInt(i);
             level = getPlugin().getUtils().getSkillManager().getSkillLevel(getPlugin().getUtils().getSkillManager().findSkills(player.getUniqueId().toString(), profile).getSkill(skill));
 

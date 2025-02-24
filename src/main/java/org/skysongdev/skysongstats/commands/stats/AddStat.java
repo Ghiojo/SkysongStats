@@ -34,7 +34,7 @@ public class AddStat implements TabExecutor {
                 commandSender.sendMessage(Utils.getMiniMessage().deserialize(Utils.PLUGIN_TAG + "<red>You don't have permissions to set other players' stats!"));
                 return true;
             }
-            target = Bukkit.getServer().getPlayer(strings[0]);
+            target = Bukkit.getServer().getPlayer(strings[2]);
             if(target == null){
                 commandSender.sendMessage(Utils.getMiniMessage().deserialize(Utils.PLUGIN_TAG + "<red>No Player found with that username!"));
                 return true;

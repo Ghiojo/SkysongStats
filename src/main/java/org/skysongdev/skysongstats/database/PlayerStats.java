@@ -298,6 +298,24 @@ public class PlayerStats {
         return add;
     }
 
+    public int getArcrotModifiers(){
+        int add = 0;
+        for(Modifier m : modifiers){
+            if(m.getStat() == Utils.StaticStats.ARCROT)
+                add += m.getModifier();
+        }
+        return add;
+    }
+
+    public int getFictisModifiers(){
+        int add = 0;
+        for(Modifier m : modifiers){
+            if(m.getStat() == Utils.StaticStats.FICTIS)
+                add += m.getModifier();
+        }
+        return add;
+    }
+
     public void dealDamage(int damage){
         if(temp_hp > 0){
             temp_hp -= damage;

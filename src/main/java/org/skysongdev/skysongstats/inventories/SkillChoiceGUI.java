@@ -40,7 +40,6 @@ public class SkillChoiceGUI implements InventoryHolder {
     ItemStack tailoringItem = new ItemStack(Material.FLOWER_BANNER_PATTERN);
     ItemStack witchcraftItem = new ItemStack(Material.ENCHANTING_TABLE);
     ItemStack economicalItem = new ItemStack(Material.GOLD_NUGGET);
-    ItemStack scholarlyItem = new ItemStack(Material.BOOK);
     ItemStack entertainmentItem = new ItemStack(Material.MUSIC_DISC_CAT);
     ItemStack martialItem = new ItemStack(Material.IRON_SWORD);
     ItemStack medicalItem = new ItemStack(Material.PAPER);
@@ -234,17 +233,6 @@ public class SkillChoiceGUI implements InventoryHolder {
         lore.clear();
         this.inventory.setItem(14, economicalItem);
 
-        bufferMeta = scholarlyItem.getItemMeta();
-        bufferMeta.displayName(getPlugin().getUtils().getMiniMessage().deserialize("<#5375e9><bold>Scholarly</bold>"));
-        lore.add(getPlugin().getUtils().getMiniMessage().deserialize("<gray>This skill has to do with your character's miscellaneous academical knowledge."));
-        lore.add(getPlugin().getUtils().getMiniMessage().deserialize("<gray>It's often seen utilized by sages, teachers, scribes, etc."));
-        bufferMeta.lore(lore);
-        bufferContainer = bufferMeta.getPersistentDataContainer();
-        bufferContainer.set(selectableKey, PersistentDataType.BOOLEAN, true);
-        bufferContainer.set(skillButtonKey, PersistentDataType.INTEGER, 14);
-        scholarlyItem.setItemMeta(bufferMeta);
-        lore.clear();
-        this.inventory.setItem(15, scholarlyItem);
 
         bufferMeta = entertainmentItem.getItemMeta();
         bufferMeta.displayName(getPlugin().getUtils().getMiniMessage().deserialize("<#f22a93><bold>Entertainment</bold>"));
@@ -253,10 +241,10 @@ public class SkillChoiceGUI implements InventoryHolder {
         bufferMeta.lore(lore);
         bufferContainer = bufferMeta.getPersistentDataContainer();
         bufferContainer.set(selectableKey, PersistentDataType.BOOLEAN, true);
-        bufferContainer.set(skillButtonKey, PersistentDataType.INTEGER, 15);
+        bufferContainer.set(skillButtonKey, PersistentDataType.INTEGER, 14);
         entertainmentItem.setItemMeta(bufferMeta);
         lore.clear();
-        this.inventory.setItem(16, entertainmentItem);
+        this.inventory.setItem(15, entertainmentItem);
 
         bufferMeta = martialItem.getItemMeta();
         bufferMeta.displayName(getPlugin().getUtils().getMiniMessage().deserialize("<#e18048><bold>Martial</bold>"));
@@ -266,10 +254,10 @@ public class SkillChoiceGUI implements InventoryHolder {
         bufferMeta.lore(lore);
         bufferContainer = bufferMeta.getPersistentDataContainer();
         bufferContainer.set(selectableKey, PersistentDataType.BOOLEAN, true);
-        bufferContainer.set(skillButtonKey, PersistentDataType.INTEGER, 16);
+        bufferContainer.set(skillButtonKey, PersistentDataType.INTEGER, 15);
         martialItem.setItemMeta(bufferMeta);
         lore.clear();
-        this.inventory.setItem(23, martialItem);
+        this.inventory.setItem(16, martialItem);
 
         bufferMeta = medicalItem.getItemMeta();
         bufferMeta.displayName(getPlugin().getUtils().getMiniMessage().deserialize("<#f14f4f><bold>Medical</bold>"));
@@ -278,10 +266,10 @@ public class SkillChoiceGUI implements InventoryHolder {
         bufferMeta.lore(lore);
         bufferContainer = bufferMeta.getPersistentDataContainer();
         bufferContainer.set(selectableKey, PersistentDataType.BOOLEAN, true);
-        bufferContainer.set(skillButtonKey, PersistentDataType.INTEGER, 17);
+        bufferContainer.set(skillButtonKey, PersistentDataType.INTEGER, 16);
         medicalItem.setItemMeta(bufferMeta);
         lore.clear();
-        this.inventory.setItem(24, medicalItem);
+        this.inventory.setItem(23, medicalItem);
 
         bufferMeta = tandeItem.getItemMeta();
         bufferMeta.displayName(getPlugin().getUtils().getMiniMessage().deserialize("<#7fe95b><bold>Transportation and Exploration</bold>"));
@@ -290,10 +278,10 @@ public class SkillChoiceGUI implements InventoryHolder {
         bufferMeta.lore(lore);
         bufferContainer = bufferMeta.getPersistentDataContainer();
         bufferContainer.set(selectableKey, PersistentDataType.BOOLEAN, true);
-        bufferContainer.set(skillButtonKey, PersistentDataType.INTEGER, 18);
+        bufferContainer.set(skillButtonKey, PersistentDataType.INTEGER, 17);
         tandeItem.setItemMeta(bufferMeta);
         lore.clear();
-        this.inventory.setItem(25, tandeItem);
+        this.inventory.setItem(24, tandeItem);
 
         ItemStack confirmItem = new ItemStack(Material.LIME_STAINED_GLASS_PANE);
         bufferMeta = confirmItem.getItemMeta();

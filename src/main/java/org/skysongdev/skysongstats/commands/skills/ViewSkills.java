@@ -62,7 +62,7 @@ public class ViewSkills implements TabExecutor {
         }
         pages.add(getPlugin().getUtils().getMiniMessage().deserialize(sections[sectionIndex] + pageoutput));
         pageoutput = "";
-        for(sectionIndex++; skillIndex < 19; skillIndex++) {
+        for(sectionIndex++; skillIndex < 18; skillIndex++) {
             currentSkill = Utils.Skills.fromInt(skillIndex);
             pageoutput += Utils.Skills.getSkillNameFormatted(currentSkill) + ": " + getPlugin().getUtils().getSkillManager().getSkillLevelFormatted(skills.getSkill(currentSkill)) + "(" + skills.getSkill(currentSkill) + ")\n";
         }

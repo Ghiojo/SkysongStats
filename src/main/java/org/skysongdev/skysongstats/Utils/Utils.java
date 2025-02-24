@@ -52,7 +52,9 @@ public class Utils {
         MAXHP,
         FICTIS_MAX,
         ARCROT_MAX,
-        POTION_MAX;
+        POTION_MAX,
+        ARCROT,
+        FICTIS;
 
         public static String getStatName(StaticStats stat){
             return switch(stat){
@@ -65,6 +67,8 @@ public class Utils {
                 case FICTIS_MAX -> "Fictis Max";
                 case ARCROT_MAX -> "Arcrot Max";
                 case POTION_MAX -> "Potion Max";
+                case ARCROT -> "Arcrot";
+                case FICTIS -> "Fictis";
             };
         }
     }
@@ -83,11 +87,10 @@ public class Utils {
         TAILORING(11),
         WITCHCRAFT(12),
         ECONOMICAL(13),
-        SCHOLARLY(14),
-        ENTERTAINMENT(15),
-        MARTIAL(16),
-        MEDICAL(17),
-        TRANSPORTATION_AND_EXPLORATION(18);
+        ENTERTAINMENT(14),
+        MARTIAL(15),
+        MEDICAL(16),
+        TRANSPORTATION_AND_EXPLORATION(17);
 
         private final int value;
         private Skills(int value){
@@ -112,11 +115,10 @@ public class Utils {
                 case 11 -> TAILORING;
                 case 12 -> WITCHCRAFT;
                 case 13 -> ECONOMICAL;
-                case 14 -> SCHOLARLY;
-                case 15 -> ENTERTAINMENT;
-                case 16 -> MARTIAL;
-                case 17 -> MEDICAL;
-                case 18 -> TRANSPORTATION_AND_EXPLORATION;
+                case 14 -> ENTERTAINMENT;
+                case 15 -> MARTIAL;
+                case 16 -> MEDICAL;
+                case 17 -> TRANSPORTATION_AND_EXPLORATION;
                 default -> null;
             };
         }
@@ -136,7 +138,6 @@ public class Utils {
                 case TAILORING -> "Tailoring";
                 case WITCHCRAFT -> "Witchcraft";
                 case ECONOMICAL -> "Economical";
-                case SCHOLARLY -> "Scholarly";
                 case ENTERTAINMENT -> "Entertainment";
                 case MARTIAL -> "Martial";
                 case MEDICAL -> "Medical";
@@ -159,7 +160,6 @@ public class Utils {
                 case TAILORING -> "<#ea5be7>Tailoring<reset>";
                 case WITCHCRAFT -> "<#8235b0>Witchcraft<reset>";
                 case ECONOMICAL -> "<gold>Economical<reset>";
-                case SCHOLARLY -> "<#5375e9>Scholarly<reset>";
                 case ENTERTAINMENT -> "<#f22a93>Entertainment<reset>";
                 case MARTIAL -> "<#e18048>Martial<reset>";
                 case MEDICAL -> "<#f14f4f>Medical<reset>";
@@ -182,7 +182,6 @@ public class Utils {
                 case TAILORING -> "tailoring";
                 case WITCHCRAFT -> "witchcraft";
                 case ECONOMICAL -> "economical";
-                case SCHOLARLY -> "scholarly";
                 case ENTERTAINMENT -> "entertainment";
                 case MARTIAL -> "martial";
                 case MEDICAL -> "medical";
@@ -202,6 +201,8 @@ public class Utils {
             case StaticStats.FICTIS_MAX -> 6;
             case StaticStats.ARCROT_MAX -> 7;
             case StaticStats.POTION_MAX -> 8;
+            case StaticStats.ARCROT -> 9;
+            case StaticStats.FICTIS -> 10;
         };
     }
 
@@ -216,6 +217,8 @@ public class Utils {
             case 6 -> StaticStats.FICTIS_MAX;
             case 7 -> StaticStats.ARCROT_MAX;
             case 8 -> StaticStats.POTION_MAX;
+            case 9 -> StaticStats.ARCROT;
+            case 10 -> StaticStats.FICTIS;
             default -> null;
         };
     }
@@ -274,8 +277,6 @@ public class Utils {
             case "witch":
             case "economical":
             case "eco":
-            case "scholarly":
-            case "scholar":
             case "entertainment":
             case "ent":
             case "martial":

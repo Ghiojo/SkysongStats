@@ -25,7 +25,7 @@ public class SkillsCommand implements TabExecutor {
     @Override
     public boolean onCommand(@NotNull CommandSender commandSender, @NotNull Command command, @NotNull String s, @NotNull String[] strings) {
         if(strings.length < 1){
-            commandSender.sendMessage(Utils.getMiniMessage().deserialize(Utils.PLUGIN_TAG + "<red>Too Little arguments! (Usage: /skill (subcommand))"));
+            viewSkills.onCommand(commandSender, command, s, strings);
             return true;
         }
         String[] newArgs = Arrays.copyOfRange(strings, 1, strings.length);

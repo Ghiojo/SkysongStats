@@ -2,9 +2,8 @@ package org.skysongdev.skysongstats;
 
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.skysongdev.skysongitems.SkysongItems;
 import org.skysongdev.skysongstats.Utils.Utils;
-import org.skysongdev.skysongstats.commands.afflictions.Arcrot;
-import org.skysongdev.skysongstats.commands.afflictions.Fictis;
 import org.skysongdev.skysongstats.commands.afflictions.PotionSickness;
 import org.skysongdev.skysongstats.commands.character.CharacterCommand;
 import org.skysongdev.skysongstats.commands.hpManagement.*;
@@ -23,12 +22,14 @@ import java.sql.SQLException;
 
 public final class SkysongStats extends JavaPlugin {
     private static SkysongStats plugin;
+    private SkysongItems skySongItems;
     public static SkysongStats getPlugin(){
         if(plugin == null){
             plugin = new SkysongStats();
         }
         return plugin;
     }
+    public SkysongItems getSkySongItems(){return skySongItems;}
     private Utils utils;
     public Utils getUtils() { return utils; }
     private Database database;
@@ -96,8 +97,8 @@ public final class SkysongStats extends JavaPlugin {
         getCommand("stats").setExecutor(statsCommand);
         getCommand("ac").setExecutor(new ACCommand());
         getCommand("potionsickness").setExecutor(new PotionSickness());
-        getCommand("fictis").setExecutor(new Fictis());
-        getCommand("arcrot").setExecutor(new Arcrot());
+        //getCommand("fictis").setExecutor(new Fictis());
+        //getCommand("arcrot").setExecutor(new Arcrot());
     }
 
     public void AssignListeners() {
@@ -108,6 +109,7 @@ public final class SkysongStats extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new StatPointsGUIListener(), this);
         getServer().getPluginManager().registerEvents(new SkillAllocGUIListener(), this);
         getServer().getPluginManager().registerEvents(new PlayerShiftRightClickListener(), this);
+        getServer().getPluginManager().registerEvents(new AfflictionsListener(), this);
     }
 
     public void InitializeDatabase(){

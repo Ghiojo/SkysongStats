@@ -147,10 +147,6 @@ public class StatsExpansion extends PlaceholderExpansion {
                 returnString = Integer.toString(skills.getSkill(Utils.Skills.ECONOMICAL));
                 returnString = PlaceholderAPI.setPlaceholders(player, returnString);
                 return returnString;
-            case "scholarly":
-                returnString = Integer.toString(skills.getSkill(Utils.Skills.SCHOLARLY));
-                returnString = PlaceholderAPI.setPlaceholders(player, returnString);
-                return returnString;
             case "entertainment":
                 returnString = Integer.toString(skills.getSkill(Utils.Skills.ENTERTAINMENT));
                 returnString = PlaceholderAPI.setPlaceholders(player, returnString);

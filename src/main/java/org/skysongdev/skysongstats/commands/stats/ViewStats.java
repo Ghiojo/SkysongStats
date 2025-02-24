@@ -23,7 +23,7 @@ public class ViewStats implements TabExecutor {
         Player player = (Player) commandSender;
         Player target;
 
-        if(strings.length > 1){
+        if(strings.length > 0){
             target = Bukkit.getServer().getPlayer(strings[0]);
             if(target == null){
                 player.sendMessage(Utils.getMiniMessage().deserialize(Utils.PLUGIN_TAG + "<red>No Player found with that username!"));
@@ -46,8 +46,8 @@ public class ViewStats implements TabExecutor {
         player.sendMessage(Utils.getMiniMessage().deserialize("<#67e4e1><bold>Temp HP:</bold> <#67e4e1>" + stats.getTemp_hp()));
         player.sendMessage("");
         player.sendMessage(Utils.getMiniMessage().deserialize("<#D0530C><bold>Afflictions</bold>"));
-        player.sendMessage(Utils.getMiniMessage().deserialize("<#21ABA5><bold>Arcrot:</bold> <#21ABA5>" + stats.getArcrot() +"<#0D5653>/<#21ABA5>"+ stats.getArcrot_max() + "<#2d6765> (" + stats.getMaxArcrotModifiers() + ") <#864811>| <#2EB12C><bold>Potion Sickness:</bold> <#2EB12C>" + stats.getPotion() + "<#094C08>/<#2EB12C>" + stats.getPotion_max() + "<#3c733b> (" + stats.getMaxPotionModifiers() + ")"));
-        player.sendMessage(Utils.getMiniMessage().deserialize("<#710E86><bold>Fictis Apotheosis:</bold> <#710E86>" + stats.getFictis() + "<#410F4C>/<#710E86>" + stats.getFictis_max() + "<#422947> (" + stats.getMaxFictisModifiers() + ")"));
+        player.sendMessage(Utils.getMiniMessage().deserialize("<#21ABA5><bold>Arcrot:</bold> <#21ABA5>" + stats.getArcrot() +"<#0D5653>/<#21ABA5>"+ stats.getArcrot_max() + "<#2d6765> (" + stats.getArcrotModifiers() + "/" + stats.getMaxArcrotModifiers() + ") <#864811>| <#2EB12C><bold>Potion Sickness:</bold> <#2EB12C>" + stats.getPotion() + "<#094C08>/<#2EB12C>" + stats.getPotion_max() + "<#3c733b> (" + stats.getMaxPotionModifiers() + ")"));
+        player.sendMessage(Utils.getMiniMessage().deserialize("<#710E86><bold>Fictis Apotheosis:</bold> <#710E86>" + stats.getFictis() + "<#410F4C>/<#710E86>" + stats.getFictis_max() + "<#422947> (" + stats.getFictisModifiers() + "/"  + stats.getMaxFictisModifiers() + ")"));
         player.sendMessage(Utils.getMiniMessage().deserialize("<#864811>|====================<<<#63C934>₪<#864811>>>====================|"));
 
         return true;

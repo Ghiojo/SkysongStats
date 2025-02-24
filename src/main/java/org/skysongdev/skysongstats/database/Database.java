@@ -43,7 +43,7 @@ public class Database {
         buildStatement.execute(sqlactive);
         String sqlmodifiers = "CREATE TABLE IF NOT EXISTS skysong_modifiers(id INT AUTO_INCREMENT primary key, uuid varchar(36), profile varchar(20), modid INT, stat INT, modifier INT)";
         buildStatement.execute(sqlmodifiers);
-        String sqlSkills = "CREATE TABLE IF NOT EXISTS skysong_skills(id INT AUTO_INCREMENT primary key, uuid varchar(36), profile varchar(20), animal_handling INT, farming INT, forestry INT, mining INT, mist_gathering INT, wood_processing INT, alchemy INT, artificing INT, cooking INT, craftsman INT, metalworking INT, tailoring INT, witchcraft INT, economical INT, scholarly INT, entertainment INT, martial INT, medical INT, transportation_and_exploration INT)";
+        String sqlSkills = "CREATE TABLE IF NOT EXISTS skysong_skills(id INT AUTO_INCREMENT primary key, uuid varchar(36), profile varchar(20), animal_handling INT, farming INT, forestry INT, mining INT, mist_gathering INT, wood_processing INT, alchemy INT, artificing INT, cooking INT, craftsman INT, metalworking INT, tailoring INT, witchcraft INT, economical INT, entertainment INT, martial INT, medical INT, transportation_and_exploration INT)";
         buildStatement.execute(sqlSkills);
         String sqlSetup = "CREATE TABLE IF NOT EXISTS skysong_setup(id INT AUTO_INCREMENT primary key, uuid varchar(36), profile varchar(20), setup BOOLEAN)";
         buildStatement.execute(sqlSetup);
@@ -189,22 +189,22 @@ public class Database {
 
     //Skill Handling
     public void createSkillsData(PlayerSkills data) throws SQLException {
-        PreparedStatement statement = getConnection().prepareStatement("INSERT INTO skysong_skills(uuid, profile, animal_handling, farming, forestry, mining, mist_gathering, wood_processing, alchemy, artificing, cooking, craftsman, metalworking, tailoring, witchcraft, economical, scholarly, entertainment, martial, medical, transportation_and_exploration) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)");
+        PreparedStatement statement = getConnection().prepareStatement("INSERT INTO skysong_skills(uuid, profile, animal_handling, farming, forestry, mining, mist_gathering, wood_processing, alchemy, artificing, cooking, craftsman, metalworking, tailoring, witchcraft, economical, entertainment, martial, medical, transportation_and_exploration) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)");
         statement.setString(1, data.getUuid());
         statement.setString(2, data.getProfile());
-        for (int i = 0; i < 19; i++) {
+        for (int i = 0; i < 18; i++) {
             statement.setInt(i + 3, data.getSkill(Utils.Skills.values()[i]));
         }
         statement.executeUpdate();
         statement.close();
     }
     public void updateSkillsData(PlayerSkills data) throws SQLException{
-        PreparedStatement statement = getConnection().prepareStatement("UPDATE skysong_skills SET animal_handling = ?, farming = ?, forestry = ?, mining = ?, mist_gathering = ?, wood_processing = ?, alchemy = ?, artificing = ?, cooking = ?, craftsman = ?, metalworking = ?, tailoring = ?, witchcraft = ?, economical = ?, scholarly = ?, entertainment = ?, martial = ?, medical = ?, transportation_and_exploration = ? WHERE uuid = ? AND profile = ?");
-        for(int i = 0; i < 19; i++){
+        PreparedStatement statement = getConnection().prepareStatement("UPDATE skysong_skills SET animal_handling = ?, farming = ?, forestry = ?, mining = ?, mist_gathering = ?, wood_processing = ?, alchemy = ?, artificing = ?, cooking = ?, craftsman = ?, metalworking = ?, tailoring = ?, witchcraft = ?, economical = ?, entertainment = ?, martial = ?, medical = ?, transportation_and_exploration = ? WHERE uuid = ? AND profile = ?");
+        for(int i = 0; i < 18; i++){
             statement.setInt(i + 1, data.getSkill(Utils.Skills.values()[i]));
         }
-        statement.setString(20, data.getUuid());
-        statement.setString(21, data.getProfile());
+        statement.setString(19, data.getUuid());
+        statement.setString(20, data.getProfile());
         statement.executeUpdate();
         statement.close();
     }
@@ -292,7 +292,7 @@ public class Database {
         dumpActiveStatsDatabase();
         dumpSkillsDatabase();
         dumpSetupDatabase();
-        dumpModifiersDatabase();
+        //dumpModifiersDatabase();
         dumpCharacterDatabase();
     }
     public void dumpStatsDatabase() throws SQLException{

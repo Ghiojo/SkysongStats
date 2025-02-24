@@ -3,7 +3,7 @@ plugins {
 }
 
 group = 'org.skysongdev'
-version = '1.0'
+version = '1.1'
 
 repositories {
     mavenCentral()
@@ -28,6 +28,7 @@ dependencies {
     compileOnly "io.papermc.paper:paper-api:1.21-R0.1-SNAPSHOT"
     compileOnly 'me.clip:placeholderapi:2.11.6'
     implementation 'net.luckperms:api:5.3'
+    implementation files("libs/SkysongSpecialItems.jar")
 }
 
 def targetJavaVersion = 21

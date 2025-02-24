@@ -28,7 +28,6 @@ public class SkillManager {
         skillList.add("Tailoring");
         skillList.add("Witchcraft");
         skillList.add("Economical");
-        skillList.add("Scholarly");
         skillList.add("Entertainment");
         skillList.add("Martial");
         skillList.add("Medical");
@@ -101,9 +100,6 @@ public class SkillManager {
             case "economical":
             case "eco":
                 return Utils.Skills.ECONOMICAL;
-            case "scholarly":
-            case "scholar":
-                return Utils.Skills.SCHOLARLY;
             case "entertainment":
             case "ent":
                 return Utils.Skills.ENTERTAINMENT;
@@ -179,10 +175,6 @@ public class SkillManager {
             case "economical":
             case "eco":
                 skills.addSkill(Utils.Skills.ECONOMICAL, xp);
-                break;
-            case "scholarly":
-            case "scholar":
-                skills.addSkill(Utils.Skills.SCHOLARLY, xp);
                 break;
             case "entertainment":
             case "ent":
@@ -269,10 +261,6 @@ public class SkillManager {
             case "economical":
             case "eco":
                 skills.setSkill(Utils.Skills.ECONOMICAL, xp);
-                break;
-            case "scholarly":
-            case "scholar":
-                skills.setSkill(Utils.Skills.SCHOLARLY, xp);
                 break;
             case "entertainment":
             case "ent":

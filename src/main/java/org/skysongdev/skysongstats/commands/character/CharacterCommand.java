@@ -19,7 +19,7 @@ public class CharacterCommand implements TabExecutor {
     public boolean onCommand(@NotNull CommandSender commandSender, @NotNull Command command, @NotNull String s, @NotNull String[] strings) {
         Player player = (Player) commandSender;
         if(strings.length < 1){
-            commandSender.sendMessage(Utils.getMiniMessage().deserialize(Utils.PLUGIN_TAG + "<red>Too Little arguments! (Usage: /stats (subcommand))"));
+            viewCharacter.onCommand(commandSender, command, s, strings);
             return true;
         }
         String[] newArgs = Arrays.copyOfRange(strings, 1, strings.length);

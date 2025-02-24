@@ -1,5 +1,5 @@
 name: SkysongStats
-version: '1.0'
+version: '1.1'
 main: org.skysongdev.skysongstats.SkysongStats
 api-version: '1.20'
 

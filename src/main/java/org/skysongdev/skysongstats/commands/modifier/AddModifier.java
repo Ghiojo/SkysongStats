@@ -85,6 +85,12 @@ public class AddModifier implements TabExecutor {
             case "maxhp":
                 getPlugin().getUtils().getStatsManager().addModifier(getPlugin().getUtils().getProfileManager().findActiveStats(target.getUniqueId().toString()), new Modifier(Utils.StaticStats.MAXHP, num));
                 break;
+            case "arcrot":
+                getPlugin().getUtils().getStatsManager().addModifier(getPlugin().getUtils().getProfileManager().findActiveStats(target.getUniqueId().toString()), new Modifier(Utils.StaticStats.ARCROT, num));
+                break;
+            case "fictis":
+                getPlugin().getUtils().getStatsManager().addModifier(getPlugin().getUtils().getProfileManager().findActiveStats(target.getUniqueId().toString()), new Modifier(Utils.StaticStats.FICTIS, num));
+                break;
         }
 
         commandSender.sendMessage(Utils.getMiniMessage().deserialize(Utils.PLUGIN_TAG + " <gray> "+ strings[1] + " has been modified"));
@@ -95,7 +101,7 @@ public class AddModifier implements TabExecutor {
     @Override
     public @Nullable List<String> onTabComplete(@NotNull CommandSender commandSender, @NotNull Command command, @NotNull String s, @NotNull String[] strings) {
         if(strings.length == 1){
-            return List.of("strength", "dexterity", "constitution", "focus", "speed", "arcrot-max", "fictis-max", "potion-max", "maxhp").stream().filter(a -> a.startsWith(strings[0])).toList();
+            return List.of("strength", "dexterity", "constitution", "focus", "speed", "arcrot-max", "fictis-max", "potion-max", "maxhp", "arcrot", "fictis").stream().filter(a -> a.startsWith(strings[0])).toList();
         }
         if(strings.length == 2)
             return List.of("");
