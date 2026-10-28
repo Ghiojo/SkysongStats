@@ -6,14 +6,11 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
-import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
-import org.skysongdev.skysongitems.utils.Utils;
+import org.skysongdev.skysongstats.Utils.SkysongItemsKeys;
 import org.skysongdev.skysongstats.database.PlayerStats;
-
-import java.util.ArrayList;
-import java.util.Arrays;
 
 import static org.skysongdev.skysongstats.SkysongStats.getPlugin;
 
@@ -45,49 +42,43 @@ public class AfflictionsListener implements Listener {
         getPlugin().getUtils().getStatsManager().updateStats(stats);
     }
 
-    private int CountArcrot(Player player){
-        Inventory inv = player.getInventory();
-        ArrayList<ItemStack> items = new ArrayList<ItemStack>(Arrays.stream(inv.getContents()).toList());
+    static int CountArcrot(Player player){
+        return CountArcrot(player.getInventory().getContents());
+    }
+
+    static int CountArcrot(ItemStack[] items){
         int arcrotCount = 0;
-        int buffer = 0;
 
         for(ItemStack item : items){
             if(item == null) continue;
             if(item.getType() == Material.AIR) continue;
-            if(!item.getItemMeta().getPersistentDataContainer().has(Utils.getTag("arcrot")) && !item.getItemMeta().getPersistentDataContainer().has(Utils.getTag("charged_arcrot")))
-                continue;
-            if(item.getItemMeta().getPersistentDataContainer().has(Utils.getTag("arcrot"))){
-                buffer = item.getItemMeta().getPersistentDataContainer().get(Utils.getTag("arcrot"), PersistentDataType.INTEGER);
+            PersistentDataContainer data = item.getItemMeta().getPersistentDataContainer();
+            if(data.has(SkysongItemsKeys.ARCROT)){
+                arcrotCount += data.get(SkysongItemsKeys.ARCROT, PersistentDataType.INTEGER) * item.getAmount();
             }
-            arcrotCount += buffer * item.getAmount();
-            buffer = 0;
-            if(item.getItemMeta().getPersistentDataContainer().has(Utils.getTag("charged_arcrot"))){
-                if(item.getItemMeta().getPersistentDataContainer().has(Utils.chargesKey))
-                    if(item.getItemMeta().getPersistentDataContainer().get(Utils.chargesKey, PersistentDataType.INTEGER) > 0)
-                        buffer = item.getItemMeta().getPersistentDataContainer().get(Utils.getTag("charged_arcrot"), PersistentDataType.INTEGER);
+            // Charged arcrot only counts while the item has charges left.
+            if(data.has(SkysongItemsKeys.CHARGED_ARCROT) && data.has(SkysongItemsKeys.CHARGES)
+                    && data.get(SkysongItemsKeys.CHARGES, PersistentDataType.INTEGER) > 0){
+                arcrotCount += data.get(SkysongItemsKeys.CHARGED_ARCROT, PersistentDataType.INTEGER) * item.getAmount();
             }
-            arcrotCount += buffer * item.getAmount();
-            buffer = 0;
         }
 
         return arcrotCount;
     }
 
-    private int CountFictis(Player player){
-        Inventory inv = player.getInventory();
-        ArrayList<ItemStack> items = new ArrayList<ItemStack>(Arrays.stream(inv.getContents()).toList());
+    static int CountFictis(Player player){
+        return CountFictis(player.getInventory().getContents());
+    }
+
+    static int CountFictis(ItemStack[] items){
         int fictisCount = 0;
-        int buffer = 0;
         for(ItemStack item : items){
             if(item == null) continue;
             if(item.getType() == Material.AIR) continue;
-            if(!item.getItemMeta().getPersistentDataContainer().has(Utils.getTag("fictis")))
-                continue;
-            if(item.getItemMeta().getPersistentDataContainer().has(Utils.getTag("fictis"))){
-                buffer = item.getItemMeta().getPersistentDataContainer().get(Utils.getTag("fictis"), PersistentDataType.INTEGER);
+            PersistentDataContainer data = item.getItemMeta().getPersistentDataContainer();
+            if(data.has(SkysongItemsKeys.FICTIS)){
+                fictisCount += data.get(SkysongItemsKeys.FICTIS, PersistentDataType.INTEGER) * item.getAmount();
             }
-            fictisCount += buffer * item.getAmount();
-            buffer = 0;
         }
         return fictisCount;
     }

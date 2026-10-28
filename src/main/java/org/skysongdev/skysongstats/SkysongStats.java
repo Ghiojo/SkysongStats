@@ -2,7 +2,6 @@ package org.skysongdev.skysongstats;
 
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.java.JavaPlugin;
-import org.skysongdev.skysongitems.SkysongItems;
 import org.skysongdev.skysongstats.Utils.Utils;
 import org.skysongdev.skysongstats.commands.afflictions.PotionSickness;
 import org.skysongdev.skysongstats.commands.character.CharacterCommand;
@@ -23,14 +22,12 @@ import java.sql.SQLException;
 
 public final class SkysongStats extends JavaPlugin {
     private static SkysongStats plugin;
-    private SkysongItems skySongItems;
     public static SkysongStats getPlugin(){
         if(plugin == null){
             plugin = new SkysongStats();
         }
         return plugin;
     }
-    public SkysongItems getSkySongItems(){return skySongItems;}
     private Utils utils;
     public Utils getUtils() { return utils; }
     private Database database;
