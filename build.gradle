@@ -35,6 +35,10 @@ dependencies {
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
     testImplementation 'org.mockbukkit.mockbukkit:mockbukkit-v1.21:4.116.3'
     testImplementation "io.papermc.paper:paper-api:1.21.11-R0.1-SNAPSHOT"
+    // In-memory SQL database for tests that run Database queries without MySQL.
+    // SQLite, not H2: the current SQL uses MySQL-style "double-quoted" string
+    // literals, which H2 rejects.
+    testImplementation 'org.xerial:sqlite-jdbc:3.49.1.0'
 }
 
 test {

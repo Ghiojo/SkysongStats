@@ -362,7 +362,6 @@ public class Database {
         dumpActiveStatsDatabase();
         dumpSkillsDatabase();
         dumpSetupDatabase();
-        dumpModifiersDatabase();
         dumpCharacterDatabase();
         dumpDowntimeDatabase();
         dumpDowntimePreferencesDatabase();
@@ -452,24 +451,6 @@ public class Database {
 
             SetupProfile setupProfile = new SetupProfile(uuid, profile, setup);
             ProfileManager.setupProfiles.add(setupProfile);
-        }
-        statement.close();
-    }
-
-    public void dumpModifiersDatabase() throws SQLException{
-        Statement statement = getConnection().createStatement();
-        String sql = "SELECT * FROM skysong_modifiers";
-        ResultSet results = statement.executeQuery(sql);
-
-        while(results.next()){
-            String uuid = results.getString("uuid");
-            String profile = results.getString("profile");
-            int index = results.getInt("modid");
-            Utils.StaticStats stat = Utils.toStatEnum(results.getInt("stat"));
-            int modifier = results.getInt("modifier");
-
-            Modifier mod = new Modifier(stat, modifier);
-            getPlugin().getUtils().getStatsManager().findStats(uuid, profile).addModifier(mod);
         }
         statement.close();
     }
