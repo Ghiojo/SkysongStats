@@ -1,6 +1,6 @@
 # SkysongStats: how the plugin works today
 
-This document describes SkysongStats as it is on `master` (commit `529f7d3`, "Added Afflictions Tracking with SkysongItems plugin!"). It is a map of the existing code, written before any refactor, so that every later change can be checked against what the plugin did before it.
+This document describes SkysongStats as it is on `master` after the downtime commit (`81c6629`, "Comitting Downtime changes", merged in `2e69b4b`). That commit also reworked `/setup`; both are covered below. It is a map of the existing code, written before any refactor, so that every later change can be checked against what the plugin did before it.
 
 Nothing here proposes changes. Behaviour that looks wrong is recorded in [Observed issues](#observed-issues) at the end, with the file and line it comes from, so it can be discussed before anything is touched.
 
@@ -18,9 +18,10 @@ Nothing here proposes changes. Behaviour that looks wrong is recorded in [Observ
 10. [Listeners](#listeners)
 11. [Custom events](#custom-events)
 12. [PlaceholderAPI expansion](#placeholderapi-expansion)
-13. [Configuration](#configuration)
-14. [Permissions](#permissions)
-15. [Observed issues](#observed-issues)
+13. [Downtime](#downtime)
+14. [Configuration](#configuration)
+15. [Permissions](#permissions)
+16. [Observed issues](#observed-issues)
 
 ## What the plugin does
 
@@ -32,7 +33,8 @@ SkysongStats is a Paper plugin that keeps a tabletop-style character sheet for e
 - **Skills**: 18 fixed skills that gain XP and map to five levels (Unskilled to Expert). Levels are mirrored as LuckPerms permission nodes.
 - **Character sheet**: name, age, gender, pronouns, ancestry and description.
 - **Profiles**: a player can own several named profiles (characters). Each profile has its own stats, skills, setup state and character sheet, and one profile is active at a time.
-- **Setup**: a three-screen GUI (`/setup`) where a new profile picks a base statline, spends stat points and picks two starting skills.
+- **Setup**: a two-screen GUI (`/setup`) where a new profile spends stat points and picks two starting skills.
+- **Downtime**: a per-player (global) pool and a per-profile (character) pool of downtime points that staff add and spend, refilled by `/downtime resetall`.
 
 Arcrot and Fictis are not typed in by hand any more: they are counted from tagged items in the player's inventory, using the tags that Skysong-Special-Items writes on items.
 
@@ -42,24 +44,24 @@ Arcrot and Fictis are not typed in by hand any more: they are counted from tagge
 
 | Dependency | Scope | Notes |
 |---|---|---|
-| `io.papermc.paper:paper-api:1.21-R0.1-SNAPSHOT` | compileOnly | The server runs Paper 1.21.11. |
-| `me.clip:placeholderapi:2.11.6` | compileOnly | Optional at runtime (`softdepend`). |
-| `net.luckperms:api:5.3` | implementation | Used by two listeners. Not declared in `plugin.yml`. |
+| `io.papermc.paper:paper-api:1.21.5-R0.1-SNAPSHOT` | compileOnly | The server runs Paper 1.21.11. |
+| `me.clip:placeholderapi:2.11.6` | compileOnly | From `https://repo.extendedclip.com/releases/`. Optional at runtime (`softdepend`). |
+| `net.luckperms:api:5.3` | implementation | Used by two listeners. Declared as `softdepend` (spelled `Luckperms`). |
 | `files("libs/SkysongSpecialItems.jar")` | implementation | A local jar of Skysong-Special-Items. The `libs/` folder is not in the repository, so a fresh clone does not build. |
 
 The `java` plugin alone does not shade `implementation` dependencies into the jar, so LuckPerms and Skysong-Special-Items classes are expected to come from those plugins at runtime.
 
-`plugin.yml` declares `softdepend: [PlaceholderAPI]` and `loadbefore: [CMI, CMILib]`. It does not declare LuckPerms or Skysong_Items.
+`plugin.yml` declares `softdepend: [PlaceholderAPI, Luckperms]` and `loadbefore: [CMI, CMILib]`. It does not declare Skysong_Items. The project version is `1.3`.
 
-The repository has no tests, no `.gitignore`, and has `build/`, `.gradle/` and `.idea/` committed.
+The repository has no tests. Since PR #2, `build/`, `.gradle/`, `.idea/` and `libs/` are ignored.
 
 ## Startup
 
 `SkysongStats.onEnable()` (`SkysongStats.java`):
 
-1. Stores the static `plugin` instance and creates `Utils`, which creates the four managers.
+1. Stores the static `plugin` instance and creates `Utils`, which creates the five managers.
 2. `saveDefaultConfig()`.
-3. `InitializeDatabase()`: opens one MySQL connection with the credentials from `config.yml`, creates the six tables if missing, and loads `skysong_active_stats` into memory.
+3. `InitializeDatabase()`: opens one MySQL connection with the credentials from `config.yml`, creates the nine tables if missing, and loads `skysong_active_stats` into memory.
 4. `InitializeCommands()`: binds each command in `plugin.yml` to an executor.
 5. `AssignListeners()`: registers the eight listeners.
 6. Registers the PlaceholderAPI expansion if PlaceholderAPI is enabled.
@@ -124,13 +126,11 @@ One per (UUID, profile). Strings: `name`, `age`, `gender`, `ancestry`, `pronouns
 One per (UUID, profile). Holds:
 
 - `isSetUp`: whether `/setup` was completed (stored in DB).
-- Five `int[2]` arrays (`strength`, `dexterity`, `constitution`, `focus`, `speed`): index 0 is the base from the chosen statline, index 1 the points spent in the point GUI. Not stored in DB.
+- Five `int` fields (`strength`, `dexterity`, `constitution`, `focus`, `speed`): the final values chosen in the point GUI. Not stored in DB.
 - `skillsSelected` and `skillPoints` (2) for the skill GUI. Not stored in DB.
-- Its own instances of the three setup GUIs (`StatSetupGUI`, `PointAllocGUI`, `SkillChoiceGUI`), created when the object is created.
+- Its own instances of the two setup GUIs (`PointAllocGUI`, `SkillChoiceGUI`), created when the object is created.
 
-`finishProfileSetup()` writes `base + spent` into the profile's `PlayerStats` (and saves it), sets the two chosen skills to 16 XP (Novice) in memory, marks the profile as set up and saves that flag.
-
-The `SetupProfile(uuid)` constructor (used for a brand new player) initialises the five arrays to `{0, 0}`. The `SetupProfile(uuid, profile, isSetUp)` constructor (used when loading from DB and by `/profile create`) leaves them `null`; they are filled when a statline is picked.
+`finishProfileSetup()` writes the five values into the profile's `PlayerStats` (and saves it), sets the two chosen skills to 16 XP (Novice) in memory, marks the profile as set up and saves that flag.
 
 ### `ProfileIndex`
 
@@ -150,6 +150,9 @@ Tables (created in `initializeDatabase()`):
 | `skysong_skills` | `id`, `uuid`, `profile`, one `INT` column per skill (`animal_handling` … `transportation_and_exploration`) | `PlayerSkills` |
 | `skysong_setup` | `id`, `uuid`, `profile`, `setup` | `SetupProfile.isSetUp` |
 | `skysong_characters` | `id`, `uuid`, `profile`, `name`, `age`, `gender`, `ancestry`, `pronouns`, `description` | `CharacterProfile` |
+| `skysong_downtime` | `id`, `uuid`, `current_downtime` | `PlayerDowntime` (global) |
+| `skysong_character_downtime` | `id`, `uuid`, `profile`, `current_downtime` | `CharacterDowntime` (per profile) |
+| `skysong_downtime_preferences` | `uuid` (PK), `isGlobal` | spending preference |
 
 Methods, grouped as in the file:
 
@@ -159,12 +162,13 @@ Methods, grouped as in the file:
 - **Skills**: `createSkillsData`, `updateSkillsData` (write all 18 columns in enum order), `deleteSkillData`.
 - **Setup**: `createSetupData` (two overloads), `updateSetupData`, `deleteSetupData`.
 - **Character**: `createCharacterData`, `updateCharacterData`, `deleteCharacterData`.
-- **Loading**: `dumpDatabaseData()` calls `dumpStatsDatabase` (stats plus each profile's modifiers, one extra query per profile), `dumpActiveStatsDatabase`, `dumpSkillsDatabase` (reads each column by the lowercased enum name), `dumpSetupDatabase` and `dumpCharacterDatabase`. `dumpModifiersDatabase` exists but is commented out of the dump.
+- **Downtime**: `create|update|deletePlayerDowntimeData`, `create|update|deleteCharacterDowntimeData`, `create|updateDowntimePreferencesData`.
+- **Loading**: `dumpDatabaseData()` calls `dumpStatsDatabase` (stats plus each profile's modifiers, one extra query per profile), `dumpActiveStatsDatabase`, `dumpSkillsDatabase` (reads each column by the lowercased enum name), `dumpSetupDatabase`, `dumpModifiersDatabase` (adds every modifier row again, see issue 30), `dumpCharacterDatabase`, `dumpDowntimeDatabase` (both downtime tables) and `dumpDowntimePreferencesDatabase`.
 - **Misc**: `checkForUUID(uuid)` (is there any stats row for this player), `Ping()`.
 
 ## In-memory caches (the managers)
 
-`Utils` creates and exposes four managers. Each keeps its data in a **static** `ArrayList` filled by the database dump, and searches it linearly.
+`Utils` creates and exposes five managers. Each keeps its data in a **static** `ArrayList` filled by the database dump, and searches it linearly.
 
 ### `StatsManager`
 
@@ -179,7 +183,7 @@ Static `statsProfileList: ArrayList<PlayerStats>`.
 
 ### `ProfileManager`
 
-Static `activeProfiles: ArrayList<ProfileIndex>` and `setupProfiles: ArrayList<SetupProfile>`.
+Static `activeProfiles: ArrayList<ProfileIndex>`, `setupProfiles: ArrayList<SetupProfile>` and `downtimePreferences: Map<String, Boolean>` (player UUID to "spend from global").
 
 - `findActiveStats(uuid)`: the `PlayerStats` of the player's active profile. Almost every command goes through this.
 - `findAllProfiles(uuid)`: names of every profile the player owns.
@@ -188,6 +192,7 @@ Static `activeProfiles: ArrayList<ProfileIndex>` and `setupProfiles: ArrayList<S
 - `createProfile(stats)`: creates the active-profile row for a new player.
 - `findActiveSetupProfile(uuid)`, `findSetupProfile(uuid, profile)`.
 - `addSetupProfile`, `createSetupProfile(uuid)` (for the "Default" profile), `setSetupProfile` (not called), `deleteSetupProfile`.
+- `addDowntimePreferences(uuid, isGlobal)`, `updateDowntimePreferences(uuid, isGlobal)`: change the map and save.
 
 ### `SkillManager`
 
@@ -214,6 +219,15 @@ Static `characterProfiles: ArrayList<CharacterProfile>`.
 - `findCharacterProfile(uuid, profile)`, `findActiveCharacter(uuid)`.
 - `addCharacter`, `updateCharacter`, `deleteCharacterProfile`.
 
+### `DowntimeManager`
+
+Static `playerDowntimes: ArrayList<PlayerDowntime>` and `characterDowntimes: ArrayList<CharacterDowntime>`.
+
+- `findPlayerDowntime(uuid)`, `findCharacterDowntime(uuid, profile)`, `findActiveCharacterDowntime(uuid)` (not called; see issue 36).
+- `addPlayerDowntime`, `addCharacterDowntime`: insert in DB, then add to the list.
+- `updatePlayerDowntime`, `updateCharacterDowntime`: save, then copy the value onto the cached object.
+- `deleteCharacterDowntime` (not called).
+
 ## Utils: hard-coded stats and skills
 
 `Utils/Utils.java` is the shared toolbox:
@@ -224,6 +238,7 @@ Static `characterProfiles: ArrayList<CharacterProfile>`.
 - `enum Skills`: the 18 skills with their list index, `fromInt`, `getSkillName`, `getSkillNameFormatted` (with colour), `getSkillid` (used in permission nodes).
 - `isAStat(name)` and `isASkill(name)`: accepted command names and aliases.
 - `isPlayerInDatabase(uuid)`.
+- Downtime constants: `MAX_CHARACTER_DOWNTIME = 3`, `MAX_GLOBAL_DOWNTIME = 9`, `GLOBAL_DOWNTIME_RECOVERY = 3`.
 
 The 18 skills, grouped as `/skills` shows them:
 
@@ -252,7 +267,7 @@ Commands are registered in `SkysongStats.InitializeCommands()`. Parent commands 
 | `/skills` (no args or `view [player]`) | `ViewSkills` | Opens a written book with the three skill groups, levels and XP. |
 | `/skills addxp <skill> <xp> [player]` | `AddSkillXP` | `skysongstats.addxp`. Adds XP, saves, fires `SkillUpdateEvent`. |
 | `/skills setxp <skill> <xp> [player]` | `SetSkillXP` | Checks `skysongstats.command.setxp`. Sets XP, saves, fires `SkillUpdateEvent`. |
-| `/profile create <name>` | `CreateProfile` | Creates stats, setup, skills and character rows for a new profile (name up to 20 characters). |
+| `/profile create <name>` | `CreateProfile` | Creates stats, setup, skills, character and character-downtime (3) rows for a new profile (name up to 20 characters). |
 | `/profile switch <name>` | `SwitchProfile` | Makes that profile active and fires `ProfileUpdateEvent`. |
 | `/profile delete|del <name>` | `DeleteProfile` | Deletes a profile other than the active one. |
 | `/profile view` | `ProfileCommand` | Shows the active profile's name. |
@@ -260,37 +275,37 @@ Commands are registered in `SkysongStats.InitializeCommands()`. Parent commands 
 | `/schar set <field> <value…>` | `SetCharacterField` | Sets name (≤100), age, gender, pronouns (≤20), ancestry (≤50) or description. |
 | `/setup` | `SetupCommand` | Opens the setup GUI if the active profile is not set up yet. |
 | `/ssreload` | `ReloadCommand` | `skysongstats.reload`. Reloads `config.yml`. |
+| `/downtime` `/dt` … | `DowntimeCommand` | See [Downtime](#downtime). |
 
 Stat names accepted by `/stats`: `strength`, `dexterity`, `constitution`, `focus`, `speed`, `arcrot`, `potion`, `fictis`, `hp`, `temphp`, `ac`. `/stats add` also accepts `str`, `dex`, `con`, `foc`, `spd`.
 
-Modifier targets offered by `/modifier add`: `strength`, `dexterity`, `constitution`, `focus`, `speed` (and their short forms), `maxhp`, `arcrot`, `fictis`, `arcrot-max`, `fictis-max`, `potion-max`.
+Modifier targets offered by `/modifier add`: `strength`, `dexterity`, `constitution`, `focus`, `speed` (and their short forms), `maxhp`, `arcrot`, `fictis`, `arcrot-max`, `fictis-max`, `potion-max`. The last three are accepted since the downtime commit.
 
 `plugin.yml` also declares `statsreload`, `hp`, `arcrot` and `fictis`, which have no executor. `/fictis` and `/arcrot` executors are commented out in `InitializeCommands()`.
 
 ## Character setup flow (GUIs)
 
-Each `SetupProfile` owns its three GUIs. All of them are `InventoryHolder`s, and their buttons are recognised by the persistent data keys in `Utils`.
+Each `SetupProfile` owns its two GUIs. Both are `InventoryHolder`s, and their buttons are recognised by the persistent data keys in `Utils`. The statline screen (`StatSetupGUI`, fed by `base_stats` in `config.yml`) was removed in the downtime commit; `base_stats` is still in `config.yml` but nothing reads it.
 
-1. **`/setup`** (`SetupCommand`) checks `isSetUp`, rebuilds `StatSetupGUI` and opens it.
-2. **`StatSetupGUI`** (45 slots) lists each entry under `base_stats` in `config.yml` (up to 27) with its item, name and five stats. Clicking one (`StatlineGUIListener`) copies those five values into the `SetupProfile` as the base, builds `PointAllocGUI` and opens it.
-3. **`PointAllocGUI`** (27 slots) shows one button per stat. Left click adds 1, right click removes 1 (`StatPointsGUIListener` calls `addStat`). Rules, as coded in `addStat`:
-   - 5 points to spend; a stat can go up to +3 over its base, or +2 while any negative point is unused.
-   - 2 "negative points": a stat can go below its base, using one negative point per step. Using both negative points grants 1 extra point.
-   - Confirm is refused while points remain, or when exactly one negative point has been used.
+1. **`/setup`** (`SetupCommand`) checks `isSetUp`, rebuilds `PointAllocGUI` and opens it.
+2. **`PointAllocGUI`** (27 slots) shows one button per stat. Left click adds 1, right click removes 1 (`StatPointsGUIListener` calls `addStat`). Every stat starts at 0 except Speed at 6. Rules, as coded in `addStat` (Speed counted from 6):
+   - 7 points to spend; a stat can go up to +4.
+   - 3 "negative points": lowering a stat at or below 0 uses one negative point and gives one point back, down to -3.
+   - Lowering a stat above 0 refunds its point.
+   - Confirm is refused while points remain, or when exactly two negative points have been used (`negativePoints == 1`).
    - Closing the inventory resets the allocation.
-   On confirm, the spent points are copied into the `SetupProfile` and `SkillChoiceGUI` opens.
-4. **`SkillChoiceGUI`** (54 slots) shows the 18 skills. Left click selects (glint on), right click deselects, up to 2. Closing the inventory clears the selection. On confirm (`SkillAllocGUIListener`), `SetupProfile.finishProfileSetup()` saves the stats, gives the two skills 16 XP and marks the profile as set up.
+   On confirm, the values are copied into the `SetupProfile` and `SkillChoiceGUI` opens.
+3. **`SkillChoiceGUI`** (54 slots) shows the 18 skills. Left click selects (glint on), right click deselects, up to 2. Closing the inventory clears the selection. On confirm (`SkillAllocGUIListener`), `SetupProfile.finishProfileSetup()` saves the stats, gives the two skills 16 XP and marks the profile as set up.
 
 ## Listeners
 
 | Listener | Event | What it does |
 |---|---|---|
-| `PlayerRegisterListener` | `PlayerJoinEvent` | If the player has no stats row, creates the "Default" profile: stats, active profile, skills, setup and character. Then reminds them to `/setup` if the active profile is not set up. |
+| `PlayerRegisterListener` | `PlayerJoinEvent` | If the player has no stats row, creates the "Default" profile: stats, active profile, skills, setup, character, global downtime (3), character downtime (3) and a "Character" spending preference. Then reminds them to `/setup` if the active profile is not set up. |
 | `AfflictionsListener` | `PlayerInventorySlotChangeEvent`, `PlayerJoinEvent` | Recounts Arcrot and Fictis from the whole inventory and saves the stats. See below. |
 | `ProfileUpdateListener` | `ProfileUpdateEvent` | For each of the 18 skills, adds the LuckPerms nodes `skysongstats.skill.<id>.<level>` for the current level and every level below it, removes the ones above it, and saves the user. |
-| `SkillLevelListener` | `SkillUpdateEvent` | Same as above for the one skill in the event. |
+| `SkillLevelListener` | `SkillUpdateEvent` | Same as above for the one skill in the event. Since the downtime commit it loads the LuckPerms user asynchronously (`loadUser(...).thenAccept`), so it also works for offline players. |
 | `PlayerShiftRightClickListener` | `PlayerInteractEntityEvent` | Shift + right click on a player shows you their character sheet (runs `ViewCharacter`) and cancels the interaction. |
-| `StatlineGUIListener` | `InventoryClickEvent` | Statline screen of the setup. |
 | `StatPointsGUIListener` | `InventoryClickEvent`, `InventoryCloseEvent` | Point allocation screen of the setup. |
 | `SkillAllocGUIListener` | `InventoryClickEvent`, `InventoryCloseEvent` | Skill choice screen of the setup. |
 
@@ -315,10 +330,31 @@ Both are plain synchronous Bukkit events and can be listened to by other plugins
 `placeholders/StatsExpansion.java`, identifier `skysongstats`. Every value is for the player's active profile.
 
 - Stats: `%skysongstats_strength%`, `dexterity`, `constitution`, `focus`, `speed`, `potion`, `potion_max`, `arcrot`, `arcrot_max`, `fictis`, `fictis_max`, `hp`, `hp_max`, `temp_hp`, `ac`.
+- Downtime: `global_downtime`, `character_downtime` (active profile).
 - Skill XP: `animalhandling`, `farming`, `forestry`, `mining`, `mistgathering`, `woodprocessing`, `alchemy`, `artificing`, `cooking`, `craftsman`, `metalworking`, `witchcraft`, `economical`, `entertainment`, `martial`, `medical`, `tande`.
 - Modifier totals: `strength_modifiers`, `dexterity_modifiers`, `constitution_modifiers`, `focus_modifiers`, `speed_modifiers`, `maxhp_modifiers`, `maxpotion_modifiers`, `maxarcrot_modifiers`, `maxfictis_modifiers`.
-- Stat plus modifiers: `str_full`, `dex_full`, `con_full`, `foc_full`, `spd_full`, `maxhp_full`, `maxpotion_full`, `maxarcrot_full`, `maxfictis_full`.
+- Stat plus modifiers: `str_full`, `dex_full`, `con_full`, `foc_full`, `spd_full`, `maxhp_full`, `maxpotion_full`, `maxarcrot_full`, `maxfictis_full`, `arcrot_full`, `fictis_full`.
 - Character sheet: `character_name`, `character_age`, `character_gender`, `character_pronouns`, `character_ancestry`, `character_description`.
+
+## Downtime
+
+Added in commit `81c6629`. Downtime comes in two pools, plus a preference for which one is spent by default:
+
+- **Global downtime** (`PlayerDowntime`): one value per player, shared by all their profiles. New players start at 3 (`GLOBAL_DOWNTIME_RECOVERY`). It is capped at 9 (`MAX_GLOBAL_DOWNTIME`) only by `resetall`.
+- **Character downtime** (`CharacterDowntime`): one value per profile. New profiles start at 3 (`MAX_CHARACTER_DOWNTIME`).
+- **Spending preference** (`ProfileManager.downtimePreferences`): per player, `true` = spend from global, `false` = spend from the active character. New players start on character.
+
+Commands (`/downtime`, alias `/dt`; `add`, `remove` and `resetall` need `skysongstats.downtime.manage` when run by a player, and always work from console):
+
+| Subcommand | What it does |
+|---|---|
+| `add <amount> <player> <global\|profile>` | Adds to the player's global downtime, or to the named profile's downtime (see issue 32). The player must be online. |
+| `remove <amount> <player> [global\|profile]` | Removes from global or the named profile. Without the third argument it uses the player's spending preference: global, or the active profile. No lower limit. |
+| `view [player]` | Shows global downtime, the active profile's downtime and the spending preference. Another player needs `skysongstats.downtime.view.others`. |
+| `preference` | Players only. Toggles the spending preference between Global and Character. |
+| `resetall` | Sets every profile's downtime to 3, and adds 3 to every player's global downtime, up to 9. |
+
+There is no automatic refill; `resetall` is meant to be run by staff (or a scheduler) at the start of each downtime period.
 
 ## Configuration
 
@@ -334,7 +370,7 @@ base_stats:          # statlines offered by /setup
     stats: { strength, dexterity, constitution, focus, speed }
 ```
 
-Only the database and the setup statlines are configurable. Stats, skills, skill levels, maximum formulas, setup point rules, GUI text and the affliction tags are all in code.
+Only the database is configurable; `base_stats` is no longer read. Stats, skills, skill levels, maximum formulas, setup point rules, downtime limits, GUI text and the affliction tags are all in code.
 
 ## Permissions
 
@@ -347,11 +383,13 @@ Declared in `plugin.yml` (all default to op):
 - `skysongstats.*` (all of the above)
 - `skysongstats.skill.<skill>.<novice|competent|journeyman|expert>`, granted through LuckPerms by the skill listeners.
 
+Used in code but not declared in `plugin.yml`: `skysongstats.downtime.manage`, `skysongstats.downtime.view.others`, `skysongstats.set.other`, `skysongstats.command.setxp`.
+
 Each command also has a `permission:` entry (`skysongstats.stats`, `skysongstats.heal`, …), which Bukkit checks before running it.
 
 ## Observed issues
 
-Found while reading the code. None of these has been changed. Each needs a decision before it is fixed, since some may be intended.
+Found while reading the code. Items 1–28 were found before the downtime commit; 29 onward come from it. Decisions taken on 1–28 are in the refactor proposal.
 
 ### Breaking
 
@@ -397,4 +435,18 @@ Found while reading the code. None of these has been changed. Each needs a decis
 25. Global mutable state: the managers store their data in public static lists, and every class reaches them through `SkysongStats.getPlugin().getUtils()`. This makes the code impossible to unit test without a running server.
 26. Large amounts of duplication: the four HP commands are copies of each other; `PlayerStats` has one getter, setter, adder and modifier-sum per stat; `SkillManager` repeats the same 18-way switch three times; the placeholder expansion has one case per value.
 27. Unused code: `Database.findStats`, `updateModifierData`, `dumpModifiersDatabase`, `StatsManager.deleteModifiers`, `ProfileManager.setSetupProfile`, `SkysongStats.getSkySongItems`, `Modifier.parent`.
-28. Build hygiene: no tests, no `.gitignore`, and `build/`, `.gradle/` and `.idea/` are committed. The Paper API version (1.21) is older than the server (1.21.11), and the `version` in `build.gradle` (1.1) does not match the deployed jar (1.3).
+28. Build hygiene: no tests. (The `.gitignore` and the 1.3 version were fixed since; the Paper API is now 1.21.5, still older than the 1.21.11 server.)
+
+### Found in the downtime commit
+
+29. **`master` does not compile.** `StatlineGUIListener.java` still imports the deleted `StatSetupGUI` and calls `setStrength(int[])`. Fixed by PR #3.
+30. **Every modifier is loaded twice on startup.** `dumpStatsDatabase` already attaches each profile's modifiers, and `dumpModifiersDatabase`, now re-enabled, adds every row again. After each restart, modifiers count double in `/stats`, placeholders and max HP, and deleting one by position hits the wrong row.
+31. **Downtime is missing for everyone who existed before it.** Rows are only created on a player's first join and on `/profile create`. Older players and profiles have none, so `/downtime view|add|remove`, `%skysongstats_global_downtime%` and `%skysongstats_character_downtime%` throw `NullPointerException` for them.
+32. **`/downtime add <n> <player> <profile>` uses the wrong pool.** It sets the profile's downtime to the player's *global* downtime plus `n`.
+33. **`resetall` is not saved.** It changes the cached values only; a restart restores the old ones.
+34. **`/downtime preference` is not saved,** and players with no preference row default to Global in that command but crash `/downtime view` (unboxing `null`).
+35. **`/downtime view <player>` always fails.** It reads `args[1]` when only `args[0]` exists (`ArrayIndexOutOfBoundsException`); without the permission it then prints "Player null not found".
+36. `findActiveCharacterDowntime` compares a profile name with a `ProfileIndex` object, so it never matches (it is not called yet).
+37. Deleting a profile leaves its character downtime row behind. `remove` has no lower bound and `add` has no upper bound, and `remove <profile>` sends no confirmation.
+38. `plugin.yml` lists `Luckperms`; the plugin's name is `LuckPerms`.
+39. `SkillLevelListener` now imports `org.skysongdev.skysongitems.SkysongItems` without using it, another compile-time tie to Skysong-Special-Items.
