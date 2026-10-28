@@ -237,6 +237,14 @@ public class StatsExpansion extends PlaceholderExpansion {
                 returnString = Integer.toString(stats.getFictis_max() + stats.getMaxFictisModifiers());
                 returnString = PlaceholderAPI.setPlaceholders(player, returnString);
                 return returnString;
+            case "arcrot_full":
+                returnString = Integer.toString(stats.getArcrot() + stats.getArcrotModifiers());
+                returnString = PlaceholderAPI.setPlaceholders(player, returnString);
+                return returnString;
+            case "fictis_full":
+                returnString = Integer.toString(stats.getFictis() + stats.getFictisModifiers());
+                returnString = PlaceholderAPI.setPlaceholders(player, returnString);
+                return returnString;
             //Character Sheet
             case "character_name":
                 returnString = plugin.getUtils().getCharacterManager().findActiveCharacter(player.getUniqueId().toString()).getName();
@@ -260,6 +268,15 @@ public class StatsExpansion extends PlaceholderExpansion {
                 return returnString;
             case "character_description":
                 returnString = plugin.getUtils().getCharacterManager().findActiveCharacter(player.getUniqueId().toString()).getDescription();
+                returnString = PlaceholderAPI.setPlaceholders(player, returnString);
+                return returnString;
+            case "global_downtime":
+                returnString = Integer.toString(plugin.getUtils().getDowntimeManager().findPlayerDowntime(player.getUniqueId().toString()).getCurrentDowntime());
+                returnString = PlaceholderAPI.setPlaceholders(player, returnString);
+                return returnString;
+            case "character_downtime":
+                String profileName = plugin.getUtils().getProfileManager().getActiveProfileName(player.getUniqueId().toString());
+                returnString = Integer.toString(plugin.getUtils().getDowntimeManager().findCharacterDowntime(player.getUniqueId().toString(), profileName).getCurrentDowntime());
                 returnString = PlaceholderAPI.setPlaceholders(player, returnString);
                 return returnString;
         }

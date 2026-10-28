@@ -1,15 +1,12 @@
 package org.skysongdev.skysongstats.commands.modifier;
 
-import net.md_5.bungee.api.ChatColor;
 import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
-import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabExecutor;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.skysongdev.skysongstats.SkysongStats;
 import org.skysongdev.skysongstats.Utils.Utils;
 import org.skysongdev.skysongstats.database.Modifier;
 
@@ -93,7 +90,7 @@ public class AddModifier implements TabExecutor {
                 break;
         }
 
-        commandSender.sendMessage(Utils.getMiniMessage().deserialize(Utils.PLUGIN_TAG + " <gray> "+ strings[1] + " has been modified"));
+        commandSender.sendMessage(Utils.getMiniMessage().deserialize(Utils.PLUGIN_TAG + " <gold> "+ strings[0] + " <gray>has been modified"));
 
         return true;
     }

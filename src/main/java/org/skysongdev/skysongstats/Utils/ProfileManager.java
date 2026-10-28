@@ -8,6 +8,7 @@ import org.skysongdev.skysongstats.database.SetupProfile;
 
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Map;
 import java.util.Objects;
 
 import static org.skysongdev.skysongstats.SkysongStats.getPlugin;
@@ -15,6 +16,7 @@ import static org.skysongdev.skysongstats.SkysongStats.getPlugin;
 public class ProfileManager {
     public static ArrayList<ProfileIndex> activeProfiles;
     public static ArrayList<SetupProfile> setupProfiles;
+    public static Map<String, Boolean> downtimePreferences;
 
     public PlayerStats findActiveStats(String uuid){
         for(ProfileIndex current : ProfileManager.activeProfiles){
@@ -135,6 +137,27 @@ public class ProfileManager {
             getPlugin().getDatabase().deleteSetupData(setupProfile.getUuid(), setupProfile.getProfile());
         }catch(SQLException e){
             Bukkit.getLogger().warning("[SkysongStats] Unable to delete setup profile!");
+            e.printStackTrace();
+        }
+    }
+
+    public void addDowntimePreferences(String uuid, boolean preference){
+        try {
+            ProfileManager.downtimePreferences.put(uuid, preference);
+            getPlugin().getDatabase().createDowntimePreferencesData(uuid, preference);
+        } catch (SQLException e){
+            Bukkit.getLogger().warning("[SkysongStats] Unable to add downtime preference!");
+            e.printStackTrace();
+        }
+
+    }
+
+    public void updateDowntimePreferences(String uuid, boolean preference) {
+        try {
+            ProfileManager.downtimePreferences.put(uuid, preference);
+            getPlugin().getDatabase().updateDowntimePreferencesData(uuid, preference);
+        } catch (SQLException e) {
+            Bukkit.getLogger().warning("[SkysongStats] Unable to update downtime preference!");
             e.printStackTrace();
         }
     }

@@ -1,7 +1,6 @@
 package org.skysongdev.skysongstats.inventories;
 
 import net.kyori.adventure.text.Component;
-import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.InventoryHolder;
@@ -12,7 +11,9 @@ import org.jetbrains.annotations.NotNull;
 import org.skysongdev.skysongstats.database.SetupProfile;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import static org.skysongdev.skysongstats.SkysongStats.getPlugin;
 import static org.skysongdev.skysongstats.Utils.Utils.*;
@@ -20,13 +21,8 @@ import static org.skysongdev.skysongstats.Utils.Utils.StaticStats.*;
 
 public class PointAllocGUI implements InventoryHolder {
     private final Inventory inventory;
-    public int str;
-    public int dex;
-    public int con;
-    public int foc;
-    public int spd;
+    Map<StaticStats, Integer> statMap;
 
-    SetupProfile playerProfile;
     ItemStack strengthItem = new ItemStack(Material.IRON_SWORD);
     ItemStack dexterityItem = new ItemStack(Material.BOW);
     ItemStack constitutionItem = new ItemStack(Material.APPLE);
@@ -35,21 +31,21 @@ public class PointAllocGUI implements InventoryHolder {
 
     ItemStack headerItem = new ItemStack(Material.NETHER_STAR);
 
-    public int negativePoints = 2;
-    public int points = 5;
+    public int negativePoints = 3;
+    public int points = 7;
 
     public PointAllocGUI() {
         this.inventory = getPlugin().getServer().createInventory(this, 27);
-        this.str = 0;
-        this.dex = 0;
-        this.con = 0;
-        this.foc = 0;
-        this.spd = 0;
+        this.statMap = new HashMap<>(Map.of(
+                STRENGTH, 0,
+                DEXTERITY, 0,
+                CONSTITUTION, 0,
+                FOCUS, 0,
+                SPEED, 6
+        ));
     }
 
-    public void setupInventory(SetupProfile playerProfile) {
-        this.playerProfile = playerProfile;
-
+    public void setupInventory() {
         ItemStack borderItem = new ItemStack(Material.GRAY_STAINED_GLASS_PANE);
         for(int i = 0; i < 9; i++){
             this.inventory.setItem(i, borderItem);
@@ -78,8 +74,8 @@ public class PointAllocGUI implements InventoryHolder {
         switch(stat){
             case STRENGTH:
                 bufferMeta = strengthItem.getItemMeta();
-                bufferMeta.displayName(getPlugin().getUtils().getMiniMessage().deserialize("<red><bold>Strength:</bold> " + (playerProfile.getStrength()[0] + str)));
-                lore.add(getPlugin().getUtils().getMiniMessage().deserialize("<gold>Points Allocated: " + str));
+                bufferMeta.displayName(getPlugin().getUtils().getMiniMessage().deserialize("<red><bold>Strength:</bold> " + statMap.get(STRENGTH)));
+                lore.add(getPlugin().getUtils().getMiniMessage().deserialize("<gold>Points Allocated: " + statMap.get(STRENGTH)));
                 lore.add(getPlugin().getUtils().getMiniMessage().deserialize("<gold>Left Click to Increase by 1, Right Click to Decrease by 1"));
                 lore.add(getPlugin().getUtils().getMiniMessage().deserialize("<gray>Determines your character's Physical Strength"));
                 lore.add(getPlugin().getUtils().getMiniMessage().deserialize("<gray>Strength Affects:"));
@@ -95,8 +91,8 @@ public class PointAllocGUI implements InventoryHolder {
                 break;
             case DEXTERITY:
                 bufferMeta = dexterityItem.getItemMeta();
-                bufferMeta.displayName(getPlugin().getUtils().getMiniMessage().deserialize("<green><bold>Dexterity:</bold> " + (playerProfile.getDexterity()[0] + dex)));
-                lore.add(getPlugin().getUtils().getMiniMessage().deserialize("<gold>Points Allocated: " + dex));
+                bufferMeta.displayName(getPlugin().getUtils().getMiniMessage().deserialize("<green><bold>Dexterity:</bold> " + statMap.get(DEXTERITY)));
+                lore.add(getPlugin().getUtils().getMiniMessage().deserialize("<gold>Points Allocated: " + statMap.get(DEXTERITY)));
                 lore.add(getPlugin().getUtils().getMiniMessage().deserialize("<gold>Left Click to Increase by 1, Right Click to Decrease by 1"));
                 lore.add(getPlugin().getUtils().getMiniMessage().deserialize("<gray>Determines your character's Balance and Coordination"));
                 lore.add(getPlugin().getUtils().getMiniMessage().deserialize("<gray>Dexterity Affects:"));
@@ -112,8 +108,8 @@ public class PointAllocGUI implements InventoryHolder {
                 break;
             case CONSTITUTION:
                 bufferMeta = constitutionItem.getItemMeta();
-                bufferMeta.displayName(getPlugin().getUtils().getMiniMessage().deserialize("<light_purple><bold>Constitution:</bold> " + ( playerProfile.getConstitution()[0] + con)));
-                lore.add(getPlugin().getUtils().getMiniMessage().deserialize("<gold>Points Allocated: " + con));
+                bufferMeta.displayName(getPlugin().getUtils().getMiniMessage().deserialize("<light_purple><bold>Constitution:</bold> " + statMap.get(CONSTITUTION)));
+                lore.add(getPlugin().getUtils().getMiniMessage().deserialize("<gold>Points Allocated: " + statMap.get(CONSTITUTION)));
                 lore.add(getPlugin().getUtils().getMiniMessage().deserialize("<gold>Left Click to Increase by 1, Right Click to Decrease by 1"));
                 lore.add(getPlugin().getUtils().getMiniMessage().deserialize("<gray>Determines your character's Health, Stamina and Resistance"));
                 lore.add(getPlugin().getUtils().getMiniMessage().deserialize("<gray>Constitution Affects:"));
@@ -129,8 +125,8 @@ public class PointAllocGUI implements InventoryHolder {
                 break;
             case StaticStats.FOCUS:
                 bufferMeta = focusItem.getItemMeta();
-                bufferMeta.displayName(getPlugin().getUtils().getMiniMessage().deserialize("<blue><bold>Focus:</bold> " + ( playerProfile.getFocus()[0] + foc)));
-                lore.add(getPlugin().getUtils().getMiniMessage().deserialize("<gold>Points Allocated: " + foc));
+                bufferMeta.displayName(getPlugin().getUtils().getMiniMessage().deserialize("<blue><bold>Focus:</bold> " + statMap.get(FOCUS)));
+                lore.add(getPlugin().getUtils().getMiniMessage().deserialize("<gold>Points Allocated: " + statMap.get(FOCUS)));
                 lore.add(getPlugin().getUtils().getMiniMessage().deserialize("<gold>Left Click to Increase by 1, Right Click to Decrease by 1"));
                 lore.add(getPlugin().getUtils().getMiniMessage().deserialize("<gray>Determines your character's attunement to the supernatural"));
                 lore.add(getPlugin().getUtils().getMiniMessage().deserialize("<gray>Focus Affects:"));
@@ -147,8 +143,8 @@ public class PointAllocGUI implements InventoryHolder {
                 break;
             case StaticStats.SPEED:
                 bufferMeta = speedItem.getItemMeta();
-                bufferMeta.displayName(getPlugin().getUtils().getMiniMessage().deserialize("<blue><bold>Speed:</bold> " + ( playerProfile.getSpeed()[0] + spd)));
-                lore.add(getPlugin().getUtils().getMiniMessage().deserialize("<gold>Points Allocated: " + spd));
+                bufferMeta.displayName(getPlugin().getUtils().getMiniMessage().deserialize("<blue><bold>Speed:</bold> " + statMap.get(SPEED)));
+                lore.add(getPlugin().getUtils().getMiniMessage().deserialize("<gold>Points Allocated: " + statMap.get(SPEED)));
                 lore.add(getPlugin().getUtils().getMiniMessage().deserialize("<gold>Left Click to Increase by 1, Right Click to Decrease by 1"));
                 lore.add(getPlugin().getUtils().getMiniMessage().deserialize("<gray>Determines your character's physical speed"));
                 lore.add(getPlugin().getUtils().getMiniMessage().deserialize("<gray>Speed Affects:"));
@@ -181,247 +177,50 @@ public class PointAllocGUI implements InventoryHolder {
     }
 
     public void addStat(StaticStats stat, int num){
-        switch(stat){
-            case STRENGTH:
-                if (num > 0) {
-                    if(str < 0){
-                        if(negativePoints <= 0){
-                            if(points <= 1){
-                                return;
-                            }
-                            if(str == 3 || dex == 3 || con == 3 || foc == 3 || spd == 3){
-                                return;
-                            }
-                            points--;
-                        }
-                        negativePoints += num;
-                        str += num;
-                    }else {
-                        if(points <= 0){
-                            return;
-                        }
-                        if (str + num > 2 && negativePoints > 0) {
-                            return;
-                        }
-                        if(str + num > 3){
-                            return;
-                        }
-                        str += num;
-                        points -= num;
-                    }
-                } else {
-                    if (str + num < 0) {
-                        if (negativePoints <= 0) {
-                            return;
-                        }
-                        str += num;
-                        negativePoints += num; // num is negative, so this subtracts
-                        if(negativePoints <= 0){
-                            points++;
-                        }
-                    } else {
-                        str += num;
-                        points -= num; // num is negative, so this adds
-                    }
-                }
-                updateStat(STRENGTH);
-                break;
-            case DEXTERITY:
-                if (num > 0) {
-                    if(dex < 0){
-                        if(negativePoints <= 0){
-                            if(points <= 1){
-                                return;
-                            }
-                            if(str == 3 || dex == 3 || con == 3 || foc == 3 || spd == 3){
-                                return;
-                            }
-                            points--;
-                        }
-                        negativePoints += num;
-                        dex += num;
-                    }else {
-                        if(points <= 0){
-                            return;
-                        }
-                        if (dex + num > 2 && negativePoints > 0) {
-                            return;
-                        }
-                        if(dex + num > 3){
-                            return;
-                        }
-                        dex += num;
-                        points -= num;
-                    }
-                } else {
-                    if (dex + num < 0) {
-                        if (negativePoints <= 0) {
-                            return;
-                        }
-                        dex += num;
-                        negativePoints += num; // num is negative, so this subtracts
-                        if(negativePoints <= 0){
-                            points++;
-                        }
-                    } else {
-                        dex += num;
-                        points -= num; // num is negative, so this adds
-                    }
-                }
-                updateStat(DEXTERITY);
-                break;
-            case CONSTITUTION:
-                if (num > 0) {
-                    if(con < 0){
-                        if(negativePoints <= 0){
-                            if(points <= 1){
-                                return;
-                            }
-                            if(str == 3 || dex == 3 || con == 3 || foc == 3 || spd == 3){
-                                return;
-                            }
-                            points--;
-                        }
-                        negativePoints += num;
-                        con += num;
-                    }else {
-                        if(points <= 0){
-                            return;
-                        }
-                        if (con + num > 2 && negativePoints > 0) {
-                            return;
-                        }
-                        if(con + num > 3){
-                            return;
-                        }
-                        con += num;
-                        points -= num;
-                    }
-                } else {
-                    if (con + num < 0) {
-                        if (negativePoints <= 0) {
-                            return;
-                        }
-                        con += num;
-                        negativePoints += num; // num is negative, so this subtracts
-                        if(negativePoints <= 0){
-                            points++;
-                        }
-                    } else {
-                        con += num;
-                        points -= num; // num is negative, so this adds
-                    }
-                }
-                updateStat(CONSTITUTION);
-                break;
-            case FOCUS:
-                if (num > 0) {
-                    if(foc < 0){
-                        if(negativePoints <= 0){
-                            if(points <= 1){
-                                return;
-                            }
-                            if(str == 3 || dex == 3 || con == 3 || foc == 3 || spd == 3){
-                                return;
-                            }
-                            points--;
-                        }
-                        negativePoints += num;
-                        foc += num;
-                    }else {
-                        if(points <= 0){
-                            return;
-                        }
-                        if (foc + num > 2 && negativePoints > 0) {
-                            return;
-                        }
-                        if(foc + num > 3){
-                            return;
-                        }
-                        foc += num;
-                        points -= num;
-                    }
-                } else {
-                    if (foc + num < 0) {
-                        if (negativePoints <= 0) {
-                            return;
-                        }
-                        foc += num;
-                        negativePoints += num; // num is negative, so this subtracts
-                        if(negativePoints <= 0){
-                            points++;
-                        }
-                    } else {
-                        foc += num;
-                        points -= num; // num is negative, so this adds
-                    }
-                }
-                updateStat(StaticStats.FOCUS);
-                break;
-            case SPEED:
-                if (num > 0) {
-                    if(spd < 0){
-                        if(negativePoints <= 0){
-                            if(points <= 1){
-                                return;
-                            }
-                            if(str == 3 || dex == 3 || con == 3 || foc == 3 || spd == 3){
-                                return;
-                            }
-                            points--;
-                        }
-                        negativePoints += num;
-                        spd += num;
-                    }else {
-                        if(points <= 0){
-                            return;
-                        }
-                        if (spd + num > 2 && negativePoints > 0) {
-                            return;
-                        }
-                        if(spd + num > 3){
-                            return;
-                        }
-                        spd += num;
-                        points -= num;
-                    }
-                } else {
-                    if (spd + num < 0) {
-                        if (negativePoints <= 0) {
-                            return;
-                        }
-                        spd += num;
-                        negativePoints += num; // num is negative, so this subtracts
-                        if(negativePoints <= 0){
-                            points++;
-                        }
-                    } else {
-                        spd += num;
-                        points -= num; // num is negative, so this adds
-                    }
-                }
-                updateStat(StaticStats.SPEED);
-                break;
-            default:
+        if (num == 0) return; // No change requested
+        int currentStatValue = (stat != SPEED)? statMap.get(stat): statMap.get(stat) - 6; // Speed starts at 6, but is treated as 0 for allocation purposes
+
+        if (num > 0) { // Adding points
+            if (currentStatValue < 0) { // Transition from negative to positive
+                if (points <= 0) return;
+                statMap.put(stat, statMap.get(stat)+num);
+                negativePoints += num;
+            } else { // Regular addition
+                if (points <= 0 || currentStatValue + num > 4) return;
+                statMap.put(stat, statMap.get(stat)+num);
+            }
+            points -= num;
+        } else { // Subtracting points
+            if(currentStatValue <= -3) return;
+            if(currentStatValue <= 0){
+                if(negativePoints <= 0) return;
+                statMap.put(stat, statMap.get(stat)+num);
+                negativePoints += num;
+            } else{
+                statMap.put(stat, statMap.get(stat)+num);
+            }
+            points -= num;
         }
+        updateStat(stat);
+
     }
 
     public void returnFinalizedStats(SetupProfile playerProfile){
-        playerProfile.setStrength(new int[]{playerProfile.getStrength()[0], str});
-        playerProfile.setDexterity(new int[]{playerProfile.getDexterity()[0], dex});
-        playerProfile.setConstitution(new int[]{playerProfile.getConstitution()[0], con});
-        playerProfile.setFocus(new int[]{playerProfile.getFocus()[0], foc});
-        playerProfile.setSpeed(new int[]{playerProfile.getSpeed()[0], spd});
+        playerProfile.setStrength(statMap.get(STRENGTH));
+        playerProfile.setDexterity(statMap.get(DEXTERITY));
+        playerProfile.setConstitution(statMap.get(CONSTITUTION));
+        playerProfile.setFocus(statMap.get(FOCUS));
+        playerProfile.setSpeed(statMap.get(SPEED));
     }
 
     public void resetPoints(){
-        points = 5;
-        negativePoints = 2;
-        str = 0;
-        dex = 0;
-        con = 0;
-        foc = 0;
-        spd = 0;
+        points = 7;
+        negativePoints = 3;
+        statMap.put(STRENGTH, 0);
+        statMap.put(DEXTERITY, 0);
+        statMap.put(CONSTITUTION, 0);
+        statMap.put(FOCUS, 0);
+        statMap.put(SPEED, 6);
         updateStat(StaticStats.ARCROT_MAX);
     }
 

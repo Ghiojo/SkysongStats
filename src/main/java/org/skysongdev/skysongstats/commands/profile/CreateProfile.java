@@ -10,10 +10,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.skysongdev.skysongstats.SkysongStats;
 import org.skysongdev.skysongstats.Utils.Utils;
-import org.skysongdev.skysongstats.database.CharacterProfile;
-import org.skysongdev.skysongstats.database.PlayerSkills;
-import org.skysongdev.skysongstats.database.PlayerStats;
-import org.skysongdev.skysongstats.database.SetupProfile;
+import org.skysongdev.skysongstats.database.*;
 
 import java.util.List;
 
@@ -52,6 +49,10 @@ public class CreateProfile implements TabExecutor {
 
         CharacterProfile characterProfile = new CharacterProfile(player.getUniqueId().toString(), strings[0]);
         getPlugin().getUtils().getCharacterManager().addCharacter(characterProfile);
+
+        //We add the Downtime profiles to the list
+        CharacterDowntime characterDowntime = new CharacterDowntime(strings[0], player.getUniqueId().toString(), Utils.MAX_CHARACTER_DOWNTIME);
+        getPlugin().getUtils().getDowntimeManager().addCharacterDowntime(characterDowntime);
 
 
         player.sendMessage(Utils.getMiniMessage().deserialize(Utils.PLUGIN_TAG +  "<gray>Profile \"" + strings[0] + "\" has been created!"));

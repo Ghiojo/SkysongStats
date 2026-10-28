@@ -4,7 +4,6 @@ import org.bukkit.Bukkit;
 import org.skysongdev.skysongstats.Utils.Utils;
 import org.skysongdev.skysongstats.inventories.PointAllocGUI;
 import org.skysongdev.skysongstats.inventories.SkillChoiceGUI;
-import org.skysongdev.skysongstats.inventories.StatSetupGUI;
 
 import java.util.ArrayList;
 import java.util.UUID;
@@ -16,56 +15,55 @@ public class SetupProfile {
     private String profile;
     private boolean isSetUp;
 
-    private StatSetupGUI statSetupGUI = new StatSetupGUI();
     private PointAllocGUI pointAllocGUI = new PointAllocGUI();
     private SkillChoiceGUI skillChoiceGUI = new SkillChoiceGUI(this);
 
-    private int[] strength;
-    private int[] dexterity;
-    private int[] constitution;
-    private int[] focus;
-    private int[] speed;
+    private int strength;
+    private int dexterity;
+    private int constitution;
+    private int focus;
+    private int speed;
 
     public ArrayList<Integer> skillsSelected = new ArrayList<Integer>();
     public int skillPoints = 2;
 
-    public int[] getStrength() {
+    public int getStrength() {
         return strength;
     }
 
-    public void setStrength(int[] strength) {
+    public void setStrength(int strength) {
         this.strength = strength;
     }
 
-    public int[] getDexterity() {
+    public int getDexterity() {
         return dexterity;
     }
 
-    public void setDexterity(int[] dexterity) {
+    public void setDexterity(int dexterity) {
         this.dexterity = dexterity;
     }
 
-    public int[] getConstitution() {
+    public int getConstitution() {
         return constitution;
     }
 
-    public void setConstitution(int[] constitution) {
+    public void setConstitution(int constitution) {
         this.constitution = constitution;
     }
 
-    public int[] getFocus() {
+    public int getFocus() {
         return focus;
     }
 
-    public void setFocus(int[] focus) {
+    public void setFocus(int focus) {
         this.focus = focus;
     }
 
-    public int[] getSpeed() {
+    public int getSpeed() {
         return speed;
     }
 
-    public void setSpeed(int[] speed) {
+    public void setSpeed(int speed) {
         this.speed = speed;
     }
 
@@ -95,11 +93,11 @@ public class SetupProfile {
         this.uuid = uuid;
         this.profile = "Default";
         this.isSetUp = false;
-        this.strength = new int[]{0, 0};
-        this.dexterity = new int[]{0, 0};
-        this.constitution = new int[]{0, 0};
-        this.focus = new int[]{0, 0};
-        this.speed = new int[]{0, 0};
+        this.strength = 0;
+        this.dexterity = 0;
+        this.constitution = 0;
+        this.focus = 0;
+        this.speed = 0;
     }
 
     public SetupProfile(String uuid, String profile, boolean isSetUp) {
@@ -110,11 +108,11 @@ public class SetupProfile {
 
     public void finishProfileSetup(){
         PlayerStats playerStats = getPlugin().getUtils().getStatsManager().findStats(uuid, profile);
-        playerStats.setStrength(strength[0] + strength[1]);
-        playerStats.setDexterity(dexterity[0] + dexterity[1]);
-        playerStats.setConstitution(constitution[0] + constitution[1]);
-        playerStats.setFocus(focus[0] + focus[1]);
-        playerStats.setSpeed(speed[0] + speed[1]);
+        playerStats.setStrength(strength);
+        playerStats.setDexterity(dexterity);
+        playerStats.setConstitution(constitution);
+        playerStats.setFocus(focus);
+        playerStats.setSpeed(speed);
         getPlugin().getUtils().getStatsManager().updateStats(playerStats);
 
         PlayerSkills playerSkills = getPlugin().getUtils().getSkillManager().findSkills(uuid, profile);
@@ -130,10 +128,6 @@ public class SetupProfile {
         }
     }
 
-    public StatSetupGUI getStatSetupGUI() {
-        return statSetupGUI;
-    }
-
     public PointAllocGUI getPointAllocGUI() {
         return pointAllocGUI;
     }
@@ -143,7 +137,7 @@ public class SetupProfile {
     }
 
     public void setupPointAllocGui(){
-        pointAllocGUI.setupInventory(this);
+        pointAllocGUI.setupInventory();
     }
 
     public void setupSkillChoiceGui(){

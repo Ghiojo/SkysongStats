@@ -5,6 +5,7 @@ import org.skysongdev.skysongstats.Utils.*;
 
 import java.sql.*;
 import java.util.ArrayList;
+import java.util.HashMap;
 
 import static org.skysongdev.skysongstats.SkysongStats.getPlugin;
 
@@ -49,6 +50,13 @@ public class Database {
         buildStatement.execute(sqlSetup);
         String sqlCharacter = "CREATE TABLE IF NOT EXISTS skysong_characters(id INT AUTO_INCREMENT primary key, uuid varchar(36), profile varchar(20), name varchar(100), age varchar(20), gender varchar(20), ancestry varchar(50), pronouns varchar(20), description varchar(500))";
         buildStatement.execute(sqlCharacter);
+        String sqlDowntime = "CREATE TABLE IF NOT EXISTS skysong_downtime(id INT AUTO_INCREMENT primary key, uuid varchar(36), current_downtime INT)";
+        buildStatement.execute(sqlDowntime);
+        String sqlCharDowntime = "CREATE TABLE IF NOT EXISTS skysong_character_downtime(id INT AUTO_INCREMENT primary key, uuid varchar(36), profile varchar(20), current_downtime INT)";
+        buildStatement.execute(sqlCharDowntime);
+        String sqlDowntimePreferences = "CREATE TABLE IF NOT EXISTS skysong_downtime_preferences(uuid varchar(36) primary key, isGlobal BOOLEAN)";
+        buildStatement.execute(sqlDowntimePreferences);
+        buildStatement.close();
     }
 
     //Stats Handling
@@ -285,6 +293,68 @@ public class Database {
         statement.close();
     }
 
+    //Player Downtime Handling
+    public void createPlayerDowntimeData(PlayerDowntime data) throws SQLException{
+        PreparedStatement statement = getConnection().prepareStatement("INSERT INTO skysong_downtime(uuid, current_downtime) VALUES (?, ?)");
+        statement.setString(1, data.getUuid());
+        statement.setInt(2, data.getCurrentDowntime());
+        statement.executeUpdate();
+        statement.close();
+    }
+    public void updatePlayerDowntimeData(PlayerDowntime data) throws SQLException{
+        PreparedStatement statement = getConnection().prepareStatement("UPDATE skysong_downtime SET current_downtime = ? WHERE uuid = ?");
+        statement.setInt(1, data.getCurrentDowntime());
+        statement.setString(2, data.getUuid());
+        statement.executeUpdate();
+        statement.close();
+    }
+    public void deletePlayerDowntimeData(PlayerDowntime data) throws SQLException{
+        PreparedStatement statement = getConnection().prepareStatement("DELETE FROM skysong_downtime WHERE uuid = ?");
+        statement.setString(1, data.getUuid());
+        statement.executeUpdate();
+        statement.close();
+    }
+
+    //Character Downtime Handling
+    public void createCharacterDowntimeData(CharacterDowntime data) throws SQLException{
+        PreparedStatement statement = getConnection().prepareStatement("INSERT INTO skysong_character_downtime(uuid, profile, current_downtime) VALUES (?, ?, ?)");
+        statement.setString(1, data.getUuid());
+        statement.setString(2, data.getProfile());
+        statement.setInt(3, data.getCurrentDowntime());
+        statement.executeUpdate();
+        statement.close();
+    }
+    public void updateCharacterDowntimeData(CharacterDowntime data) throws SQLException{
+        PreparedStatement statement = getConnection().prepareStatement("UPDATE skysong_character_downtime SET current_downtime = ? WHERE uuid = ? AND profile = ?");
+        statement.setInt(1, data.getCurrentDowntime());
+        statement.setString(2, data.getUuid());
+        statement.setString(3, data.getProfile());
+        statement.executeUpdate();
+        statement.close();
+    }
+    public void deleteCharacterDowntimeData(CharacterDowntime data) throws SQLException{
+        PreparedStatement statement = getConnection().prepareStatement("DELETE FROM skysong_character_downtime WHERE uuid = ? AND profile = ?");
+        statement.setString(1, data.getUuid());
+        statement.setString(2, data.getProfile());
+        statement.executeUpdate();
+        statement.close();
+    }
+
+    //Downtime Management
+    public void createDowntimePreferencesData(String uuid, boolean isGlobal) throws SQLException{
+        PreparedStatement statement = getConnection().prepareStatement("INSERT INTO skysong_downtime_preferences(uuid, isGlobal) VALUES (?, ?)");
+        statement.setString(1, uuid);
+        statement.setBoolean(2, isGlobal);
+        statement.executeUpdate();
+        statement.close();
+    }
+    public void updateDowntimePreferencesData(String uuid, boolean isGlobal) throws SQLException{
+        PreparedStatement statement = getConnection().prepareStatement("UPDATE skysong_downtime_preferences SET isGlobal = ? WHERE uuid = ?");
+        statement.setBoolean(1, isGlobal);
+        statement.setString(2, uuid);
+        statement.executeUpdate();
+        statement.close();
+    }
 
     //Data Dumping
     public void dumpDatabaseData() throws SQLException{
@@ -292,8 +362,10 @@ public class Database {
         dumpActiveStatsDatabase();
         dumpSkillsDatabase();
         dumpSetupDatabase();
-        //dumpModifiersDatabase();
+        dumpModifiersDatabase();
         dumpCharacterDatabase();
+        dumpDowntimeDatabase();
+        dumpDowntimePreferencesDatabase();
     }
     public void dumpStatsDatabase() throws SQLException{
         StatsManager.statsProfileList = new ArrayList<PlayerStats>();
@@ -420,6 +492,50 @@ public class Database {
 
             CharacterProfile characterProfile = new CharacterProfile(uuid, profile, name, age, gender, ancestry, pronouns, description);
             getPlugin().getUtils().getCharacterManager().characterProfiles.add(characterProfile);
+        }
+        statement.close();
+    }
+    public void dumpDowntimeDatabase() throws SQLException {
+        DowntimeManager.playerDowntimes = new ArrayList<PlayerDowntime>();
+        DowntimeManager.characterDowntimes = new ArrayList<CharacterDowntime>();
+        Statement statement = getConnection().createStatement();
+        String sql = "SELECT * FROM skysong_downtime";
+        ResultSet results = statement.executeQuery(sql);
+
+        while (results.next()) {
+            String uuid = results.getString("uuid");
+            int currentDowntime = results.getInt("current_downtime");
+
+            PlayerDowntime playerDowntime = new PlayerDowntime(uuid, currentDowntime);
+            DowntimeManager.playerDowntimes.add(playerDowntime);
+        }
+        results.close();
+
+        String charSql = "SELECT * FROM skysong_character_downtime";
+        ResultSet charResults = statement.executeQuery(charSql);
+
+        while (charResults.next()) {
+            String uuid = charResults.getString("uuid");
+            String profile = charResults.getString("profile");
+            int currentDowntime = charResults.getInt("current_downtime");
+
+            CharacterDowntime characterDowntime = new CharacterDowntime(profile, uuid, currentDowntime);
+            DowntimeManager.characterDowntimes.add(characterDowntime);
+        }
+        charResults.close();
+        statement.close();
+    }
+    public void dumpDowntimePreferencesDatabase() throws SQLException {
+        ProfileManager.downtimePreferences = new HashMap<>();
+        Statement statement = getConnection().createStatement();
+        String sql = "SELECT * FROM skysong_downtime_preferences";
+        ResultSet results = statement.executeQuery(sql);
+
+        while (results.next()) {
+            String uuid = results.getString("uuid");
+            boolean isGlobal = results.getBoolean("isGlobal");
+
+            ProfileManager.downtimePreferences.put(uuid, isGlobal);
         }
         statement.close();
     }

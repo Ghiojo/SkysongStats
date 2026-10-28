@@ -6,6 +6,7 @@ import org.skysongdev.skysongitems.SkysongItems;
 import org.skysongdev.skysongstats.Utils.Utils;
 import org.skysongdev.skysongstats.commands.afflictions.PotionSickness;
 import org.skysongdev.skysongstats.commands.character.CharacterCommand;
+import org.skysongdev.skysongstats.commands.downtime.DowntimeCommand;
 import org.skysongdev.skysongstats.commands.hpManagement.*;
 import org.skysongdev.skysongstats.commands.misc.ReloadCommand;
 import org.skysongdev.skysongstats.commands.modifier.ModifierCommand;
@@ -45,6 +46,7 @@ public final class SkysongStats extends JavaPlugin {
     public SkillsCommand skillsCommand = new SkillsCommand();
     public StatsCommand statsCommand = new StatsCommand();
     public CharacterCommand characterCommand = new CharacterCommand();
+    public DowntimeCommand downtimeCommand = new DowntimeCommand();
 
 
     public Database getDatabase() { return database; }
@@ -97,6 +99,7 @@ public final class SkysongStats extends JavaPlugin {
         getCommand("stats").setExecutor(statsCommand);
         getCommand("ac").setExecutor(new ACCommand());
         getCommand("potionsickness").setExecutor(new PotionSickness());
+        getCommand("downtime").setExecutor(downtimeCommand);
         //getCommand("fictis").setExecutor(new Fictis());
         //getCommand("arcrot").setExecutor(new Arcrot());
     }
@@ -105,7 +108,6 @@ public final class SkysongStats extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new PlayerRegisterListener(), this);
         getServer().getPluginManager().registerEvents(new ProfileUpdateListener(), this);
         getServer().getPluginManager().registerEvents(new SkillLevelListener(), this);
-        getServer().getPluginManager().registerEvents(new StatlineGUIListener(), this);
         getServer().getPluginManager().registerEvents(new StatPointsGUIListener(), this);
         getServer().getPluginManager().registerEvents(new SkillAllocGUIListener(), this);
         getServer().getPluginManager().registerEvents(new PlayerShiftRightClickListener(), this);

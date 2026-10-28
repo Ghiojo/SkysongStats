@@ -21,8 +21,7 @@ import static org.skysongdev.skysongstats.Utils.Utils.StaticStats.*;
 public class StatPointsGUIListener implements Listener {
     @EventHandler
     public void onInventoryClose(InventoryCloseEvent event){
-        if(event.getInventory().getHolder() instanceof PointAllocGUI){
-            PointAllocGUI gui = (PointAllocGUI) event.getInventory().getHolder();
+        if(event.getInventory().getHolder() instanceof PointAllocGUI gui){
             gui.resetPoints();
         }
     }
@@ -39,7 +38,6 @@ public class StatPointsGUIListener implements Listener {
                 return;
             }
             PointAllocGUI gui = (PointAllocGUI) event.getInventory().getHolder();
-            SetupProfile setup = getPlugin().getUtils().getProfileManager().findActiveSetupProfile(event.getWhoClicked().getUniqueId().toString());
             if(itemData.has(statButtonKey)){
                 if(!event.getClick().isLeftClick() && !event.getClick().isRightClick()){
                     return;
@@ -77,9 +75,10 @@ public class StatPointsGUIListener implements Listener {
             if(itemData.has(optionButtonKey)){
                 if(itemData.get(optionButtonKey, PersistentDataType.STRING).equals("confirm")){
                     if(gui.points > 0 || gui.negativePoints == 1){
-                        event.getWhoClicked().sendMessage(getPlugin().getUtils().getMiniMessage().deserialize(getPlugin().getUtils().PLUGIN_TAG + "<red>You still have points to allocate (Or have one negative point set)!"));
+                        event.getWhoClicked().sendMessage(getPlugin().getUtils().getMiniMessage().deserialize(getPlugin().getUtils().PLUGIN_TAG + "<red>You still have points to allocate!"));
                         return;
                     }
+                    SetupProfile setup = getPlugin().getUtils().getProfileManager().findActiveSetupProfile(event.getWhoClicked().getUniqueId().toString());
                     gui.returnFinalizedStats(setup);
                     setup.setupSkillChoiceGui();
                     event.getWhoClicked().closeInventory();
