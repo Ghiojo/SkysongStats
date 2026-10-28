@@ -58,22 +58,25 @@ public final class Formula {
             case Constant constant -> constant.value();
             case StatReference reference -> statValues.applyAsDouble(reference.statId());
             case Negate negate -> -evaluate(negate.operand(), statValues);
-            case Binary binary -> {
-                double left = evaluate(binary.left(), statValues);
-                double right = evaluate(binary.right(), statValues);
-                yield switch (binary.operator()) {
-                    case '+' -> left + right;
-                    case '-' -> left - right;
-                    case '*' -> left * right;
-                    default -> {
-                        if (right == 0) {
-                            throw new ArithmeticException("Division by zero in formula \"" + source + "\"");
-                        }
-                        yield left / right;
-                    }
-                };
-            }
+            case Binary binary -> apply(binary.operator(),
+                    evaluate(binary.left(), statValues), evaluate(binary.right(), statValues));
         };
+    }
+
+    private double apply(char operator, double left, double right) {
+        return switch (operator) {
+            case '+' -> left + right;
+            case '-' -> left - right;
+            case '*' -> left * right;
+            default -> divide(left, right);
+        };
+    }
+
+    private double divide(double left, double right) {
+        if (right == 0) {
+            throw new ArithmeticException("Division by zero in formula \"" + source + "\"");
+        }
+        return left / right;
     }
 
     private sealed interface Node permits Constant, StatReference, Negate, Binary {
