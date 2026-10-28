@@ -22,36 +22,37 @@ public class ViewDowntime implements TabExecutor {
 
     @Override
     public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String @NotNull [] args) {
-        if (args.length > 1 || (args.length == 0 && !(sender instanceof Player))) {
+        boolean self = args.length == 0;
+        if (args.length > 1 || (self && !(sender instanceof Player))) {
             sender.sendMessage(Utils.getMiniMessage().deserialize(PLUGIN_TAG + "<red>Usage: /downtime view <player>"));
             return true;
         }
-        DowntimeTarget target;
-        if (args.length == 1) {
-            if (!sender.hasPermission("skysongstats.downtime.view.others")) {
-                sender.sendMessage(Utils.getMiniMessage().deserialize(PLUGIN_TAG + "<red>You do not have permission to view other players' downtime."));
-                return true;
-            }
-            target = DowntimeTarget.find(args[0]);
-            if (target == null) {
-                sender.sendMessage(Utils.getMiniMessage().deserialize(PLUGIN_TAG + "<red>Player " + args[0] + " not found or has no profile."));
-                return true;
-            }
-        } else {
-            target = DowntimeTarget.of((Player) sender);
+        DowntimeTarget target = self ? DowntimeTarget.of((Player) sender) : findOther(sender, args[0]);
+        if (target != null) {
+            show(sender, target);
         }
+        return true;
+    }
+
+    private static DowntimeTarget findOther(CommandSender sender, String name) {
+        if (!sender.hasPermission("skysongstats.downtime.view.others")) {
+            sender.sendMessage(Utils.getMiniMessage().deserialize(PLUGIN_TAG + "<red>You do not have permission to view other players' downtime."));
+            return null;
+        }
+        return DowntimeTarget.find(sender, name);
+    }
+
+    private void show(CommandSender sender, DowntimeTarget target) {
         String activeProfile = target.activeProfile();
         if (activeProfile == null) {
             sender.sendMessage(Utils.getMiniMessage().deserialize(PLUGIN_TAG + "<red>" + target.name() + " has no active profile."));
-            return true;
+            return;
         }
-
         sender.sendMessage(Utils.getMiniMessage().deserialize("<gold>" + target.name() + "<green>'s Downtime:"));
         sender.sendMessage(Utils.getMiniMessage().deserialize("<green>- Global Downtime: <gold>" + downtime.getGlobal(target.uuid())));
         sender.sendMessage(Utils.getMiniMessage().deserialize("<green>- Character Downtime: <gold>" + downtime.getCharacter(target.uuid(), activeProfile)));
         String preference = downtime.spendsGlobal(target.uuid()) ? "Global" : "Character";
         sender.sendMessage(Utils.getMiniMessage().deserialize("<green>- Active Downtime Spending Preference: <gold>" + preference));
-        return true;
     }
 
     @Override

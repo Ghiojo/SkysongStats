@@ -2,13 +2,16 @@ package org.skysongdev.skysongstats.commands.downtime;
 
 import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
+import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
+import org.skysongdev.skysongstats.Utils.Utils;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
 import static org.skysongdev.skysongstats.SkysongStats.getPlugin;
+import static org.skysongdev.skysongstats.Utils.Utils.PLUGIN_TAG;
 
 /**
  * A player named in a downtime command. Online and offline players both work,
@@ -33,6 +36,24 @@ record DowntimeTarget(UUID uuid, String name) {
 
     List<String> profiles() {
         return getPlugin().getUtils().getProfileManager().findAllProfiles(uuid.toString());
+    }
+
+    /** Like {@link #find(String)}, but tells the sender when the player is not found. */
+    static DowntimeTarget find(CommandSender sender, String name) {
+        DowntimeTarget target = find(name);
+        if (target == null) {
+            sender.sendMessage(Utils.getMiniMessage().deserialize(PLUGIN_TAG + "<red>Player " + name + " not found or has no profile."));
+        }
+        return target;
+    }
+
+    /** Like {@link #findProfile(String)}, but tells the sender when the profile is not found. */
+    String findProfile(CommandSender sender, String profile) {
+        String found = findProfile(profile);
+        if (found == null) {
+            sender.sendMessage(Utils.getMiniMessage().deserialize(PLUGIN_TAG + "<red>Profile " + profile + " not found for player " + name + "."));
+        }
+        return found;
     }
 
     /** The profile name as stored, matched without case; {@code null} if the player has no such profile. */
@@ -68,6 +89,15 @@ record DowntimeTarget(UUID uuid, String name) {
             options.addAll(target.profiles());
         }
         return options.stream().filter(option -> option.toLowerCase().startsWith(lower)).toList();
+    }
+
+    /** Like {@link #parseAmount(String)}, but tells the sender when the amount is wrong. */
+    static int parseAmount(CommandSender sender, String text) {
+        int amount = parseAmount(text);
+        if (amount < 0) {
+            sender.sendMessage(Utils.getMiniMessage().deserialize(PLUGIN_TAG + "<red>Amount must be a whole number of 1 or more."));
+        }
+        return amount;
     }
 
     /** Parses a downtime amount: a whole number of 1 or more, otherwise {@code -1}. */

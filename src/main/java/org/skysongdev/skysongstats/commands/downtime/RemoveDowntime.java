@@ -26,33 +26,31 @@ public class RemoveDowntime implements TabExecutor {
             sender.sendMessage(Utils.getMiniMessage().deserialize(PLUGIN_TAG + "<red>Usage: /downtime remove <amount> <player> [global/profile]"));
             return true;
         }
-        int amount = DowntimeTarget.parseAmount(args[0]);
-        if (amount < 0) {
-            sender.sendMessage(Utils.getMiniMessage().deserialize(PLUGIN_TAG + "<red>Amount must be a whole number of 1 or more."));
-            return true;
+        int amount = DowntimeTarget.parseAmount(sender, args[0]);
+        DowntimeTarget target = amount < 0 ? null : DowntimeTarget.find(sender, args[1]);
+        if (target != null) {
+            remove(sender, target, amount, args.length >= 3 ? args[2] : null);
         }
-        DowntimeTarget target = DowntimeTarget.find(args[1]);
-        if (target == null) {
-            sender.sendMessage(Utils.getMiniMessage().deserialize(PLUGIN_TAG + "<red>Player " + args[1] + " not found or has no profile."));
-            return true;
-        }
+        return true;
+    }
+
+    /** Removes from {@code pool}: "global", a profile name, or {@code null} for the player's preference. */
+    private void remove(CommandSender sender, DowntimeTarget target, int amount, String pool) {
         DowntimeChange change;
-        if (args.length < 3) {
+        if (pool == null) {
             change = downtime.removeFromPreferred(target.uuid(), target.activeProfile(), amount);
-        } else if (args[2].equalsIgnoreCase("global")) {
+        } else if (pool.equalsIgnoreCase("global")) {
             change = downtime.removeGlobal(target.uuid(), amount);
         } else {
-            String profile = target.findProfile(args[2]);
+            String profile = target.findProfile(sender, pool);
             if (profile == null) {
-                sender.sendMessage(Utils.getMiniMessage().deserialize(PLUGIN_TAG + "<red>Profile " + args[2] + " not found for player " + target.name() + "."));
-                return true;
+                return;
             }
             change = downtime.removeCharacter(target.uuid(), profile, amount);
         }
         String where = change.profile() == null ? "global downtime" : change.profile() + " profile downtime";
         String clamped = -change.delta() < amount ? " (stopped at 0)" : "";
         sender.sendMessage(Utils.getMiniMessage().deserialize(PLUGIN_TAG + "<green>Successfully removed " + (-change.delta()) + " downtime from " + target.name() + "'s " + where + ", now " + change.newValue() + "." + clamped));
-        return true;
     }
 
     @Override

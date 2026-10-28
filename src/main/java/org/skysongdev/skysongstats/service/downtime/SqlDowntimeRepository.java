@@ -38,43 +38,55 @@ public class SqlDowntimeRepository implements DowntimeRepository {
 
     @Override
     public DowntimeSnapshot loadAll() {
-        Map<UUID, Integer> globals = new HashMap<>();
-        Map<CharacterKey, Integer> characters = new HashMap<>();
-        Map<UUID, Boolean> spendsGlobal = new HashMap<>();
         try {
             Connection connection = connections.get();
-            try (PreparedStatement statement = connection.prepareStatement("SELECT uuid, current_downtime FROM skysong_downtime");
-                 ResultSet results = statement.executeQuery()) {
-                while (results.next()) {
-                    UUID player = parse(results.getString("uuid"));
-                    if (player != null) {
-                        globals.put(player, results.getInt("current_downtime"));
-                    }
-                }
-            }
-            try (PreparedStatement statement = connection.prepareStatement("SELECT uuid, profile, current_downtime FROM skysong_character_downtime");
-                 ResultSet results = statement.executeQuery()) {
-                while (results.next()) {
-                    UUID player = parse(results.getString("uuid"));
-                    String profile = results.getString("profile");
-                    if (player != null && profile != null) {
-                        characters.put(new CharacterKey(player, profile), results.getInt("current_downtime"));
-                    }
-                }
-            }
-            try (PreparedStatement statement = connection.prepareStatement("SELECT uuid, isGlobal FROM skysong_downtime_preferences");
-                 ResultSet results = statement.executeQuery()) {
-                while (results.next()) {
-                    UUID player = parse(results.getString("uuid"));
-                    if (player != null) {
-                        spendsGlobal.put(player, results.getBoolean("isGlobal"));
-                    }
-                }
-            }
+            return new DowntimeSnapshot(loadGlobals(connection), loadCharacters(connection), loadPreferences(connection));
         } catch (SQLException e) {
             throw new DowntimeStorageException("Unable to load downtime", e);
         }
-        return new DowntimeSnapshot(globals, characters, spendsGlobal);
+    }
+
+    private static Map<UUID, Integer> loadGlobals(Connection connection) throws SQLException {
+        Map<UUID, Integer> globals = new HashMap<>();
+        try (PreparedStatement statement = connection.prepareStatement("SELECT uuid, current_downtime FROM skysong_downtime");
+             ResultSet results = statement.executeQuery()) {
+            while (results.next()) {
+                UUID player = parse(results.getString("uuid"));
+                if (player != null) {
+                    globals.put(player, results.getInt("current_downtime"));
+                }
+            }
+        }
+        return globals;
+    }
+
+    private static Map<CharacterKey, Integer> loadCharacters(Connection connection) throws SQLException {
+        Map<CharacterKey, Integer> characters = new HashMap<>();
+        try (PreparedStatement statement = connection.prepareStatement("SELECT uuid, profile, current_downtime FROM skysong_character_downtime");
+             ResultSet results = statement.executeQuery()) {
+            while (results.next()) {
+                UUID player = parse(results.getString("uuid"));
+                String profile = results.getString("profile");
+                if (player != null && profile != null) {
+                    characters.put(new CharacterKey(player, profile), results.getInt("current_downtime"));
+                }
+            }
+        }
+        return characters;
+    }
+
+    private static Map<UUID, Boolean> loadPreferences(Connection connection) throws SQLException {
+        Map<UUID, Boolean> spendsGlobal = new HashMap<>();
+        try (PreparedStatement statement = connection.prepareStatement("SELECT uuid, isGlobal FROM skysong_downtime_preferences");
+             ResultSet results = statement.executeQuery()) {
+            while (results.next()) {
+                UUID player = parse(results.getString("uuid"));
+                if (player != null) {
+                    spendsGlobal.put(player, results.getBoolean("isGlobal"));
+                }
+            }
+        }
+        return spendsGlobal;
     }
 
     @Override

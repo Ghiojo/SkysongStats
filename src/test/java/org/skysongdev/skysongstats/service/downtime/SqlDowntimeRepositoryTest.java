@@ -48,9 +48,9 @@ class SqlDowntimeRepositoryTest {
 
     @Test
     void loadsRowsWrittenByTheOldCode() throws SQLException {
-        execute("INSERT INTO skysong_downtime(uuid, current_downtime) VALUES (?, ?)", ALICE.toString(), 7);
-        execute("INSERT INTO skysong_character_downtime(uuid, profile, current_downtime) VALUES (?, ?, ?)", ALICE.toString(), "Mage", 2);
-        execute("INSERT INTO skysong_downtime_preferences(uuid, isGlobal) VALUES (?, ?)", ALICE.toString(), true);
+        insertGlobal(ALICE.toString(), 7);
+        insertCharacter(ALICE.toString(), "Mage", 2);
+        insertPreference(ALICE.toString(), true);
 
         DowntimeSnapshot snapshot = repository.loadAll();
 
@@ -61,8 +61,8 @@ class SqlDowntimeRepositoryTest {
 
     @Test
     void skipsRowsWithAnInvalidUuid() throws SQLException {
-        execute("INSERT INTO skysong_downtime(uuid, current_downtime) VALUES (?, ?)", "not-a-uuid", 7);
-        execute("INSERT INTO skysong_downtime(uuid, current_downtime) VALUES (?, ?)", BOB.toString(), 1);
+        insertGlobal("not-a-uuid", 7);
+        insertGlobal(BOB.toString(), 1);
         assertEquals(Map.of(BOB, 1), repository.loadAll().globals());
     }
 
@@ -70,7 +70,7 @@ class SqlDowntimeRepositoryTest {
     void saveGlobalInsertsThenUpdatesOneRow() throws SQLException {
         repository.saveGlobal(ALICE, 3);
         repository.saveGlobal(ALICE, 5);
-        assertEquals(List.of(5), ints("SELECT current_downtime FROM skysong_downtime WHERE uuid = ?", ALICE.toString()));
+        assertEquals(List.of(5), globalValues());
     }
 
     @Test
@@ -79,7 +79,7 @@ class SqlDowntimeRepositoryTest {
         repository.saveCharacter(new CharacterKey(ALICE, "Rogue"), 1);
         repository.saveCharacter(new CharacterKey(ALICE, "Mage"), 0);
         assertEquals(Map.of(new CharacterKey(ALICE, "Mage"), 0, new CharacterKey(ALICE, "Rogue"), 1), repository.loadAll().characters());
-        assertEquals(List.of(2), ints("SELECT COUNT(*) FROM skysong_character_downtime"));
+        assertEquals(2, characterRowCount());
     }
 
     @Test
@@ -110,10 +110,10 @@ class SqlDowntimeRepositoryTest {
     @Test
     void saveAllRollsBackOnFailure() throws SQLException {
         repository.saveGlobal(ALICE, 1);
-        execute("DROP TABLE skysong_character_downtime");
+        dropCharacterTable();
         assertThrows(DowntimeStorageException.class,
                 () -> repository.saveAll(Map.of(ALICE, 4), Map.of(new CharacterKey(ALICE, "Default"), 3)));
-        assertEquals(List.of(1), ints("SELECT current_downtime FROM skysong_downtime"));
+        assertEquals(List.of(1), globalValues());
         assertTrue(connection.getAutoCommit());
     }
 
@@ -134,27 +134,54 @@ class SqlDowntimeRepositoryTest {
         assertEquals(6, restarted.getGlobal(BOB));
     }
 
-    private void execute(String sql, Object... params) throws SQLException {
-        try (PreparedStatement statement = connection.prepareStatement(sql)) {
-            for (int i = 0; i < params.length; i++) {
-                statement.setObject(i + 1, params[i]);
-            }
-            statement.execute();
+    private void insertGlobal(String uuid, int value) throws SQLException {
+        try (PreparedStatement statement = connection.prepareStatement("INSERT INTO skysong_downtime(uuid, current_downtime) VALUES (?, ?)")) {
+            statement.setString(1, uuid);
+            statement.setInt(2, value);
+            statement.executeUpdate();
         }
     }
 
-    private List<Integer> ints(String sql, Object... params) throws SQLException {
-        try (PreparedStatement statement = connection.prepareStatement(sql)) {
-            for (int i = 0; i < params.length; i++) {
-                statement.setObject(i + 1, params[i]);
+    private void insertCharacter(String uuid, String profile, int value) throws SQLException {
+        try (PreparedStatement statement = connection.prepareStatement("INSERT INTO skysong_character_downtime(uuid, profile, current_downtime) VALUES (?, ?, ?)")) {
+            statement.setString(1, uuid);
+            statement.setString(2, profile);
+            statement.setInt(3, value);
+            statement.executeUpdate();
+        }
+    }
+
+    private void insertPreference(String uuid, boolean spendsGlobal) throws SQLException {
+        try (PreparedStatement statement = connection.prepareStatement("INSERT INTO skysong_downtime_preferences(uuid, isGlobal) VALUES (?, ?)")) {
+            statement.setString(1, uuid);
+            statement.setBoolean(2, spendsGlobal);
+            statement.executeUpdate();
+        }
+    }
+
+    private void dropCharacterTable() throws SQLException {
+        try (Statement statement = connection.createStatement()) {
+            statement.execute("DROP TABLE skysong_character_downtime");
+        }
+    }
+
+    /** Every value in skysong_downtime, one per row. */
+    private List<Integer> globalValues() throws SQLException {
+        List<Integer> values = new ArrayList<>();
+        try (PreparedStatement statement = connection.prepareStatement("SELECT current_downtime FROM skysong_downtime");
+             ResultSet results = statement.executeQuery()) {
+            while (results.next()) {
+                values.add(results.getInt(1));
             }
-            List<Integer> values = new ArrayList<>();
-            try (ResultSet results = statement.executeQuery()) {
-                while (results.next()) {
-                    values.add(results.getInt(1));
-                }
-            }
-            return values;
+        }
+        return values;
+    }
+
+    private int characterRowCount() throws SQLException {
+        try (PreparedStatement statement = connection.prepareStatement("SELECT COUNT(*) FROM skysong_character_downtime");
+             ResultSet results = statement.executeQuery()) {
+            results.next();
+            return results.getInt(1);
         }
     }
 }
