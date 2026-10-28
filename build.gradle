@@ -26,6 +26,24 @@ dependencies {
     implementation 'net.luckperms:api:5.3'
     implementation files("libs/SkysongSpecialItems.jar")
     compileOnly 'me.clip:placeholderapi:2.11.6'
+
+    // Unit tests: JUnit + MockBukkit (a fake Paper server for tests), the same
+    // stack Skysong-Special-Items uses. MockBukkit 4.116.3 is built against
+    // Paper 1.21.11 (what the server runs) and no longer brings the Paper API
+    // itself, so the tests add it.
+    testImplementation platform('org.junit:junit-bom:6.0.3')
+    testImplementation 'org.junit.jupiter:junit-jupiter'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+    testImplementation 'org.mockbukkit.mockbukkit:mockbukkit-v1.21:4.116.3'
+    testImplementation "io.papermc.paper:paper-api:1.21.11-R0.1-SNAPSHOT"
+}
+
+test {
+    useJUnitPlatform()
+    testLogging {
+        events 'passed', 'skipped', 'failed'
+        exceptionFormat 'full'
+    }
 }
 
 def targetJavaVersion = 21
