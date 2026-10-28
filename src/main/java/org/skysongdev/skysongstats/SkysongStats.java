@@ -20,7 +20,7 @@ import org.skysongdev.skysongstats.placeholders.StatsExpansion;
 
 import java.sql.SQLException;
 
-public final class SkysongStats extends JavaPlugin {
+public class SkysongStats extends JavaPlugin {
     private static SkysongStats plugin;
     public static SkysongStats getPlugin(){
         if(plugin == null){
