@@ -1,0 +1,15 @@
+# Gradle
+.gradle/
+build/
+
+# IntelliJ IDEA
+.idea/
+*.iml
+out/
+
+# Local jars of other plugins, provided by the server at runtime
+libs/
+
+# OS files
+.DS_Store
+Thumbs.db
