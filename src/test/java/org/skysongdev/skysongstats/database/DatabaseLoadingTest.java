@@ -3,11 +3,14 @@ package org.skysongdev.skysongstats.database;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockbukkit.mockbukkit.MockBukkit;
+import org.skysongdev.skysongstats.SkysongStats;
 import org.skysongdev.skysongstats.Utils.StatsManager;
 import org.skysongdev.skysongstats.Utils.Utils;
 
+import org.sqlite.SQLiteDataSource;
+
 import java.sql.Connection;
-import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.sql.Statement;
@@ -20,7 +23,11 @@ import static org.junit.jupiter.api.Assertions.fail;
 
 /**
  * Checks what {@link Database#dumpDatabaseData()} puts in memory on startup.
- * Runs against an in-memory SQLite database instead of MySQL.
+ * Runs against a temporary SQLite database instead of MySQL.
+ *
+ * The plugin is loaded on a MockBukkit server because {@link Utils} builds its
+ * static NamespacedKeys from {@code SkysongStats.getPlugin()}. Its own MySQL
+ * connection fails in tests; onEnable() logs that and carries on.
  */
 class DatabaseLoadingTest {
 
@@ -29,7 +36,7 @@ class DatabaseLoadingTest {
     private Connection connection;
     private Database database;
 
-    /** Uses the in-memory connection and skips the one loader that needs the running plugin. */
+    /** Uses the test connection instead of MySQL. */
     private static class TestDatabase extends Database {
         private final Connection connection;
 
@@ -42,18 +49,14 @@ class DatabaseLoadingTest {
         public Connection getConnection() {
             return connection;
         }
-
-        @Override
-        public void dumpCharacterDatabase() {
-            // Needs SkysongStats.getPlugin(), which is not available in unit tests.
-        }
     }
 
     @BeforeEach
     void setUp() throws SQLException {
-        // An empty file name gives a private temporary database that is deleted on close.
-        // (":memory:" works too, but Codacy reads "sqlite::memory:" as user:password.)
-        connection = DriverManager.getConnection("jdbc:sqlite:");
+        MockBukkit.mock();
+        MockBukkit.load(SkysongStats.class);
+        // The default data source opens a private temporary database that is deleted on close.
+        connection = new SQLiteDataSource().getConnection();
         createTables(connection);
         database = new TestDatabase(connection);
     }
@@ -61,6 +64,7 @@ class DatabaseLoadingTest {
     @AfterEach
     void tearDown() throws SQLException {
         connection.close();
+        MockBukkit.unmock();
     }
 
     @Test

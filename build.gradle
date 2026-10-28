@@ -38,7 +38,7 @@ dependencies {
     // In-memory SQL database for tests that run Database queries without MySQL.
     // SQLite, not H2: the current SQL uses MySQL-style "double-quoted" string
     // literals, which H2 rejects.
-    testRuntimeOnly 'org.xerial:sqlite-jdbc:3.49.1.0'
+    testImplementation 'org.xerial:sqlite-jdbc:3.49.1.0'
 }
 
 test {
