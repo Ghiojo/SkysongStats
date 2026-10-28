@@ -50,9 +50,8 @@ public class CreateProfile implements TabExecutor {
         CharacterProfile characterProfile = new CharacterProfile(player.getUniqueId().toString(), strings[0]);
         getPlugin().getUtils().getCharacterManager().addCharacter(characterProfile);
 
-        //We add the Downtime profiles to the list
-        CharacterDowntime characterDowntime = new CharacterDowntime(strings[0], player.getUniqueId().toString(), Utils.MAX_CHARACTER_DOWNTIME);
-        getPlugin().getUtils().getDowntimeManager().addCharacterDowntime(characterDowntime);
+        //We create the profile's character downtime
+        getPlugin().getDowntimeService().getCharacter(player.getUniqueId(), strings[0]);
 
 
         player.sendMessage(Utils.getMiniMessage().deserialize(Utils.PLUGIN_TAG +  "<gray>Profile \"" + strings[0] + "\" has been created!"));

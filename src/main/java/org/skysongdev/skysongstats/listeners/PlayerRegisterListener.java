@@ -5,15 +5,12 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.skysongdev.skysongstats.SkysongStats;
-import org.skysongdev.skysongstats.Utils.DowntimeManager;
-import org.skysongdev.skysongstats.Utils.ProfileManager;
 import org.skysongdev.skysongstats.database.*;
+import org.skysongdev.skysongstats.service.downtime.DowntimeService;
 
 import java.sql.SQLException;
 
 import static org.skysongdev.skysongstats.SkysongStats.getPlugin;
-import static org.skysongdev.skysongstats.Utils.Utils.GLOBAL_DOWNTIME_RECOVERY;
-import static org.skysongdev.skysongstats.Utils.Utils.MAX_CHARACTER_DOWNTIME;
 
 public class PlayerRegisterListener implements Listener {
 
@@ -35,11 +32,10 @@ public class PlayerRegisterListener implements Listener {
             getPlugin().getUtils().getProfileManager().createSetupProfile(event.getPlayer().getUniqueId().toString());
             CharacterProfile character = new CharacterProfile(event.getPlayer().getUniqueId().toString());
             getPlugin().getUtils().getCharacterManager().addCharacter(character);
-            PlayerDowntime playerDowntime = new PlayerDowntime(event.getPlayer().getUniqueId().toString(), GLOBAL_DOWNTIME_RECOVERY);
-            getPlugin().getUtils().getDowntimeManager().addPlayerDowntime(playerDowntime);
-            CharacterDowntime characterDowntime = new CharacterDowntime(character.getProfile(), event.getPlayer().getUniqueId().toString(), MAX_CHARACTER_DOWNTIME);
-            getPlugin().getUtils().getDowntimeManager().addCharacterDowntime(characterDowntime);
-            getPlugin().getUtils().getProfileManager().addDowntimePreferences(event.getPlayer().getUniqueId().toString(), false);
+            DowntimeService downtime = getPlugin().getDowntimeService();
+            downtime.getGlobal(event.getPlayer().getUniqueId());
+            downtime.getCharacter(event.getPlayer().getUniqueId(), character.getProfile());
+            downtime.setPreference(event.getPlayer().getUniqueId(), false);
         }
         if(!getPlugin().getUtils().getProfileManager().findActiveSetupProfile(event.getPlayer().getUniqueId().toString()).isSetUp()){
             event.getPlayer().sendMessage(getPlugin().getUtils().getMiniMessage().deserialize(getPlugin().getUtils().PLUGIN_TAG + "<green>You have yet to set up your profile! Use /setup to get started!"));

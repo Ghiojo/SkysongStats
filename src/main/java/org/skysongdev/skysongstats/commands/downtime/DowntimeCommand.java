@@ -9,6 +9,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.skysongdev.skysongstats.SkysongStats;
 import org.skysongdev.skysongstats.Utils.Utils;
+import org.skysongdev.skysongstats.service.downtime.DowntimeService;
 
 import java.util.Arrays;
 import java.util.List;
@@ -16,11 +17,19 @@ import java.util.List;
 import static org.skysongdev.skysongstats.Utils.Utils.PLUGIN_TAG;
 
 public class DowntimeCommand implements TabExecutor {
-    AddDowntime addDowntime = new AddDowntime();
-    RemoveDowntime removeDowntime = new RemoveDowntime();
-    ViewDowntime viewDowntime = new ViewDowntime();
-    DowntimePreference downtimePreference = new DowntimePreference();
-    ResetAllDowntimes resetAllDowntimes = new ResetAllDowntimes();
+    private final AddDowntime addDowntime;
+    private final RemoveDowntime removeDowntime;
+    private final ViewDowntime viewDowntime;
+    private final DowntimePreference downtimePreference;
+    private final ResetAllDowntimes resetAllDowntimes;
+
+    public DowntimeCommand(DowntimeService downtime) {
+        addDowntime = new AddDowntime(downtime);
+        removeDowntime = new RemoveDowntime(downtime);
+        viewDowntime = new ViewDowntime(downtime);
+        downtimePreference = new DowntimePreference(downtime);
+        resetAllDowntimes = new ResetAllDowntimes(downtime);
+    }
 
     @Override
     public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String @NotNull [] args) {

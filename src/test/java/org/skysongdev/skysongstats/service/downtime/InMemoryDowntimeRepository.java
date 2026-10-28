@@ -5,12 +5,12 @@ import java.util.Map;
 import java.util.UUID;
 
 /** A {@link DowntimeRepository} that keeps everything in maps, for tests. */
-class InMemoryDowntimeRepository implements DowntimeRepository {
-    final Map<UUID, Integer> globals = new HashMap<>();
-    final Map<CharacterKey, Integer> characters = new HashMap<>();
-    final Map<UUID, Boolean> spendsGlobal = new HashMap<>();
-    int writes;
-    boolean failWrites;
+public class InMemoryDowntimeRepository implements DowntimeRepository {
+    public final Map<UUID, Integer> globals = new HashMap<>();
+    public final Map<CharacterKey, Integer> characters = new HashMap<>();
+    public final Map<UUID, Boolean> spendsGlobal = new HashMap<>();
+    public int writes;
+    public boolean failWrites;
 
     @Override
     public DowntimeSnapshot loadAll() {

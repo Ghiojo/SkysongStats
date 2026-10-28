@@ -271,12 +271,15 @@ public class StatsExpansion extends PlaceholderExpansion {
                 returnString = PlaceholderAPI.setPlaceholders(player, returnString);
                 return returnString;
             case "global_downtime":
-                returnString = Integer.toString(plugin.getUtils().getDowntimeManager().findPlayerDowntime(player.getUniqueId().toString()).getCurrentDowntime());
+                returnString = Integer.toString(plugin.getDowntimeService().getGlobal(player.getUniqueId()));
                 returnString = PlaceholderAPI.setPlaceholders(player, returnString);
                 return returnString;
             case "character_downtime":
                 String profileName = plugin.getUtils().getProfileManager().getActiveProfileName(player.getUniqueId().toString());
-                returnString = Integer.toString(plugin.getUtils().getDowntimeManager().findCharacterDowntime(player.getUniqueId().toString(), profileName).getCurrentDowntime());
+                if (profileName == null) {
+                    return "0";
+                }
+                returnString = Integer.toString(plugin.getDowntimeService().getCharacter(player.getUniqueId(), profileName));
                 returnString = PlaceholderAPI.setPlaceholders(player, returnString);
                 return returnString;
         }

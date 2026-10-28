@@ -15,9 +15,6 @@ public class Utils {
     public static NamespacedKey statButtonKey = new NamespacedKey(SkysongStats.getPlugin(), "stat");
     public static NamespacedKey optionButtonKey = new NamespacedKey(SkysongStats.getPlugin(), "option");
     public static NamespacedKey skillButtonKey = new NamespacedKey(SkysongStats.getPlugin(), "skill");
-    public static int MAX_CHARACTER_DOWNTIME = 3;
-    public static int MAX_GLOBAL_DOWNTIME = 9;
-    public static int GLOBAL_DOWNTIME_RECOVERY = 3;
 
 
     public SkillManager getSkillManager() {
@@ -35,15 +32,11 @@ public class Utils {
     public CharacterManager getCharacterManager() {
         return characterManager;
     }
-    public DowntimeManager getDowntimeManager() {
-        return downtimeManager;
-    }
 
     private final SkillManager skillManager = new SkillManager();
     private final StatsManager statsManager = new StatsManager();
     private final ProfileManager profileManager = new ProfileManager();
     private final CharacterManager characterManager = new CharacterManager();
-    private final DowntimeManager downtimeManager = new DowntimeManager();
 
     public Utils(SkysongStats plugin){
         this.plugin = plugin;

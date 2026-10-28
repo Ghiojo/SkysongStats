@@ -3,31 +3,47 @@ package org.skysongdev.skysongstats.commands.downtime;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
-import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
-import org.skysongdev.skysongstats.Utils.DowntimeManager;
+import org.skysongdev.skysongstats.Utils.StatsManager;
 import org.skysongdev.skysongstats.Utils.Utils;
-import org.skysongdev.skysongstats.database.CharacterDowntime;
-import org.skysongdev.skysongstats.database.PlayerDowntime;
+import org.skysongdev.skysongstats.database.PlayerStats;
+import org.skysongdev.skysongstats.service.downtime.DowntimeService;
 
-import static org.skysongdev.skysongstats.Utils.Utils.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
+
+import static org.skysongdev.skysongstats.Utils.Utils.PLUGIN_TAG;
 
 public class ResetAllDowntimes implements CommandExecutor {
+    private final DowntimeService downtime;
+
+    public ResetAllDowntimes(DowntimeService downtime) {
+        this.downtime = downtime;
+    }
+
     @Override
     public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String @NotNull [] args) {
-
-        for(CharacterDowntime downtime : DowntimeManager.characterDowntimes){
-            downtime.setCurrentDowntime(MAX_CHARACTER_DOWNTIME);
-        }
-
-        for(PlayerDowntime playerDowntime : DowntimeManager.playerDowntimes) {
-            playerDowntime.setCurrentDowntime(Math.min(playerDowntime.getCurrentDowntime() + GLOBAL_DOWNTIME_RECOVERY, MAX_GLOBAL_DOWNTIME));
-        }
-
-        if(sender instanceof Player){
-            sender.sendMessage(Utils.getMiniMessage().deserialize(PLUGIN_TAG + "<green>All downtimes have been reset successfully."));
-        }
-
+        downtime.resetAll(knownProfiles());
+        sender.sendMessage(Utils.getMiniMessage().deserialize(PLUGIN_TAG + "<green>All downtimes have been reset successfully."));
         return true;
+    }
+
+    /** Every player with a stats profile, with all their profile names, so players without downtime rows get refilled too. */
+    static Map<UUID, List<String>> knownProfiles() {
+        Map<UUID, List<String>> profiles = new HashMap<>();
+        if (StatsManager.statsProfileList == null) {
+            return profiles;
+        }
+        for (PlayerStats stats : StatsManager.statsProfileList) {
+            try {
+                profiles.computeIfAbsent(UUID.fromString(stats.getUuid()), uuid -> new ArrayList<>()).add(stats.getProfile());
+            } catch (IllegalArgumentException e) {
+                // A malformed UUID in skysong_stats: skip it, its downtime cannot be stored either.
+            }
+        }
+        return profiles;
     }
 }

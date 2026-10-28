@@ -131,6 +131,12 @@ permissions:
   skysongstats.stats.set:
     description: "Allows you to set stats to yourself"
     default: op
+  skysongstats.downtime.manage:
+    description: "Allows you to add, remove and reset downtime"
+    default: op
+  skysongstats.downtime.view.others:
+    description: "Allows you to view other players' downtime"
+    default: op
   skysongstats.*:
     description: "Wildcard permission"
     default: op
