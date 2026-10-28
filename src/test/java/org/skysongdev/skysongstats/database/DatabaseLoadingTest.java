@@ -51,7 +51,9 @@ class DatabaseLoadingTest {
 
     @BeforeEach
     void setUp() throws SQLException {
-        connection = DriverManager.getConnection("jdbc:sqlite::memory:");
+        // An empty file name gives a private temporary database that is deleted on close.
+        // (":memory:" works too, but Codacy reads "sqlite::memory:" as user:password.)
+        connection = DriverManager.getConnection("jdbc:sqlite:");
         createTables(connection);
         database = new TestDatabase(connection);
     }
