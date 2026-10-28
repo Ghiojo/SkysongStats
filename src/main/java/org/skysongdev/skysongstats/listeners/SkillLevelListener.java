@@ -8,7 +8,6 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.plugin.RegisteredServiceProvider;
-import org.skysongdev.skysongitems.SkysongItems;
 import org.skysongdev.skysongstats.Utils.Utils;
 import org.skysongdev.skysongstats.events.SkillUpdateEvent;
 

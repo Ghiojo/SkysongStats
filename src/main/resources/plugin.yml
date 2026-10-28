@@ -3,7 +3,7 @@ version: '${version}'
 main: org.skysongdev.skysongstats.SkysongStats
 api-version: '1.20'
 
-softdepend: [PlaceholderAPI, Luckperms]
+softdepend: [PlaceholderAPI, Luckperms, Skysong_Items]
 loadbefore: [CMI, CMILib]
 
 commands:
