@@ -46,14 +46,13 @@ Arcrot and Fictis are not typed in by hand any more: they are counted from tagge
 |---|---|---|
 | `io.papermc.paper:paper-api:1.21.5-R0.1-SNAPSHOT` | compileOnly | The server runs Paper 1.21.11. |
 | `me.clip:placeholderapi:2.11.6` | compileOnly | From `https://repo.extendedclip.com/releases/`. Optional at runtime (`softdepend`). |
-| `net.luckperms:api:5.3` | implementation | Used by two listeners. Declared as `softdepend` (spelled `Luckperms`). |
-| `files("libs/SkysongSpecialItems.jar")` | implementation | A local jar of Skysong-Special-Items. The `libs/` folder is not in the repository, so a fresh clone does not build. |
+| `net.luckperms:api:5.3` | implementation | Used by two listeners. Declared as `softdepend`. |
 
-The `java` plugin alone does not shade `implementation` dependencies into the jar, so LuckPerms and Skysong-Special-Items classes are expected to come from those plugins at runtime.
+The `java` plugin alone does not shade `implementation` dependencies into the jar, so LuckPerms classes are expected to come from that plugin at runtime. Since PR #6 SkysongStats does not compile against Skysong-Special-Items at all: it reads the item tags by their keys (see [Arcrot and Fictis counting](#arcrot-and-fictis-counting-afflictionslistener)).
 
-`plugin.yml` declares `softdepend: [PlaceholderAPI, Luckperms]` and `loadbefore: [CMI, CMILib]`. It does not declare Skysong_Items. The project version is `1.3`.
+`plugin.yml` declares `softdepend: [PlaceholderAPI, LuckPerms, Skysong_Items]` and `loadbefore: [CMI, CMILib]`. The project version is `1.3`.
 
-The repository has no tests. Since PR #2, `build/`, `.gradle/`, `.idea/` and `libs/` are ignored.
+Since PR #5 there are unit tests (JUnit 6 and MockBukkit, run with `./gradlew test`); they do not load the plugin itself, because `onEnable()` needs MySQL. Since PR #2, `build/`, `.gradle/`, `.idea/` and `libs/` are ignored.
 
 ## Startup
 
@@ -68,7 +67,7 @@ The repository has no tests. Since PR #2, `build/`, `.gradle/`, `.idea/` and `li
 7. `database.dumpDatabaseData()`: loads every table into the static lists held by the managers (see below). Everything after this point reads from memory and writes through to MySQL.
 8. Schedules `Pinger` every 6000 ticks (5 minutes) to run a `SELECT` so the MySQL connection is not closed for inactivity.
 
-`SkysongStats.getPlugin()` returns the static instance. `getSkySongItems()` returns a field that is never assigned, so it is always `null` and unused.
+`SkysongStats.getPlugin()` returns the static instance.
 
 ## Data model
 
@@ -316,7 +315,7 @@ For every non-empty stack in the player's inventory:
 - **Arcrot** += `arcrot` tag value × stack size, plus `charged_arcrot` tag value × stack size when the item's `charges` tag is above 0.
 - **Fictis** += `fictis` tag value × stack size.
 
-The tags are the integer persistent data entries that Skysong-Special-Items writes on items. The listener finds their keys through Skysong-Special-Items' own classes: `org.skysongdev.skysongitems.utils.Utils.getTag("arcrot")` and `Utils.chargesKey`. That class no longer exists, which is what breaks this listener today (see [Observed issues](#observed-issues), item 1).
+The tags are the integer persistent data entries that Skysong-Special-Items writes on items. Since PR #6 the keys are built in `Utils/SkysongItemsKeys`: `skysong_items:arcrot`, `skysong_items:charged_arcrot`, `skysong_items:fictis` and `skysong_items:charges`. Before that the listener looked them up through Skysong-Special-Items' own `Utils` class, which that plugin deleted (see [Observed issues](#observed-issues), item 1).
 
 ## Custom events
 
@@ -393,8 +392,8 @@ Found while reading the code. Items 1–28 were found before the downtime commit
 
 ### Breaking
 
-1. **Arcrot and Fictis fail on every inventory change.** `AfflictionsListener` imports `org.skysongdev.skysongitems.utils.Utils`, which Skysong-Special-Items deleted on 2026-10-25 (commit `dba82dc`, "Move item behaviour out of Utils and delete it"). `Utils.getTag` had already been replaced by `TagRegistry.getKey` (commit `31bef61`) and `Utils.chargesKey` by `ItemKeys.CHARGES` (commit `4abec14`). The keys themselves did not change: they are still `skysong_items:arcrot`, `skysong_items:charged_arcrot`, `skysong_items:fictis` and `skysong_items:charges`, so items already in circulation are fine. Only the Java class the listener used to look the keys up is gone. The same error also fires on join, because the join handler calls the same methods.
-2. **The project does not build from a clean clone.** `libs/SkysongSpecialItems.jar` is not in the repository.
+1. **Arcrot and Fictis fail on every inventory change.** `AfflictionsListener` imports `org.skysongdev.skysongitems.utils.Utils`, which Skysong-Special-Items deleted on 2026-10-25 (commit `dba82dc`, "Move item behaviour out of Utils and delete it"). `Utils.getTag` had already been replaced by `TagRegistry.getKey` (commit `31bef61`) and `Utils.chargesKey` by `ItemKeys.CHARGES` (commit `4abec14`). The keys themselves did not change: they are still `skysong_items:arcrot`, `skysong_items:charged_arcrot`, `skysong_items:fictis` and `skysong_items:charges`, so items already in circulation are fine. Only the Java class the listener used to look the keys up is gone. The same error also fires on join, because the join handler calls the same methods. Fixed by PR #6.
+2. **The project does not build from a clean clone.** `libs/SkysongSpecialItems.jar` is not in the repository. Fixed by PR #6, which removes that dependency.
 
 ### Data that is not saved or saved wrongly
 
@@ -415,7 +414,7 @@ Found while reading the code. Items 1–28 were found before the downtime commit
 11. Missing arguments: `/stats set|add`, `/modifier add|del` and `/ac` print the usage message but do not return, so they then throw `ArrayIndexOutOfBoundsException`.
 12. Console: `/stats`, `/profile`, `/modifier`, `/schar`, `/setup`, `/ac`, `/potionsickness` and `/skills view` cast the sender to `Player` and throw when run from console or command blocks.
 13. Confirming the skill screen with fewer than two skills throws `IndexOutOfBoundsException` in `finishProfileSetup()`. By then the stats have already been saved, but the profile is not marked as set up.
-14. LuckPerms is required by two listeners but not declared as a dependency. If it loads after SkysongStats, or is absent, the listeners hold `null` and throw on every skill or profile change.
+14. LuckPerms is required by two listeners but not declared as a dependency. If it loads after SkysongStats, or is absent, the listeners hold `null` and throw on every skill or profile change. The load order part is fixed by PR #8 (the `softdepend` name now matches); whether LuckPerms becomes a hard dependency is still open.
 
 ### Behaviour that may or may not be intended
 
@@ -434,8 +433,8 @@ Found while reading the code. Items 1–28 were found before the downtime commit
 24. Several queries build SQL by concatenating the UUID and profile name (profile names are typed by players).
 25. Global mutable state: the managers store their data in public static lists, and every class reaches them through `SkysongStats.getPlugin().getUtils()`. This makes the code impossible to unit test without a running server.
 26. Large amounts of duplication: the four HP commands are copies of each other; `PlayerStats` has one getter, setter, adder and modifier-sum per stat; `SkillManager` repeats the same 18-way switch three times; the placeholder expansion has one case per value.
-27. Unused code: `Database.findStats`, `updateModifierData`, `dumpModifiersDatabase`, `StatsManager.deleteModifiers`, `ProfileManager.setSetupProfile`, `SkysongStats.getSkySongItems`, `Modifier.parent`.
-28. Build hygiene: no tests. (The `.gitignore` and the 1.3 version were fixed since; the Paper API is now 1.21.5, still older than the 1.21.11 server.)
+27. Unused code: `Database.findStats`, `updateModifierData`, `dumpModifiersDatabase`, `StatsManager.deleteModifiers`, `ProfileManager.setSetupProfile`, `Modifier.parent`. (`SkysongStats.getSkySongItems` was removed by PR #6.)
+28. Build hygiene: no tests (fixed by PR #5). (The `.gitignore` and the 1.3 version were fixed since; the Paper API is now 1.21.5, still older than the 1.21.11 server.)
 
 ### Found in the downtime commit
 
@@ -448,5 +447,5 @@ Found while reading the code. Items 1–28 were found before the downtime commit
 35. **`/downtime view <player>` always fails.** It reads `args[1]` when only `args[0]` exists (`ArrayIndexOutOfBoundsException`); without the permission it then prints "Player null not found".
 36. `findActiveCharacterDowntime` compares a profile name with a `ProfileIndex` object, so it never matches (it is not called yet).
 37. Deleting a profile leaves its character downtime row behind. `remove` has no lower bound and `add` has no upper bound, and `remove <profile>` sends no confirmation.
-38. `plugin.yml` lists `Luckperms`; the plugin's name is `LuckPerms`.
-39. `SkillLevelListener` now imports `org.skysongdev.skysongitems.SkysongItems` without using it, another compile-time tie to Skysong-Special-Items.
+38. `plugin.yml` lists `Luckperms`; the plugin's name is `LuckPerms`. Fixed by PR #8.
+39. `SkillLevelListener` now imports `org.skysongdev.skysongitems.SkysongItems` without using it, another compile-time tie to Skysong-Special-Items. Fixed by PR #6.
