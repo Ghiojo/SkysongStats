@@ -63,8 +63,13 @@ class DatabaseLoadingTest {
 
     @AfterEach
     void tearDown() throws SQLException {
-        connection.close();
-        MockBukkit.unmock();
+        try {
+            if (connection != null) {
+                connection.close();
+            }
+        } finally {
+            MockBukkit.unmock();
+        }
     }
 
     @Test
