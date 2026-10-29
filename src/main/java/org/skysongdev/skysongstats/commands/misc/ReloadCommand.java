@@ -16,7 +16,7 @@ public class ReloadCommand implements CommandExecutor {
                 commandSender.sendMessage(Utils.getMiniMessage().deserialize(Utils.PLUGIN_TAG + "<red>You don't have permission to use this command!"));
             return true;
         }
-        getPlugin().reloadConfig();
+        getPlugin().reloadSettings();
         if(commandSender instanceof org.bukkit.entity.Player) {
             commandSender.sendMessage(Utils.getMiniMessage().deserialize(Utils.PLUGIN_TAG + "<gray>Config Reloaded!"));
         }else {

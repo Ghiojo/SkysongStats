@@ -260,6 +260,20 @@ class DowntimeServiceTest {
     }
 
     @Test
+    void newSettingsApplyToTheNextChange() {
+        service.addGlobal(ALICE, 0);
+        service.setSettings(new DowntimeSettings(5, 1, 4, 12));
+
+        assertEquals(new DowntimeSettings(5, 1, 4, 12), service.getSettings());
+        assertEquals(3, service.getGlobal(ALICE));
+        assertEquals(12, service.addGlobal(ALICE, 20).newValue());
+        assertEquals(5, service.getCharacter(ALICE, "Default"));
+        assertEquals(1, service.getGlobal(BOB));
+        service.resetAll(Map.of());
+        assertEquals(5, service.getGlobal(BOB));
+    }
+
+    @Test
     void globalChangesHaveNoProfile() {
         assertNull(service.addGlobal(ALICE, 1).profile());
     }
