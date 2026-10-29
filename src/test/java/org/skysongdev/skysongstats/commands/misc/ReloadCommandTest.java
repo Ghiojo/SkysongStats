@@ -18,6 +18,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /** /ssreload must apply changed downtime limits and messages without a restart. */
 class ReloadCommandTest {
@@ -94,5 +95,28 @@ class ReloadCommandTest {
         player.setOp(true);
         new ReloadCommand().onCommand(player, command, "ssreload", new String[0]);
         assertEquals("[SkysongStats] Recargado", plain(player.nextComponentMessage()));
+    }
+
+    @Test
+    void startupWritesStatsYmlAndLoadsItsStats() {
+        assertTrue(new File(plugin.getDataFolder(), "stats.yml").exists());
+        assertTrue(plugin.getStatService().definitions().get("hp").isPresent());
+    }
+
+    @Test
+    void reloadAppliesAnEditedStatsYml() throws IOException {
+        File file = new File(plugin.getDataFolder(), "stats.yml");
+        Files.writeString(file.toPath(), Files.readString(file.toPath()) + "  luck: {baseline: 2}\n");
+        new ReloadCommand().onCommand(server.getConsoleSender(), command, "ssreload", new String[0]);
+        assertEquals(2, plugin.getStatService().definitions().get("luck").orElseThrow().baseline());
+        assertEquals(2, plugin.getStatsConfig().stats().get("luck").orElseThrow().baseline());
+    }
+
+    @Test
+    void aStatsYmlWithMistakesKeepsTheStatsFromBefore() throws IOException {
+        File file = new File(plugin.getDataFolder(), "stats.yml");
+        Files.writeString(file.toPath(), "stats:\n  str: {type: nonsense}\n");
+        new ReloadCommand().onCommand(server.getConsoleSender(), command, "ssreload", new String[0]);
+        assertTrue(plugin.getStatService().definitions().get("hp").isPresent());
     }
 }

@@ -12,6 +12,12 @@ public class DefinitionException extends RuntimeException {
         this.errors = List.copyOf(errors);
     }
 
+    // For a file that could not be read at all.
+    public DefinitionException(String file, String error, Throwable cause) {
+        super(file + " has 1 error(s):\n - " + error, cause);
+        this.errors = List.of(error);
+    }
+
     public List<String> getErrors() {
         return errors;
     }

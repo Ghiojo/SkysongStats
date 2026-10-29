@@ -79,6 +79,13 @@ public class StatService {
         return sheet;
     }
 
+    // The character's sheet, created first if it has none yet: for profiles that
+    // were made before the stat tables existed.
+    public CharacterSheet ensureCharacter(ProfileKey character) {
+        CharacterSheet sheet = sheets.get(character);
+        return sheet != null ? sheet : createCharacter(character);
+    }
+
     // Removes a character's values and modifiers, for deleted profiles.
     public void deleteCharacter(ProfileKey character) {
         sheets.remove(character);

@@ -9,6 +9,7 @@ import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.skysongdev.skysongstats.SkysongStats;
+import org.skysongdev.skysongstats.storage.ProfileKey;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -42,6 +43,7 @@ public class DeleteProfile implements TabExecutor {
         getPlugin().getUtils().getProfileManager().deleteSetupProfile(getPlugin().getUtils().getProfileManager().findSetupProfile(player.getUniqueId().toString(), strings[0]));
         getPlugin().getUtils().getCharacterManager().deleteCharacterProfile(getPlugin().getUtils().getCharacterManager().findCharacterProfile(player.getUniqueId().toString(), strings[0]));
         getPlugin().getDowntimeService().deleteCharacter(player.getUniqueId(), targetProfile);
+        getPlugin().getStatService().deleteCharacter(new ProfileKey(player.getUniqueId(), targetProfile));
 
         getPlugin().getUtils().getProfileManager().findAllProfiles(player.getUniqueId().toString()).remove(strings[0]);
 
