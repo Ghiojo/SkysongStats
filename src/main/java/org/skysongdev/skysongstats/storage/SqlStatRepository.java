@@ -39,6 +39,16 @@ public class SqlStatRepository implements StatRepository {
               amount INT NOT NULL
             )""";
 
+    private static final String SAVE_VALUE =
+            "INSERT INTO ss_stat_values (uuid, profile, stat_id, stat_value) VALUES (?, ?, ?, ?) "
+                    + "ON DUPLICATE KEY UPDATE stat_value = VALUES(stat_value)";
+    private static final String SAVE_MODIFIER =
+            "INSERT INTO ss_modifiers (id, uuid, profile, target, amount) VALUES (?, ?, ?, ?, ?) "
+                    + "ON DUPLICATE KEY UPDATE target = VALUES(target), amount = VALUES(amount)";
+    private static final String DELETE_MODIFIER = "DELETE FROM ss_modifiers WHERE id = ?";
+    private static final String DELETE_CHARACTER_VALUES = "DELETE FROM ss_stat_values WHERE uuid = ? AND profile = ?";
+    private static final String DELETE_CHARACTER_MODIFIERS = "DELETE FROM ss_modifiers WHERE uuid = ? AND profile = ?";
+
     private final DataSource dataSource;
 
     public SqlStatRepository(DataSource dataSource) {
@@ -100,23 +110,42 @@ public class SqlStatRepository implements StatRepository {
 
     @Override
     public void saveValue(ProfileKey character, String statId, int value) {
-        update("Unable to save " + statId + " for " + character,
-                "INSERT INTO ss_stat_values (uuid, profile, stat_id, stat_value) VALUES (?, ?, ?, ?) "
-                        + "ON DUPLICATE KEY UPDATE stat_value = VALUES(stat_value)",
-                character.player().toString(), character.profile(), statId, value);
+        try (Connection connection = dataSource.getConnection();
+             PreparedStatement statement = connection.prepareStatement(SAVE_VALUE)) {
+            statement.setString(1, character.player().toString());
+            statement.setString(2, character.profile());
+            statement.setString(3, statId);
+            statement.setInt(4, value);
+            statement.executeUpdate();
+        } catch (SQLException e) {
+            throw new StorageException("Unable to save " + statId + " for " + character, e);
+        }
     }
 
     @Override
     public void saveModifier(ProfileKey character, StoredModifier modifier) {
-        update("Unable to save modifier " + modifier.id() + " for " + character,
-                "INSERT INTO ss_modifiers (id, uuid, profile, target, amount) VALUES (?, ?, ?, ?, ?) "
-                        + "ON DUPLICATE KEY UPDATE target = VALUES(target), amount = VALUES(amount)",
-                modifier.id(), character.player().toString(), character.profile(), modifier.target(), modifier.amount());
+        try (Connection connection = dataSource.getConnection();
+             PreparedStatement statement = connection.prepareStatement(SAVE_MODIFIER)) {
+            statement.setString(1, modifier.id());
+            statement.setString(2, character.player().toString());
+            statement.setString(3, character.profile());
+            statement.setString(4, modifier.target());
+            statement.setInt(5, modifier.amount());
+            statement.executeUpdate();
+        } catch (SQLException e) {
+            throw new StorageException("Unable to save modifier " + modifier.id() + " for " + character, e);
+        }
     }
 
     @Override
     public void deleteModifier(String modifierId) {
-        update("Unable to delete modifier " + modifierId, "DELETE FROM ss_modifiers WHERE id = ?", modifierId);
+        try (Connection connection = dataSource.getConnection();
+             PreparedStatement statement = connection.prepareStatement(DELETE_MODIFIER)) {
+            statement.setString(1, modifierId);
+            statement.executeUpdate();
+        } catch (SQLException e) {
+            throw new StorageException("Unable to delete modifier " + modifierId, e);
+        }
     }
 
     @Override
@@ -124,9 +153,10 @@ public class SqlStatRepository implements StatRepository {
         try (Connection connection = dataSource.getConnection()) {
             boolean autoCommit = connection.getAutoCommit();
             connection.setAutoCommit(false);
-            try {
-                deleteRows(connection, "DELETE FROM ss_stat_values WHERE uuid = ? AND profile = ?", character);
-                deleteRows(connection, "DELETE FROM ss_modifiers WHERE uuid = ? AND profile = ?", character);
+            try (PreparedStatement values = connection.prepareStatement(DELETE_CHARACTER_VALUES);
+                 PreparedStatement modifiers = connection.prepareStatement(DELETE_CHARACTER_MODIFIERS)) {
+                deleteRows(values, character);
+                deleteRows(modifiers, character);
                 connection.commit();
             } catch (SQLException e) {
                 connection.rollback();
@@ -139,23 +169,9 @@ public class SqlStatRepository implements StatRepository {
         }
     }
 
-    private static void deleteRows(Connection connection, String sql, ProfileKey character) throws SQLException {
-        try (PreparedStatement statement = connection.prepareStatement(sql)) {
-            statement.setString(1, character.player().toString());
-            statement.setString(2, character.profile());
-            statement.executeUpdate();
-        }
-    }
-
-    private void update(String failure, String sql, Object... parameters) {
-        try (Connection connection = dataSource.getConnection();
-             PreparedStatement statement = connection.prepareStatement(sql)) {
-            for (int i = 0; i < parameters.length; i++) {
-                statement.setObject(i + 1, parameters[i]);
-            }
-            statement.executeUpdate();
-        } catch (SQLException e) {
-            throw new StorageException(failure, e);
-        }
+    private static void deleteRows(PreparedStatement statement, ProfileKey character) throws SQLException {
+        statement.setString(1, character.player().toString());
+        statement.setString(2, character.profile());
+        statement.executeUpdate();
     }
 }
