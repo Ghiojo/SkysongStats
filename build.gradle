@@ -23,7 +23,8 @@ repositories {
 
 dependencies {
     compileOnly "io.papermc.paper:paper-api:1.21.5-R0.1-SNAPSHOT"
-    implementation 'net.luckperms:api:5.3'
+    // LuckPerms is a hard dependency (plugin.yml depend:), so the server provides it.
+    compileOnly 'net.luckperms:api:5.3'
     compileOnly 'me.clip:placeholderapi:2.11.6'
     // Connection pool for the stat tables. Paper downloads it at startup from the
     // plugin.yml "libraries:" list (added when the plugin starts using it), so it
@@ -46,6 +47,7 @@ dependencies {
     // The new stat tables are tested on H2 in MySQL mode: their SQL is plain MySQL.
     testImplementation 'com.h2database:h2:2.3.232'
     testImplementation 'com.zaxxer:HikariCP:6.2.1'
+    testImplementation 'net.luckperms:api:5.3'
 }
 
 test {
