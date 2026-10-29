@@ -5,6 +5,8 @@ import org.bukkit.configuration.InvalidConfigurationException;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.junit.jupiter.api.Test;
 
+import java.util.UUID;
+
 import static org.junit.jupiter.api.Assertions.*;
 
 /**
@@ -12,6 +14,9 @@ import static org.junit.jupiter.api.Assertions.*;
  * {@link ConnectionPool} (without connecting to MySQL).
  */
 class ConnectionPoolTest {
+
+    // Made up at runtime so no password is written in the source.
+    private static final String PASSWORD = UUID.randomUUID().toString();
 
     private static DatabaseSettings fromYaml(String yaml) throws InvalidConfigurationException {
         YamlConfiguration config = new YamlConfiguration();
@@ -26,10 +31,10 @@ class ConnectionPoolTest {
                   host: "db.example"
                   port: "3307"
                   user: "skysong"
-                  password: "secret"
+                  password: "%s"
                   database_name: "skysong_titles"
-                """);
-        assertEquals(new DatabaseSettings("db.example", "3307", "skysong_titles", "skysong", "secret"), settings);
+                """.formatted(PASSWORD));
+        assertEquals(new DatabaseSettings("db.example", "3307", "skysong_titles", "skysong", PASSWORD), settings);
         assertEquals("jdbc:mysql://db.example:3307/skysong_titles", settings.jdbcUrl());
     }
 
@@ -38,7 +43,7 @@ class ConnectionPoolTest {
         DatabaseSettings settings = fromYaml("database:\n  database_name: stats\n");
         assertEquals("jdbc:mysql://localhost:3306/stats", settings.jdbcUrl());
         assertEquals("root", settings.user());
-        assertEquals("", settings.password());
+        assertNull(settings.password());
     }
 
     @Test
@@ -49,17 +54,17 @@ class ConnectionPoolTest {
 
     @Test
     void toStringHidesThePassword() {
-        String text = new DatabaseSettings("h", "1", "d", "u", "hunter2").toString();
-        assertFalse(text.contains("hunter2"), text);
+        String text = new DatabaseSettings("h", "1", "d", "u", PASSWORD).toString();
+        assertFalse(text.contains(PASSWORD), text);
         assertTrue(text.contains("u@h:1/d"), text);
     }
 
     @Test
     void poolUsesTheSettings() {
-        HikariConfig config = ConnectionPool.config(new DatabaseSettings("h", "1", "d", "u", "p"));
+        HikariConfig config = ConnectionPool.config(new DatabaseSettings("h", "1", "d", "u", PASSWORD));
         assertEquals("jdbc:mysql://h:1/d", config.getJdbcUrl());
         assertEquals("u", config.getUsername());
-        assertEquals("p", config.getPassword());
+        assertEquals(PASSWORD, config.getPassword());
         assertEquals(ConnectionPool.MAXIMUM_POOL_SIZE, config.getMaximumPoolSize());
         assertEquals("SkysongStats", config.getPoolName());
     }

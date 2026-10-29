@@ -14,7 +14,8 @@ public record DatabaseSettings(String host, String port, String database, String
                 section.getString("port", "3306"),
                 section.getString("database_name", ""),
                 section.getString("user", "root"),
-                section.getString("password", ""));
+                // No password key means the user has no password (null for the driver).
+                section.getString("password"));
     }
 
     public String jdbcUrl() {
