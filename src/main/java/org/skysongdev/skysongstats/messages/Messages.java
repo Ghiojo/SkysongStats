@@ -4,7 +4,6 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import net.kyori.adventure.text.minimessage.tag.resolver.Placeholder;
 import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver;
-import net.kyori.adventure.text.minimessage.tag.standard.StandardTags;
 import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.ConfigurationSection;
 
@@ -31,13 +30,6 @@ public final class Messages {
     public static final String PREFIX_KEY = "prefix";
     private static final Pattern PLACEHOLDER = Pattern.compile("\\{([a-z0-9_-]+)}");
     private static final MiniMessage MINI_MESSAGE = MiniMessage.miniMessage();
-    // What players may use in text they write for others to read, such as their
-    // character sheet: colours and text styles, but no click, hover or other
-    // interactive tags.
-    private static final MiniMessage PLAYER_STYLES = MiniMessage.builder()
-            .tags(TagResolver.resolver(StandardTags.color(), StandardTags.decorations(), StandardTags.gradient(),
-                    StandardTags.rainbow(), StandardTags.reset()))
-            .build();
 
     private final ConfigurationSection texts;
     private final ConfigurationSection defaults;
@@ -56,12 +48,12 @@ public final class Messages {
     }
 
     /**
-     * Text a player wrote for others to read, with the colours and text styles it
-     * uses (MiniMessage) and any other tag shown as written. Pass the result as a
-     * component placeholder.
+     * Text a player wrote for others to read, such as their character sheet, with
+     * every MiniMessage format that works in chat (colours, styles, click, hover...).
+     * Pass the result as a component placeholder.
      */
     public static Component playerStyledText(String text) {
-        return PLAYER_STYLES.deserialize(text);
+        return MINI_MESSAGE.deserialize(text);
     }
 
     public Component get(String key) {
