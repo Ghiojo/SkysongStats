@@ -1,6 +1,5 @@
 package org.skysongdev.skysongstats.placeholders;
 
-import org.skysongdev.skysongstats.character.CharacterSheet;
 import org.skysongdev.skysongstats.character.StatCalculator;
 import org.skysongdev.skysongstats.character.StatService;
 import org.skysongdev.skysongstats.storage.ProfileKey;
@@ -31,12 +30,11 @@ public final class StatPlaceholders {
     // The placeholder's value, or empty when the name is not a stat placeholder or
     // the character has no stats loaded.
     public Optional<String> resolve(ProfileKey character, String placeholder) {
-        Optional<CharacterSheet> sheet = stats.sheet(character);
-        if (sheet.isEmpty()) {
-            return Optional.empty();
-        }
-        OptionalInt value = value(stats.calculator(sheet.get()), placeholder.toLowerCase(Locale.ROOT));
-        return value.isPresent() ? Optional.of(Integer.toString(value.getAsInt())) : Optional.empty();
+        String name = placeholder.toLowerCase(Locale.ROOT);
+        return stats.sheet(character)
+                .map(sheet -> value(stats.calculator(sheet), name))
+                .filter(OptionalInt::isPresent)
+                .map(value -> Integer.toString(value.getAsInt()));
     }
 
     private OptionalInt value(StatCalculator calculator, String name) {
