@@ -9,6 +9,7 @@ import org.bukkit.event.inventory.InventoryAction;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.permissions.PermissionDefault;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -182,7 +183,8 @@ class StatSetupMenuTest {
     @Test
     void anItemModelIconIsShownOnPaper() {
         StatDefinition luck = new StatDefinition("luck", new StatDisplay("Luck", "", List.of()), 0, null, null,
-                List.of(), Map.of(), new StatSetup(Icon.parse("model:skysong:clover"), 10, 0, 1, List.of()));
+                List.of(), Map.of(), new StatSetup(Icon.parse("model:skysong:clover"), 10, 0, 1, List.of()),
+                PermissionDefault.OP);
         StatSetupMenu modelMenu = new StatSetupMenu(List.of(luck), new SetupRules(1, 0), KEYS, (who, values) -> { });
         ItemStack icon = modelMenu.getInventory().getItem(10);
         assertEquals(Material.PAPER, icon.getType());

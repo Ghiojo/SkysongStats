@@ -1,5 +1,7 @@
 package org.skysongdev.skysongstats.definition;
 
+import org.bukkit.permissions.PermissionDefault;
+
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
@@ -8,6 +10,8 @@ import java.util.OptionalInt;
 
 // One stat from stats.yml. bar is null for plain values, setup is null for stats
 // that don't show in /setup, and min is null when the stat has no floor.
+// permissionDefault is who has the stat's generated command permissions without
+// being granted them.
 public record StatDefinition(
         String id,
         StatDisplay display,
@@ -16,7 +20,8 @@ public record StatDefinition(
         BarSettings bar,
         List<ItemTagSource> itemTags,
         Map<StatAction, List<String>> commands,
-        StatSetup setup) {
+        StatSetup setup,
+        PermissionDefault permissionDefault) {
 
     // Bars expose their max under this prefix: bar "hp" has max "max_hp".
     public static final String MAX_PREFIX = "max_";

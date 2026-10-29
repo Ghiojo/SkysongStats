@@ -85,6 +85,13 @@ class StatSwitchoverTest {
     }
 
     @Test
+    void anyPlayerCanSetAnyonesPotionSickness() {
+        PlayerMock bob = server.addPlayer("Bob");
+        bob.performCommand("potionsickness 3 Alice");
+        assertEquals(3, value("potion"));
+    }
+
+    @Test
     void theGeneratedPermissionsAreDeclared() {
         assertNotNull(server.getPluginManager().getPermission("skysongstats.stat.hp.add.other"));
         assertNotNull(server.getPluginManager().getPermission("skysongstats.stat.hp.damage"));

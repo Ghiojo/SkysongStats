@@ -2,6 +2,7 @@ package org.skysongdev.skysongstats.definition;
 
 import org.bukkit.Material;
 import org.bukkit.configuration.file.YamlConfiguration;
+import org.bukkit.permissions.PermissionDefault;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -140,6 +141,14 @@ class DefaultStatsFileTest {
             CommandBinding binding = config.stats().findCommand(label).orElseThrow(() -> new AssertionError(label));
             assertEquals(target, binding.stat().id() + " " + binding.action().configName(), label);
         });
+    }
+
+    @Test
+    void everyoneCanSetPotionSicknessLikeTodayAndOnlyOpsTheRest() {
+        for (StatDefinition stat : config.stats().all()) {
+            PermissionDefault expected = "potion".equals(stat.id()) ? PermissionDefault.TRUE : PermissionDefault.OP;
+            assertEquals(expected, stat.permissionDefault(), stat.id());
+        }
     }
 
     @Test
