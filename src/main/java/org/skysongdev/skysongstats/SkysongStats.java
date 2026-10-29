@@ -16,7 +16,12 @@ import org.skysongdev.skysongstats.commands.stats.StatsCommand;
 import org.skysongdev.skysongstats.database.Database;
 import org.skysongdev.skysongstats.database.Pinger;
 import org.skysongdev.skysongstats.listeners.*;
+import org.skysongdev.skysongstats.events.DowntimeChangeEvent;
 import org.skysongdev.skysongstats.placeholders.StatsExpansion;
+import org.skysongdev.skysongstats.service.downtime.DowntimeService;
+import org.skysongdev.skysongstats.service.downtime.DowntimeSettings;
+import org.skysongdev.skysongstats.service.downtime.DowntimeStorageException;
+import org.skysongdev.skysongstats.service.downtime.SqlDowntimeRepository;
 
 import java.sql.SQLException;
 
@@ -31,6 +36,7 @@ public class SkysongStats extends JavaPlugin {
     private Utils utils;
     public Utils getUtils() { return utils; }
     private Database database;
+    private DowntimeService downtimeService;
 
     public AddHP addHP = new AddHP();
     public DamageHP damageHP = new DamageHP();
@@ -43,10 +49,11 @@ public class SkysongStats extends JavaPlugin {
     public SkillsCommand skillsCommand = new SkillsCommand();
     public StatsCommand statsCommand = new StatsCommand();
     public CharacterCommand characterCommand = new CharacterCommand();
-    public DowntimeCommand downtimeCommand = new DowntimeCommand();
+    public DowntimeCommand downtimeCommand;
 
 
     public Database getDatabase() { return database; }
+    public DowntimeService getDowntimeService() { return downtimeService; }
 
     @Override
     public void onEnable() {
@@ -55,6 +62,7 @@ public class SkysongStats extends JavaPlugin {
 
         saveDefaultConfig();
         InitializeDatabase();
+        InitializeDowntime();
 
         InitializeCommands();
         AssignListeners();
@@ -96,6 +104,7 @@ public class SkysongStats extends JavaPlugin {
         getCommand("stats").setExecutor(statsCommand);
         getCommand("ac").setExecutor(new ACCommand());
         getCommand("potionsickness").setExecutor(new PotionSickness());
+        downtimeCommand = new DowntimeCommand(downtimeService);
         getCommand("downtime").setExecutor(downtimeCommand);
         //getCommand("fictis").setExecutor(new Fictis());
         //getCommand("arcrot").setExecutor(new Arcrot());
@@ -109,6 +118,19 @@ public class SkysongStats extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new SkillAllocGUIListener(), this);
         getServer().getPluginManager().registerEvents(new PlayerShiftRightClickListener(), this);
         getServer().getPluginManager().registerEvents(new AfflictionsListener(), this);
+    }
+
+    public void InitializeDowntime(){
+        downtimeService = new DowntimeService(
+                new SqlDowntimeRepository(() -> database.getConnection()),
+                DowntimeSettings.fromConfig(getConfig().getConfigurationSection("downtime")),
+                change -> Bukkit.getPluginManager().callEvent(new DowntimeChangeEvent(change)));
+        try {
+            downtimeService.load();
+        } catch (DowntimeStorageException e) {
+            Bukkit.getLogger().warning("[SkysongStats] Unable to load downtime from the database!");
+            e.printStackTrace();
+        }
     }
 
     public void InitializeDatabase(){
