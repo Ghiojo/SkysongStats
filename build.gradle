@@ -25,6 +25,10 @@ dependencies {
     compileOnly "io.papermc.paper:paper-api:1.21.5-R0.1-SNAPSHOT"
     implementation 'net.luckperms:api:5.3'
     compileOnly 'me.clip:placeholderapi:2.11.6'
+    // Connection pool for the stat tables. Paper downloads it at startup from the
+    // plugin.yml "libraries:" list (added when the plugin starts using it), so it
+    // is not bundled into the jar.
+    compileOnly 'com.zaxxer:HikariCP:6.2.1'
 
     // Unit tests: JUnit + MockBukkit (a fake Paper server for tests), the same
     // stack Skysong-Special-Items uses. MockBukkit 4.116.3 is built against
@@ -39,6 +43,9 @@ dependencies {
     // SQLite, not H2: the current SQL uses MySQL-style "double-quoted" string
     // literals, which H2 rejects.
     testImplementation 'org.xerial:sqlite-jdbc:3.49.1.0'
+    // The new stat tables are tested on H2 in MySQL mode: their SQL is plain MySQL.
+    testImplementation 'com.h2database:h2:2.3.232'
+    testImplementation 'com.zaxxer:HikariCP:6.2.1'
 }
 
 test {
