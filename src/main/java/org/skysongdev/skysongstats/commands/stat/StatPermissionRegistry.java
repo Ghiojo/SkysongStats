@@ -1,7 +1,6 @@
 package org.skysongdev.skysongstats.commands.stat;
 
 import org.bukkit.permissions.Permission;
-import org.bukkit.permissions.PermissionDefault;
 import org.bukkit.plugin.PluginManager;
 import org.skysongdev.skysongstats.definition.StatAction;
 import org.skysongdev.skysongstats.definition.StatDefinition;
@@ -15,7 +14,8 @@ import java.util.stream.Stream;
 
 // Declares the permission nodes generated for stats.yml (see StatPermissions) to
 // the server, so permission plugins can list them and they sit under the
-// skysongstats.* wildcard like the nodes in plugin.yml. Ops have them by default.
+// skysongstats.* wildcard like the nodes in plugin.yml. Who has them by default is
+// the stat's permission-default (ops, unless stats.yml says otherwise).
 // A reload swaps them for the new file's nodes.
 public final class StatPermissionRegistry {
     static final String WILDCARD = "skysongstats.*";
@@ -32,9 +32,9 @@ public final class StatPermissionRegistry {
         for (StatDefinition stat : definitions.all()) {
             actions(stat).forEach(action -> {
                 add(StatPermissions.self(stat, action),
-                        "Use " + action.configName() + " on your own " + stat.display().name());
+                        "Use " + action.configName() + " on your own " + stat.display().name(), stat);
                 add(StatPermissions.other(stat, action),
-                        "Use " + action.configName() + " on other players' " + stat.display().name());
+                        "Use " + action.configName() + " on other players' " + stat.display().name(), stat);
             });
         }
         updateWildcard();
@@ -56,8 +56,8 @@ public final class StatPermissionRegistry {
         return Arrays.stream(StatAction.values()).filter(action -> action != StatAction.DAMAGE || shield);
     }
 
-    private void add(String name, String description) {
-        Permission permission = new Permission(name, description, PermissionDefault.OP);
+    private void add(String name, String description, StatDefinition stat) {
+        Permission permission = new Permission(name, description, stat.permissionDefault());
         plugins.addPermission(permission);
         registered.add(permission);
     }

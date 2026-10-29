@@ -57,6 +57,14 @@ class StatPermissionRegistryTest {
     }
 
     @Test
+    void aStatsPermissionDefaultAppliesToAllItsNodes() {
+        registry.register(stats("stats:\n  potion: {permission-default: true}\n"));
+        for (String name : registry.names()) {
+            assertEquals(PermissionDefault.TRUE, server.getPluginManager().getPermission(name).getDefault(), name);
+        }
+    }
+
+    @Test
     void damageOnlyExistsForBarsWithAShield() {
         registry.register(stats("""
                 stats:

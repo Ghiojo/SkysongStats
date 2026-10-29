@@ -18,6 +18,9 @@
 #                         inventory; requires-charges: true only counts items with charges
 #   commands              command names for this stat's actions: set, add, reduce,
 #                         damage. "/heal 5 Steve" below runs "/stats add hp 5 Steve".
+#   permission-default    who can use this stat's commands without being granted
+#                         skysongstats.stat.<id>.<action>[.other]: op (default),
+#                         true (everyone), false (nobody) or not op
 #   setup                 shows the stat in /setup: icon (a Material or
 #                         model:<namespace:id>), slot (0-26), how far below (min) and
 #                         above (max) the baseline it can go, and lore lines.
@@ -135,6 +138,8 @@ stats:
     max: "9 + {con}"
     start: 0
     can-exceed-max: true
+    # Every player can set anyone's potion sickness, as /potionsickness always allowed.
+    permission-default: true
     commands:
       set: [potionsickness]
   arcrot:

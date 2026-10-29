@@ -2,6 +2,7 @@ package org.skysongdev.skysongstats.definition;
 
 import org.bukkit.configuration.InvalidConfigurationException;
 import org.bukkit.configuration.file.YamlConfiguration;
+import org.bukkit.permissions.PermissionDefault;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
@@ -50,6 +51,26 @@ class StatsConfigLoaderTest {
         assertTrue(stat.setupOptions().isEmpty());
         assertTrue(stat.commands().isEmpty());
         assertTrue(stat.itemTags().isEmpty());
+        assertEquals(PermissionDefault.OP, stat.permissionDefault());
+    }
+
+    @Test
+    void readsWhoHasTheStatsPermissionsByDefault() {
+        StatDefinitions stats = load("""
+                stats:
+                  potion: {permission-default: true}
+                  luck: {permission-default: false}
+                  ac: {permission-default: "not op"}
+                """).stats();
+        assertEquals(PermissionDefault.TRUE, stats.get("potion").orElseThrow().permissionDefault());
+        assertEquals(PermissionDefault.FALSE, stats.get("luck").orElseThrow().permissionDefault());
+        assertEquals(PermissionDefault.NOT_OP, stats.get("ac").orElseThrow().permissionDefault());
+    }
+
+    @Test
+    void rejectsABadPermissionDefault() {
+        assertError("stats:\n  potion: {permission-default: everyone}\n",
+                "stats.potion.permission-default: 'everyone' is not a permission default");
     }
 
     @Test

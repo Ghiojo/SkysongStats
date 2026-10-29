@@ -1,6 +1,7 @@
 package org.skysongdev.skysongstats.definition;
 
 import org.bukkit.configuration.ConfigurationSection;
+import org.bukkit.permissions.PermissionDefault;
 import org.skysongdev.skysongstats.formula.Formula;
 import org.skysongdev.skysongstats.formula.FormulaException;
 
@@ -95,7 +96,8 @@ public final class StatsConfigLoader {
                 lowercase(stat.getStringList("aliases")));
         BarSettings bar = readType(id, stat);
         return new StatDefinition(id, display, readInt(stat, "baseline", 0), readMin(stat, bar != null),
-                bar, readItemTags(stat), readCommands(stat), readSetup(id, stat, bar != null));
+                bar, readItemTags(stat), readCommands(stat), readSetup(id, stat, bar != null),
+                readPermissionDefault(stat));
     }
 
     // Returns the bar settings, or null for a plain value.
@@ -190,6 +192,17 @@ public final class StatsConfigLoader {
             }
         }
         return names;
+    }
+
+    private PermissionDefault readPermissionDefault(ConfigurationSection stat) {
+        String text = String.valueOf(stat.get("permission-default", "op"));
+        PermissionDefault permissionDefault = PermissionDefault.getByName(text);
+        if (permissionDefault == null) {
+            errors.add(stat.getCurrentPath() + ".permission-default: '" + text
+                    + "' is not a permission default, use op, true, false or not op");
+            return PermissionDefault.OP;
+        }
+        return permissionDefault;
     }
 
     // Returns the /setup settings, or null when the stat doesn't show in /setup.
