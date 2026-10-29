@@ -23,6 +23,10 @@ import org.skysongdev.skysongstats.service.downtime.DowntimeService;
 import org.skysongdev.skysongstats.service.downtime.DowntimeSettings;
 import org.skysongdev.skysongstats.service.downtime.InMemoryDowntimeRepository;
 
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -39,6 +43,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class DowntimeCommandTest {
 
     private ServerMock server;
+    private SkysongStats plugin;
     private InMemoryDowntimeRepository repository;
     private DowntimeService service;
     private DowntimeCommand downtime;
@@ -50,7 +55,7 @@ class DowntimeCommandTest {
     @BeforeEach
     void setUp() {
         server = MockBukkit.mock();
-        SkysongStats plugin = MockBukkit.load(SkysongStats.class);
+        plugin = MockBukkit.load(SkysongStats.class);
         HandlerList.unregisterAll(plugin);
         StatsManager.statsProfileList = new ArrayList<>();
         ProfileManager.activeProfiles = new ArrayList<>();
@@ -246,5 +251,38 @@ class DowntimeCommandTest {
     void tabCompletesNamesIgnoringCase() {
         List<String> options = downtime.onTabComplete(staff, command, "downtime", new String[]{"view", "al"});
         assertEquals(List.of("Alice"), options);
+    }
+
+    // Messages come from messages.yml
+
+    private void editMessages(String from, String to) throws IOException {
+        Path file = new File(plugin.getDataFolder(), "messages.yml").toPath();
+        Files.writeString(file, Files.readString(file).replace(from, to));
+        plugin.reloadSettings();
+    }
+
+    @Test
+    void usesTheTextFromMessagesYml() throws IOException {
+        editMessages("Successfully removed {amount} downtime from {player}'s {profile} profile downtime, now {total}.\"",
+                "Quitado {amount} de {profile} de {player}: {total}\"");
+        run(staff, "remove", "1", "Alice", "Mage");
+        assertEquals("[SkysongStats] Quitado 1 de Mage de Alice: 2", next(staff));
+    }
+
+    @Test
+    void translatesThePreferenceWords() throws IOException {
+        editMessages("preference-global: \"Global\"", "preference-global: \"Global (servidor)\"");
+        run(alice, "preference");
+        assertTrue(next(alice).contains("set to Global (servidor)."));
+    }
+
+    @Test
+    void consoleGetsTheUsageMessages() {
+        run(console);
+        assertEquals("[SkysongStats] Invalid arguments! Use /downtime <subcommand>", next(console));
+        run(console, "nope");
+        assertEquals("[SkysongStats] Unknown subcommand!", next(console));
+        run(console, "preference");
+        assertEquals("[SkysongStats] Only players can set downtime preferences!", next(console));
     }
 }

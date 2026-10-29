@@ -5,7 +5,6 @@ import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.jetbrains.annotations.NotNull;
 import org.skysongdev.skysongstats.Utils.StatsManager;
-import org.skysongdev.skysongstats.Utils.Utils;
 import org.skysongdev.skysongstats.database.PlayerStats;
 import org.skysongdev.skysongstats.service.downtime.DowntimeService;
 
@@ -15,7 +14,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
-import static org.skysongdev.skysongstats.Utils.Utils.PLUGIN_TAG;
+import static org.skysongdev.skysongstats.SkysongStats.getPlugin;
 
 public class ResetAllDowntimes implements CommandExecutor {
     private final DowntimeService downtime;
@@ -27,7 +26,7 @@ public class ResetAllDowntimes implements CommandExecutor {
     @Override
     public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String @NotNull [] args) {
         downtime.resetAll(knownProfiles());
-        sender.sendMessage(Utils.getMiniMessage().deserialize(PLUGIN_TAG + "<green>All downtimes have been reset successfully."));
+        getPlugin().getMessages().send(sender, "downtime.reset-all");
         return true;
     }
 

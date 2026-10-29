@@ -1,20 +1,18 @@
 package org.skysongdev.skysongstats.commands.downtime;
 
-import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
+import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabExecutor;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.skysongdev.skysongstats.SkysongStats;
-import org.skysongdev.skysongstats.Utils.Utils;
 import org.skysongdev.skysongstats.service.downtime.DowntimeService;
 
 import java.util.Arrays;
 import java.util.List;
 
-import static org.skysongdev.skysongstats.Utils.Utils.PLUGIN_TAG;
+import static org.skysongdev.skysongstats.SkysongStats.getPlugin;
 
 public class DowntimeCommand implements TabExecutor {
     private final AddDowntime addDowntime;
@@ -34,32 +32,17 @@ public class DowntimeCommand implements TabExecutor {
     @Override
     public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String @NotNull [] args) {
         if(args.length < 1){
-            if(sender instanceof Player)
-                sender.sendMessage(Utils.getMiniMessage().deserialize(PLUGIN_TAG + " <red>Invalid arguments! Use /downtime <subcommand>"));
-            else
-                Bukkit.getLogger().warning("[SkysongStats] Invalid arguments! Use /downtime <subcommand>");
+            getPlugin().getMessages().send(sender, "downtime.usage");
             return true;
         }
         String[] newArgs = Arrays.copyOfRange(args, 1, args.length);
 
         switch(args[0].toLowerCase()){
             case "add":
-                if(sender instanceof Player && sender.hasPermission("skysongstats.downtime.manage")){
-                    addDowntime.onCommand(sender, command, label, newArgs);
-                } else if(!(sender instanceof Player)){
-                    addDowntime.onCommand(sender, command, label, newArgs);
-                } else {
-                    sender.sendMessage(Utils.getMiniMessage().deserialize(PLUGIN_TAG + " <red>You do not have permission to use this command."));
-                }
+                runIfManager(addDowntime, sender, command, label, newArgs);
                 break;
             case "remove":
-                if(sender instanceof Player && sender.hasPermission("skysongstats.downtime.manage")){
-                    removeDowntime.onCommand(sender, command, label, newArgs);
-                } else if(!(sender instanceof Player)){
-                    removeDowntime.onCommand(sender, command, label, newArgs);
-                } else {
-                    sender.sendMessage(Utils.getMiniMessage().deserialize(PLUGIN_TAG + " <red>You do not have permission to use this command."));
-                }
+                runIfManager(removeDowntime, sender, command, label, newArgs);
                 break;
             case "view":
                 viewDowntime.onCommand(sender, command, label, newArgs);
@@ -68,28 +51,28 @@ public class DowntimeCommand implements TabExecutor {
                 if(sender instanceof Player){
                     downtimePreference.onCommand(sender, command, label, newArgs);
                 } else {
-                    Bukkit.getLogger().warning("[SkysongStats] Only players can set downtime preferences!");
+                    getPlugin().getMessages().send(sender, "downtime.players-only");
                 }
                 break;
             case "resetall":
-                if(sender instanceof Player && sender.hasPermission("skysongstats.downtime.manage")){
-                    resetAllDowntimes.onCommand(sender, command, label, newArgs);
-                } else if(!(sender instanceof Player)){
-                    resetAllDowntimes.onCommand(sender, command, label, newArgs);
-                } else {
-                    sender.sendMessage(Utils.getMiniMessage().deserialize(PLUGIN_TAG + " <red>You do not have permission to use this command."));
-                }
+                runIfManager(resetAllDowntimes, sender, command, label, newArgs);
                 break;
             default:
-                if(sender instanceof Player)
-                    sender.sendMessage(Utils.getMiniMessage().deserialize(PLUGIN_TAG + " <red>Unknown subcommand!"));
-                else
-                    Bukkit.getLogger().warning("[SkysongStats] Unknown subcommand!");
+                getPlugin().getMessages().send(sender, "downtime.unknown-subcommand");
                 break;
         }
 
 
         return true;
+    }
+
+    /** Players need skysongstats.downtime.manage; the console always may. */
+    private static void runIfManager(CommandExecutor subcommand, CommandSender sender, Command command, String label, String[] args) {
+        if(!(sender instanceof Player) || sender.hasPermission("skysongstats.downtime.manage")){
+            subcommand.onCommand(sender, command, label, args);
+        } else {
+            getPlugin().getMessages().send(sender, "downtime.no-permission");
+        }
     }
 
     @Override

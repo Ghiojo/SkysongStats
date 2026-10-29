@@ -1,17 +1,18 @@
 package org.skysongdev.skysongstats.commands.downtime;
 
+import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
-import org.skysongdev.skysongstats.Utils.Utils;
+import org.skysongdev.skysongstats.service.downtime.DowntimeChange;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 import static org.skysongdev.skysongstats.SkysongStats.getPlugin;
-import static org.skysongdev.skysongstats.Utils.Utils.PLUGIN_TAG;
 
 /**
  * A player named in a downtime command. Online and offline players both work,
@@ -42,7 +43,7 @@ record DowntimeTarget(UUID uuid, String name) {
     static DowntimeTarget find(CommandSender sender, String name) {
         DowntimeTarget target = find(name);
         if (target == null) {
-            sender.sendMessage(Utils.getMiniMessage().deserialize(PLUGIN_TAG + "<red>Player " + name + " not found or has no profile."));
+            getPlugin().getMessages().send(sender, "downtime.player-not-found", Map.of("player", name));
         }
         return target;
     }
@@ -51,7 +52,7 @@ record DowntimeTarget(UUID uuid, String name) {
     String findProfile(CommandSender sender, String profile) {
         String found = findProfile(profile);
         if (found == null) {
-            sender.sendMessage(Utils.getMiniMessage().deserialize(PLUGIN_TAG + "<red>Profile " + profile + " not found for player " + name + "."));
+            getPlugin().getMessages().send(sender, "downtime.profile-not-found", Map.of("profile", profile, "player", name));
         }
         return found;
     }
@@ -95,7 +96,7 @@ record DowntimeTarget(UUID uuid, String name) {
     static int parseAmount(CommandSender sender, String text) {
         int amount = parseAmount(text);
         if (amount < 0) {
-            sender.sendMessage(Utils.getMiniMessage().deserialize(PLUGIN_TAG + "<red>Amount must be a whole number of 1 or more."));
+            getPlugin().getMessages().send(sender, "downtime.invalid-amount");
         }
         return amount;
     }
@@ -108,5 +109,23 @@ record DowntimeTarget(UUID uuid, String name) {
         } catch (NumberFormatException e) {
             return -1;
         }
+    }
+
+    /** The {@code {preference}} word from messages.yml: global or character spending. */
+    static String preferenceName(boolean spendsGlobal) {
+        return plainText(spendsGlobal ? "downtime.preference-global" : "downtime.preference-character");
+    }
+
+    private static String plainText(String key) {
+        return PlainTextComponentSerializer.plainText().serialize(getPlugin().getMessages().get(key));
+    }
+
+    /** {amount}, {player}, {profile} and {total} for the add and remove messages. */
+    static Map<String, String> changePlaceholders(DowntimeTarget target, DowntimeChange change, int amount) {
+        return Map.of(
+                "amount", String.valueOf(amount),
+                "player", target.name(),
+                "profile", change.profile() == null ? "" : change.profile(),
+                "total", String.valueOf(change.newValue()));
     }
 }
