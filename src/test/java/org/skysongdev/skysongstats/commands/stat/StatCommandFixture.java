@@ -23,6 +23,7 @@ import java.io.Reader;
 import java.io.UncheckedIOException;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -39,10 +40,11 @@ final class StatCommandFixture {
     }
 
     // Records messages instead of sending them. Only the keys in "known" count as
-    // present in messages.yml.
+    // present in messages.yml; "texts" holds the raw lines of the keys a test sets.
     static final class RecordingSink implements MessageSink {
         final List<Sent> sent = new ArrayList<>();
         final Set<String> known = new HashSet<>();
+        final Map<String, List<String>> texts = new HashMap<>();
 
         @Override
         public void send(CommandSender to, String key, Map<String, String> placeholders) {
@@ -52,6 +54,11 @@ final class StatCommandFixture {
         @Override
         public boolean has(String key) {
             return known.contains(key);
+        }
+
+        @Override
+        public List<String> lines(String key) {
+            return texts.getOrDefault(key, List.of());
         }
 
         List<String> keys() {
@@ -92,6 +99,7 @@ final class StatCommandFixture {
     final RecordingSink messages = new RecordingSink();
     final CommandTargets targets;
     final StatActionRunner runner;
+    final StatSheet sheet;
     final PlayerMock alice;
     final PlayerMock bob;
 
@@ -106,6 +114,7 @@ final class StatCommandFixture {
                 player -> player.equals(bob) ? Optional.empty() : Optional.of(character(player)),
                 Bukkit::getPlayerExact, messages);
         runner = new StatActionRunner(stats, targets, messages);
+        sheet = new StatSheet(stats, messages);
     }
 
     static StatDefinitions defaultStats() {
