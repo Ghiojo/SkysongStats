@@ -123,9 +123,9 @@ class MessagesTest {
     }
 
     @Test
-    void playerStyledTextKeepsColoursButNotClickOrHover() {
-        Component text = Messages.playerStyledText("<bold><red>Hi</red></bold> <click:run_command:/op me>x</click><hover:show_text:y>z</hover>");
-        assertEquals("Hi <click:run_command:/op me>x</click><hover:show_text:y>z</hover>", plain(text));
-        assertEquals(MiniMessage.miniMessage().deserialize("<bold><red>Hi"), Messages.playerStyledText("<bold><red>Hi").compact());
+    void playerStyledTextKeepsEveryChatFormat() {
+        String text = "<bold><red>Hi</red></bold> <click:run_command:/char view>x</click><hover:show_text:y>z</hover>";
+        assertEquals(MiniMessage.miniMessage().deserialize(text), Messages.playerStyledText(text));
+        assertEquals("Hi xz", plain(Messages.playerStyledText(text)));
     }
 }
