@@ -16,6 +16,8 @@ import org.skysongdev.skysongstats.commands.stats.StatsCommand;
 import org.skysongdev.skysongstats.database.Database;
 import org.skysongdev.skysongstats.database.Pinger;
 import org.skysongdev.skysongstats.listeners.*;
+import org.skysongdev.skysongstats.messages.Messages;
+import org.skysongdev.skysongstats.messages.MessagesFile;
 import org.skysongdev.skysongstats.events.DowntimeChangeEvent;
 import org.skysongdev.skysongstats.placeholders.StatsExpansion;
 import org.skysongdev.skysongstats.service.downtime.DowntimeService;
@@ -23,6 +25,11 @@ import org.skysongdev.skysongstats.service.downtime.DowntimeSettings;
 import org.skysongdev.skysongstats.service.downtime.DowntimeStorageException;
 import org.skysongdev.skysongstats.service.downtime.SqlDowntimeRepository;
 
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.UncheckedIOException;
+import java.nio.charset.StandardCharsets;
 import java.sql.SQLException;
 
 public class SkysongStats extends JavaPlugin {
@@ -37,6 +44,7 @@ public class SkysongStats extends JavaPlugin {
     public Utils getUtils() { return utils; }
     private Database database;
     private DowntimeService downtimeService;
+    private Messages messages;
 
     public AddHP addHP = new AddHP();
     public DamageHP damageHP = new DamageHP();
@@ -54,6 +62,7 @@ public class SkysongStats extends JavaPlugin {
 
     public Database getDatabase() { return database; }
     public DowntimeService getDowntimeService() { return downtimeService; }
+    public Messages getMessages() { return messages; }
 
     @Override
     public void onEnable() {
@@ -61,6 +70,7 @@ public class SkysongStats extends JavaPlugin {
         utils = new Utils(plugin);
 
         saveDefaultConfig();
+        loadMessages();
         InitializeDatabase();
         InitializeDowntime();
 
@@ -140,6 +150,22 @@ public class SkysongStats extends JavaPlugin {
     public void reloadSettings(){
         reloadConfig();
         downtimeService.setSettings(DowntimeSettings.fromConfig(getConfig().getConfigurationSection("downtime")));
+        loadMessages();
+    }
+
+    private void loadMessages(){
+        messages = MessagesFile.load(new File(getDataFolder(), MessagesFile.FILE_NAME), bundledMessages(), getLogger()::warning);
+    }
+
+    private String bundledMessages(){
+        try (InputStream in = getResource(MessagesFile.FILE_NAME)) {
+            if (in == null) {
+                throw new IllegalStateException(MessagesFile.FILE_NAME + " is missing from the plugin jar");
+            }
+            return new String(in.readAllBytes(), StandardCharsets.UTF_8);
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
     }
 
     public void InitializeDatabase(){

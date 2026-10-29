@@ -1,0 +1,15 @@
+# Every message SkysongStats sends to players and to the console.
+# Translate the plugin by changing the text here, then run /ssreload.
+#
+# Messages use MiniMessage: https://docs.advntr.dev/minimessage/format.html
+# {prefix} is replaced by the prefix below. Other {names} are filled in by the
+# plugin; the ones each message gets are listed above it. A message can be one
+# line, or a list of lines.
+#
+# When an update adds messages, they are written into this file with their
+# default text. Lines you changed are kept.
+prefix: "<dark_gray>[<gold>SkysongStats<dark_gray>] "
+
+general:
+  no-permission: "{prefix}<red>You don't have permission to use this command!"
+  reloaded: "{prefix}<gray>Config Reloaded!"
