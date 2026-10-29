@@ -90,6 +90,7 @@ final class StatCommandFixture {
     final Plugin plugin;
     final StatService stats;
     final RecordingSink messages = new RecordingSink();
+    final CommandTargets targets;
     final StatActionRunner runner;
     final PlayerMock alice;
     final PlayerMock bob;
@@ -101,9 +102,10 @@ final class StatCommandFixture {
         alice = server.addPlayer("Alice");
         bob = server.addPlayer("Bob");
         stats.createCharacter(character(alice));
-        runner = new StatActionRunner(stats,
+        targets = new CommandTargets(stats,
                 player -> player.equals(bob) ? Optional.empty() : Optional.of(character(player)),
                 Bukkit::getPlayerExact, messages);
+        runner = new StatActionRunner(stats, targets, messages);
     }
 
     static StatDefinitions defaultStats() {
