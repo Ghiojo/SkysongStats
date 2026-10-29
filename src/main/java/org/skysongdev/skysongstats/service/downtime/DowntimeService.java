@@ -25,7 +25,7 @@ import java.util.concurrent.ConcurrentHashMap;
 public class DowntimeService {
 
     private final DowntimeRepository repository;
-    private final DowntimeSettings settings;
+    private volatile DowntimeSettings settings;
     private final DowntimeChangeListener listener;
 
     private final Map<UUID, Integer> globals = new ConcurrentHashMap<>();
@@ -51,6 +51,14 @@ public class DowntimeService {
 
     public DowntimeSettings getSettings() {
         return settings;
+    }
+
+    /**
+     * Switches to new limits, for {@code /ssreload}. Stored values are kept as
+     * they are; the new limits apply from the next read, add, remove or reset.
+     */
+    public synchronized void setSettings(DowntimeSettings settings) {
+        this.settings = Objects.requireNonNull(settings, "settings");
     }
 
     // --- Reading ---

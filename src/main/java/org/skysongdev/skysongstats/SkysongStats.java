@@ -133,6 +133,15 @@ public class SkysongStats extends JavaPlugin {
         }
     }
 
+    /**
+     * Re-reads config.yml and applies every setting that can change while the
+     * server runs. The database connection is only read on startup.
+     */
+    public void reloadSettings(){
+        reloadConfig();
+        downtimeService.setSettings(DowntimeSettings.fromConfig(getConfig().getConfigurationSection("downtime")));
+    }
+
     public void InitializeDatabase(){
         try{
             this.database = new Database(
