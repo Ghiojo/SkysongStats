@@ -57,3 +57,62 @@ downtime:
   # {preference}
   preference-set: "{prefix}<green>Your downtime spending preference has been set to <gold>{preference}<green>."
   reset-all: "{prefix}<green>All downtimes have been reset successfully."
+
+profile:
+  usage: "{prefix}<red>Too Little arguments! (Usage: /profile (subcommand))"
+  invalid-subcommand: "{prefix}<red>Incorrect Arguments! Usage: /profile (create/switch/delete) (profile)"
+  # {profile}
+  current: "{prefix}<gray>Your current profile is <yellow>{profile}"
+  # Sent on join while the active profile has not finished /setup.
+  setup-reminder: "{prefix}<green>You have yet to set up your profile! Use /setup to get started!"
+  create:
+    usage: "{prefix}<gray>Too Little arguments! (Usage: /profile create (name))"
+    already-exists: "{prefix}<gray>You already have a profile with this name!"
+    name-too-long: "{prefix}<gray>Profile name is too long! (Max 20 characters)"
+    # {profile}
+    created: "{prefix}<gray>Profile \"{profile}\" has been created!"
+  switch:
+    usage: "{prefix}<red>Too Little arguments! (Usage: /profile switch (name))"
+    not-found: "{prefix}<red>You have no profile with that name!"
+    # {profile}
+    switched: "{prefix}<green>Profile switched to {profile}"
+  delete:
+    usage: "{prefix}<red>Too Little arguments! (Usage: /profile delete (name))"
+    not-found: "{prefix}<red>There's no profile with that name!"
+    active: "{prefix}<red>You cannot delete the profile you are currently on, switch profiles before doing so!"
+    # {profile}
+    deleted: "{prefix}<gray>Profile \"{profile}\" has been deleted!"
+
+character:
+  invalid-subcommand: "{prefix}<red>Invalid subcommand!"
+  view:
+    needs-player: "You must specify a player to view their character!"
+    player-not-online: "That player is not online!"
+    # The character sheet: header, then the description wrapped into lines of about
+    # 60 characters (one description-line each), then footer.
+    # {player}, {name}, {age}, {gender}, {pronouns}, {ancestry}
+    header:
+      - "<#864811>|====================<<<#63C934>₪<#864811>>>====================|"
+      - "                <#F6DA23>{player}' s <#864811>Character Sheet:"
+      - ""
+      - "<#D0530C><bold>Name:</bold> <#f8e886>{name}"
+      - "<#D0530C><bold>Age:</bold> <#f8e886>{age}"
+      - "<#D0530C><bold>Gender:</bold> <#f8e886>{gender}<#e7d462>({pronouns})"
+      - "<#D0530C><bold>Ancestry:</bold> <#f8e886>{ancestry}"
+      - "<#D0530C><bold>Description:</bold>"
+    # {line}
+    description-line: "<#f8e886>{line}"
+    footer:
+      - "<#864811>|====================<<<#63C934>₪<#864811>>>====================|"
+  set:
+    players-only: "Only players can use this command!"
+    usage: "{prefix}<red>Too Little arguments! (Usage: /character set (field) (value))"
+    name-too-long: "{prefix}<red>Name is too long!"
+    age-too-long: "{prefix}<red>Age is too long!"
+    gender-too-long: "{prefix}<red>Gender is too long!"
+    pronouns-too-long: "{prefix}<red>Pronouns are too long!"
+    ancestry-too-long: "{prefix}<red>Ancestry is too long!"
+    invalid-field: "Invalid field!"
+    failed: "{prefix}<red>Failed to update character data!"
+    # {field}, {value}
+    updated: "{prefix}<green>Updated {field} to {value}"

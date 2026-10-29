@@ -8,11 +8,12 @@ import org.bukkit.command.TabExecutor;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.skysongdev.skysongstats.SkysongStats;
-import org.skysongdev.skysongstats.Utils.Utils;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
+
+import static org.skysongdev.skysongstats.SkysongStats.getPlugin;
 
 public class ProfileCommand implements TabExecutor {
     CreateProfile createProfile;
@@ -31,7 +32,7 @@ public class ProfileCommand implements TabExecutor {
         Player player = (Player) commandSender;
 
         if(strings.length < 1){
-            commandSender.sendMessage(Utils.getMiniMessage().deserialize(Utils.PLUGIN_TAG + "<red>Too Little arguments! (Usage: /profile (subcommand))"));
+            getPlugin().getMessages().send(commandSender, "profile.usage");
             return true;
         }
 
@@ -47,10 +48,11 @@ public class ProfileCommand implements TabExecutor {
                 deleteProfile.onCommand(commandSender, command, s, newArgs);
                 break;
             case "view":
-                commandSender.sendMessage(Utils.getMiniMessage().deserialize(Utils.PLUGIN_TAG + "<gray> Your current profile is <yellow>" + SkysongStats.getPlugin().getUtils().getProfileManager().findActiveStats(player.getUniqueId().toString()).getProfile()));
+                getPlugin().getMessages().send(commandSender, "profile.current",
+                        Map.of("profile", getPlugin().getUtils().getProfileManager().findActiveStats(player.getUniqueId().toString()).getProfile()));
                 break;
             default:
-                commandSender.sendMessage(Utils.getMiniMessage().deserialize(Utils.PLUGIN_TAG + "<red>Incorrect Arguments! Usage: /profile (create/switch/delete) (profile)"));
+                getPlugin().getMessages().send(commandSender, "profile.invalid-subcommand");
                 break;
 
 

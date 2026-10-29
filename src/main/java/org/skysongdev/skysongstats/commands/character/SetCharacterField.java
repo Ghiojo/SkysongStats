@@ -1,6 +1,5 @@
 package org.skysongdev.skysongstats.commands.character;
 
-import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
@@ -9,12 +8,13 @@ import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.skysongdev.skysongstats.Utils.CharacterManager;
-import org.skysongdev.skysongstats.Utils.Utils;
+import org.skysongdev.skysongstats.messages.Messages;
 import org.skysongdev.skysongstats.database.CharacterProfile;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 
 import static org.skysongdev.skysongstats.SkysongStats.getPlugin;
 
@@ -22,12 +22,12 @@ public class SetCharacterField implements TabExecutor {
     @Override
     public boolean onCommand(@NotNull CommandSender commandSender, @NotNull Command command, @NotNull String s, @NotNull String[] strings) {
         if(!(commandSender instanceof Player)){
-            Bukkit.getLogger().warning("Only players can use this command!");
+            getPlugin().getMessages().send(commandSender, "character.set.players-only");
             return true;
         }
         Player player = (Player) commandSender;
         if(strings.length < 2){
-            commandSender.sendMessage(Utils.getMiniMessage().deserialize(Utils.PLUGIN_TAG + "<red>Too Little arguments! (Usage: /character set (field) (value))"));
+            getPlugin().getMessages().send(commandSender, "character.set.usage");
             return true;
         }
         CharacterProfile profile = getPlugin().getUtils().getCharacterManager().findActiveCharacter(player.getUniqueId().toString());
@@ -40,35 +40,35 @@ public class SetCharacterField implements TabExecutor {
         switch(strings[0].toLowerCase()){
             case "name":
                 if(field.length() > 100){
-                    commandSender.sendMessage(Utils.getMiniMessage().deserialize(Utils.PLUGIN_TAG + "<red>Name is too long!"));
+                    getPlugin().getMessages().send(commandSender, "character.set.name-too-long");
                     return true;
                 }
                 profile.setName(finalField);
                 break;
             case "age":
                 if(field.length() > 20){
-                    commandSender.sendMessage(Utils.getMiniMessage().deserialize(Utils.PLUGIN_TAG + "<red>Age is too long!"));
+                    getPlugin().getMessages().send(commandSender, "character.set.age-too-long");
                     return true;
                 }
                 profile.setAge(finalField);
                 break;
             case "gender":
                 if(field.length() > 20){
-                    commandSender.sendMessage(Utils.getMiniMessage().deserialize(Utils.PLUGIN_TAG + "<red>Gender is too long!"));
+                    getPlugin().getMessages().send(commandSender, "character.set.gender-too-long");
                     return true;
                 }
                 profile.setGender(finalField);
                 break;
             case "pronouns":
                 if(field.length() > 20){
-                    commandSender.sendMessage(Utils.getMiniMessage().deserialize(Utils.PLUGIN_TAG + "<red>Pronouns are too long!"));
+                    getPlugin().getMessages().send(commandSender, "character.set.pronouns-too-long");
                     return true;
                 }
                 profile.setPronouns(finalField);
                 break;
             case "ancestry":
                 if(field.length() > 50){
-                    commandSender.sendMessage(Utils.getMiniMessage().deserialize(Utils.PLUGIN_TAG + "<red>Ancestry is too long!"));
+                    getPlugin().getMessages().send(commandSender, "character.set.ancestry-too-long");
                     return true;
                 }
                 profile.setAncestry(finalField);
@@ -77,16 +77,16 @@ public class SetCharacterField implements TabExecutor {
                 profile.setDescription(finalField);
                 break;
             default:
-                commandSender.sendMessage("Invalid field!");
+                getPlugin().getMessages().send(commandSender, "character.set.invalid-field");
                 break;
         }
         try{
             getPlugin().getDatabase().updateCharacterData(profile);
         } catch (Exception e){
-            commandSender.sendMessage(Utils.getMiniMessage().deserialize(Utils.PLUGIN_TAG + "<red>Failed to update character data!"));
+            getPlugin().getMessages().send(commandSender, "character.set.failed");
             return true;
         }
-        commandSender.sendMessage(Utils.getMiniMessage().deserialize(Utils.PLUGIN_TAG + "<green>Updated " + strings[0] + " to " + finalField));
+        getPlugin().getMessages().send(commandSender, "character.set.updated", Map.of("field", strings[0]), Map.of("value", Messages.playerStyledText(finalField)));
         return true;
     }
 
