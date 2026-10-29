@@ -155,6 +155,10 @@ skills:
       - "<gray>You can't change them later."
       - "<gray>You have {points} skills left to choose."
     confirm: "<green>Confirm"
+    # The name of each skill on the screen, in the skill's colour from skills.yml. {name}
+    skill-name: "<bold>{name}</bold>"
+    # Confirming with picks left. {picks}
+    pick-more: "{prefix}<red>Pick {picks} more skill(s) before confirming."
 
 setup:
   already-set-up: "{prefix}<red>You have already set up your profile!"

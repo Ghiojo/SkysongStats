@@ -57,7 +57,7 @@ class StatSetupMenuTest {
     @BeforeEach
     void setUp() {
         server = MockBukkit.mock();
-        server.getPluginManager().registerEvents(new StatSetupListener(), MockBukkit.createMockPlugin());
+        server.getPluginManager().registerEvents(new SetupScreenListener(), MockBukkit.createMockPlugin());
         player = server.addPlayer("Alice");
         StatsConfig config = SetupTestData.defaultConfig();
         menu = new StatSetupMenu(config.stats().setupStats(), config.setupRules(), KEYS,

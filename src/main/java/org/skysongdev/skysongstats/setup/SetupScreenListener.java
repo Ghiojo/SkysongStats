@@ -10,30 +10,30 @@ import org.bukkit.event.inventory.InventoryDragEvent;
 
 // Passes clicks on an open /setup screen to it. Nothing can be taken out of or
 // put into the screen.
-public final class StatSetupListener implements Listener {
+public final class SetupScreenListener implements Listener {
     @EventHandler(priority = EventPriority.HIGHEST)
     public void onClick(InventoryClickEvent event) {
-        if (!(event.getInventory().getHolder() instanceof StatSetupMenu menu)) {
+        if (!(event.getInventory().getHolder() instanceof SetupScreen screen)) {
             return;
         }
         event.setCancelled(true);
-        boolean inMenu = event.getRawSlot() >= 0 && event.getRawSlot() < StatSetupMenu.SIZE;
-        if (inMenu && event.getWhoClicked() instanceof Player player) {
-            menu.click(player, event.getRawSlot(), event.getClick());
+        boolean inScreen = event.getRawSlot() >= 0 && event.getRawSlot() < screen.size();
+        if (inScreen && event.getWhoClicked() instanceof Player player) {
+            screen.click(player, event.getRawSlot(), event.getClick());
         }
     }
 
     @EventHandler(priority = EventPriority.HIGHEST)
     public void onDrag(InventoryDragEvent event) {
-        if (event.getInventory().getHolder() instanceof StatSetupMenu) {
+        if (event.getInventory().getHolder() instanceof SetupScreen) {
             event.setCancelled(true);
         }
     }
 
     @EventHandler
     public void onClose(InventoryCloseEvent event) {
-        if (event.getInventory().getHolder() instanceof StatSetupMenu menu) {
-            menu.closed();
+        if (event.getInventory().getHolder() instanceof SetupScreen screen) {
+            screen.closed();
         }
     }
 }

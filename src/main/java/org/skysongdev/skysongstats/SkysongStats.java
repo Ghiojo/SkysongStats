@@ -38,7 +38,7 @@ import org.skysongdev.skysongstats.service.downtime.DowntimeService;
 import org.skysongdev.skysongstats.service.downtime.DowntimeSettings;
 import org.skysongdev.skysongstats.service.downtime.DowntimeStorageException;
 import org.skysongdev.skysongstats.service.downtime.SqlDowntimeRepository;
-import org.skysongdev.skysongstats.setup.StatSetupListener;
+import org.skysongdev.skysongstats.setup.SetupScreenListener;
 import org.skysongdev.skysongstats.storage.DatabaseSettings;
 import org.skysongdev.skysongstats.storage.ProfileKey;
 import org.skysongdev.skysongstats.storage.StatRepository;
@@ -163,7 +163,7 @@ public class SkysongStats extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new PlayerRegisterListener(), this);
         getServer().getPluginManager().registerEvents(new ProfileUpdateListener(), this);
         getServer().getPluginManager().registerEvents(new SkillLevelListener(), this);
-        getServer().getPluginManager().registerEvents(new StatSetupListener(), this);
+        getServer().getPluginManager().registerEvents(new SetupScreenListener(), this);
         getServer().getPluginManager().registerEvents(new SkillAllocGUIListener(), this);
         getServer().getPluginManager().registerEvents(new PlayerShiftRightClickListener(), this);
         getServer().getPluginManager().registerEvents(
