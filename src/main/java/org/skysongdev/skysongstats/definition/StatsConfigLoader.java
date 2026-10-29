@@ -27,13 +27,11 @@ public final class StatsConfigLoader {
     private static final Pattern ITEM_TAG = Pattern.compile("[a-z0-9/._-]+");
     private static final int GUI_SLOTS = 27;
 
-    private final Predicate<String> isItemMaterial;
     private final List<String> errors = new ArrayList<>();
+    private final ConfigReader reader;
 
-    // isItemMaterial tells whether a Material name exists and is an item. It is
-    // passed in because Bukkit's Material lookup needs a running server.
     private StatsConfigLoader(Predicate<String> isItemMaterial) {
-        this.isItemMaterial = isItemMaterial;
+        this.reader = new ConfigReader(errors, isItemMaterial);
     }
 
     public static StatsConfig load(ConfigurationSection root, Predicate<String> isItemMaterial) {
@@ -57,7 +55,7 @@ public final class StatsConfigLoader {
         if (setup == null) {
             return new SetupRules(0, 0);
         }
-        return new SetupRules(readNonNegative(setup, "points"), readNonNegative(setup, "negative-points"));
+        return new SetupRules(reader.readNonNegative(setup, "points"), reader.readNonNegative(setup, "negative-points"));
     }
 
     private Map<String, StatDefinition> readStats(ConfigurationSection root) {
@@ -93,9 +91,9 @@ public final class StatsConfigLoader {
 
     private StatDefinition readStat(String id, ConfigurationSection stat) {
         StatDisplay display = new StatDisplay(stat.getString("name", id), stat.getString("color", ""),
-                lowercase(stat.getStringList("aliases")));
+                ConfigReader.lowercase(stat.getStringList("aliases")));
         BarSettings bar = readType(id, stat);
-        return new StatDefinition(id, display, readInt(stat, "baseline", 0), readMin(stat, bar != null),
+        return new StatDefinition(id, display, reader.readInt(stat, "baseline", 0), readMin(stat, bar != null),
                 bar, readItemTags(stat), readCommands(stat), readSetup(id, stat, bar != null),
                 readPermissionDefault(stat));
     }
@@ -123,11 +121,11 @@ public final class StatsConfigLoader {
         boolean startAtMax = "max".equalsIgnoreCase(String.valueOf(start));
         int startValue = 0;
         if (!startAtMax) {
-            startValue = readInt(stat, "start", 0);
+            startValue = reader.readInt(stat, "start", 0);
         }
         String shield = stat.getString("shield");
         return new BarSettings(max, startAtMax, startValue,
-                shield == null ? null : shield.trim().toLowerCase(Locale.ROOT), readBoolean(stat, "can-exceed-max"));
+                shield == null ? null : shield.trim().toLowerCase(Locale.ROOT), reader.readBoolean(stat, "can-exceed-max"));
     }
 
     private Formula readFormula(ConfigurationSection stat) {
@@ -148,7 +146,7 @@ public final class StatsConfigLoader {
         if (!stat.contains("min")) {
             return isBar ? 0 : null;
         }
-        return readInt(stat, "min", 0);
+        return reader.readInt(stat, "min", 0);
     }
 
     private List<ItemTagSource> readItemTags(ConfigurationSection stat) {
@@ -184,7 +182,7 @@ public final class StatsConfigLoader {
     }
 
     private List<String> readCommandNames(ConfigurationSection section, String key) {
-        List<String> names = lowercase(section.getStringList(key));
+        List<String> names = ConfigReader.lowercase(section.getStringList(key));
         for (String name : names) {
             if (!ID.matcher(name).matches()) {
                 errors.add(section.getCurrentPath() + "." + key + ": '" + name
@@ -215,16 +213,16 @@ public final class StatsConfigLoader {
             errors.add(path(id) + ".setup: bars can't be allocated in /setup, only plain values");
         }
         int slot = readSlot(setup);
-        int min = readRequiredInt(setup, "min");
-        int max = readRequiredInt(setup, "max");
+        int min = reader.readRequiredInt(setup, "min");
+        int max = reader.readRequiredInt(setup, "max");
         if (min > 0 || max < 0) {
             errors.add(setup.getCurrentPath() + ": min must be 0 or less and max 0 or more (they are relative to the baseline)");
         }
-        return new StatSetup(readIcon(setup), slot, min, max, setup.getStringList("lore"));
+        return new StatSetup(reader.readIcon(setup), slot, min, max, setup.getStringList("lore"));
     }
 
     private int readSlot(ConfigurationSection setup) {
-        int slot = readRequiredInt(setup, "slot");
+        int slot = reader.readRequiredInt(setup, "slot");
         if (slot < 0 || slot >= GUI_SLOTS) {
             errors.add(setup.getCurrentPath() + ".slot: must be between 0 and " + (GUI_SLOTS - 1));
         }
@@ -233,64 +231,6 @@ public final class StatsConfigLoader {
                     + StatSetup.CONFIRM_SLOT + " hold the /setup header and confirm button");
         }
         return slot;
-    }
-
-    private Icon readIcon(ConfigurationSection section) {
-        String where = section.getCurrentPath() + ".icon";
-        String text = section.getString("icon");
-        if (text == null) {
-            errors.add(where + ": missing, use a Material (IRON_SWORD) or model:<namespace:id>");
-            return Icon.parse("BARRIER");
-        }
-        try {
-            Icon icon = Icon.parse(text);
-            if (!icon.isModel() && !isItemMaterial.test(icon.material())) {
-                errors.add(where + ": '" + text + "' is not an item Material");
-            }
-            return icon;
-        } catch (IllegalArgumentException e) {
-            errors.add(where + ": " + e.getMessage());
-            return Icon.parse("BARRIER");
-        }
-    }
-
-    private boolean readBoolean(ConfigurationSection section, String key) {
-        if (section.contains(key) && !section.isBoolean(key)) {
-            errors.add(section.getCurrentPath() + "." + key + ": '" + section.get(key) + "' must be true or false");
-            return false;
-        }
-        return section.getBoolean(key, false);
-    }
-
-    private int readRequiredInt(ConfigurationSection section, String key) {
-        if (!section.contains(key)) {
-            errors.add(section.getCurrentPath() + "." + key + ": missing, must be a whole number");
-            return 0;
-        }
-        return readInt(section, key, 0);
-    }
-
-    private int readNonNegative(ConfigurationSection section, String key) {
-        int value = readInt(section, key, 0);
-        if (value < 0) {
-            errors.add(section.getCurrentPath() + "." + key + ": can't be negative");
-        }
-        return value;
-    }
-
-    private int readInt(ConfigurationSection section, String key, int fallback) {
-        if (!section.contains(key)) {
-            return fallback;
-        }
-        if (!section.isInt(key)) {
-            errors.add(section.getCurrentPath() + "." + key + ": '" + section.get(key) + "' is not a whole number");
-            return fallback;
-        }
-        return section.getInt(key);
-    }
-
-    private static List<String> lowercase(List<String> names) {
-        return names.stream().map(name -> name.trim().toLowerCase(Locale.ROOT)).toList();
     }
 
     private static String path(String id) {
