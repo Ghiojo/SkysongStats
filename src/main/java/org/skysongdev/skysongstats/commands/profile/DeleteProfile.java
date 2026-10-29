@@ -27,18 +27,17 @@ public class DeleteProfile implements TabExecutor {
             getPlugin().getMessages().send(commandSender, "profile.delete.usage");
             return true;
         }
-        if(getPlugin().getUtils().getStatsManager().findStats(player.getUniqueId().toString(), strings[0]) == null){
+        if(!getPlugin().getUtils().getProfileManager().hasProfile(player.getUniqueId(), strings[0])){
             getPlugin().getMessages().send(commandSender, "profile.delete.not-found");
             return true;
         }
-        String activeProfile = getPlugin().getUtils().getProfileManager().findActiveStats(player.getUniqueId().toString()).getProfile();
-        String targetProfile = getPlugin().getUtils().getStatsManager().findStats(player.getUniqueId().toString(), strings[0]).getProfile();
+        String activeProfile = getPlugin().getUtils().getProfileManager().getActiveProfileName(player.getUniqueId().toString());
+        String targetProfile = strings[0];
         if(activeProfile.equals(targetProfile)){
             getPlugin().getMessages().send(commandSender, "profile.delete.active");
             return true;
         }
 
-        getPlugin().getUtils().getStatsManager().deleteStat(getPlugin().getUtils().getStatsManager().findStats(player.getUniqueId().toString(), strings[0]));
         getPlugin().getUtils().getSkillManager().deleteSkillProfile(getPlugin().getUtils().getSkillManager().findSkills(player.getUniqueId().toString(), strings[0]));
         getPlugin().getUtils().getProfileManager().deleteSetupProfile(getPlugin().getUtils().getProfileManager().findSetupProfile(player.getUniqueId().toString(), strings[0]));
         getPlugin().getUtils().getCharacterManager().deleteCharacterProfile(getPlugin().getUtils().getCharacterManager().findCharacterProfile(player.getUniqueId().toString(), strings[0]));

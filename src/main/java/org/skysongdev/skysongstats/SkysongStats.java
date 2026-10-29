@@ -1,29 +1,36 @@
 package org.skysongdev.skysongstats;
 
 import org.bukkit.Bukkit;
+import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.skysongdev.skysongstats.Utils.ProfileManager;
 import org.skysongdev.skysongstats.Utils.Utils;
 import org.skysongdev.skysongstats.character.StatService;
-import org.skysongdev.skysongstats.commands.afflictions.PotionSickness;
 import org.skysongdev.skysongstats.commands.character.CharacterCommand;
 import org.skysongdev.skysongstats.commands.downtime.DowntimeCommand;
-import org.skysongdev.skysongstats.commands.hpManagement.*;
 import org.skysongdev.skysongstats.commands.misc.ReloadCommand;
-import org.skysongdev.skysongstats.commands.modifier.ModifierCommand;
 import org.skysongdev.skysongstats.commands.profile.ProfileCommand;
 import org.skysongdev.skysongstats.commands.setup.SetupCommand;
 import org.skysongdev.skysongstats.commands.skills.SkillsCommand;
-import org.skysongdev.skysongstats.commands.stats.StatsCommand;
+import org.skysongdev.skysongstats.commands.stat.CommandTargets;
+import org.skysongdev.skysongstats.commands.stat.StatActionRunner;
+import org.skysongdev.skysongstats.commands.stat.StatAliasCommand;
+import org.skysongdev.skysongstats.commands.stat.StatCommandRegistry;
+import org.skysongdev.skysongstats.commands.stat.StatModifierCommand;
+import org.skysongdev.skysongstats.commands.stat.StatPermissionRegistry;
+import org.skysongdev.skysongstats.commands.stat.StatSheet;
+import org.skysongdev.skysongstats.commands.stat.StatsRootCommand;
 import org.skysongdev.skysongstats.database.Database;
 import org.skysongdev.skysongstats.database.Pinger;
 import org.skysongdev.skysongstats.database.SetupProfile;
 import org.skysongdev.skysongstats.definition.DefinitionException;
 import org.skysongdev.skysongstats.definition.StatsConfig;
 import org.skysongdev.skysongstats.definition.StatsConfigFile;
+import org.skysongdev.skysongstats.items.ItemTagListener;
 import org.skysongdev.skysongstats.listeners.*;
 import org.skysongdev.skysongstats.messages.Messages;
 import org.skysongdev.skysongstats.messages.MessagesFile;
+import org.skysongdev.skysongstats.messages.PluginTexts;
 import org.skysongdev.skysongstats.events.DowntimeChangeEvent;
 import org.skysongdev.skysongstats.events.StatChangeEvent;
 import org.skysongdev.skysongstats.placeholders.StatsExpansion;
@@ -31,6 +38,7 @@ import org.skysongdev.skysongstats.service.downtime.DowntimeService;
 import org.skysongdev.skysongstats.service.downtime.DowntimeSettings;
 import org.skysongdev.skysongstats.service.downtime.DowntimeStorageException;
 import org.skysongdev.skysongstats.service.downtime.SqlDowntimeRepository;
+import org.skysongdev.skysongstats.setup.StatSetupListener;
 import org.skysongdev.skysongstats.storage.DatabaseSettings;
 import org.skysongdev.skysongstats.storage.ProfileKey;
 import org.skysongdev.skysongstats.storage.StatRepository;
@@ -44,7 +52,10 @@ import java.io.InputStream;
 import java.io.UncheckedIOException;
 import java.nio.charset.StandardCharsets;
 import java.sql.SQLException;
+import java.util.List;
+import java.util.Locale;
 import java.util.UUID;
+import java.util.function.Supplier;
 import java.util.logging.Level;
 
 public class SkysongStats extends JavaPlugin {
@@ -64,16 +75,14 @@ public class SkysongStats extends JavaPlugin {
     private StatStorage statStorage;
     private StatService statService;
 
-    public AddHP addHP = new AddHP();
-    public DamageHP damageHP = new DamageHP();
-    public ReduceHP reduceHP = new ReduceHP();
-    public TempHp tempHp = new TempHp();
+    // messages.yml for the stat commands and the /setup screen.
+    private final PluginTexts texts = new PluginTexts(this::getMessages);
+    private StatCommandRegistry statCommands;
+    private StatPermissionRegistry statPermissions;
 
-    public ModifierCommand modifierCommand = new ModifierCommand();
     public ProfileCommand profileCommand = new ProfileCommand();
-    public SetupCommand setupCommand = new SetupCommand();
+    public SetupCommand setupCommand = new SetupCommand(texts);
     public SkillsCommand skillsCommand = new SkillsCommand();
-    public StatsCommand statsCommand = new StatsCommand();
     public CharacterCommand characterCommand = new CharacterCommand();
     public DowntimeCommand downtimeCommand;
 
@@ -99,7 +108,14 @@ public class SkysongStats extends JavaPlugin {
             return;
         }
         InitializeDatabase();
+        try {
+            database.dumpDatabaseData();
+        }catch (SQLException e){
+            getLogger().log(Level.WARNING, "Unable to load the profiles, skills and characters from the database", e);
+        }
         InitializeDowntime();
+        // The stats come before the commands, listeners and placeholders that use them.
+        InitializeStats();
 
         InitializeCommands();
         AssignListeners();
@@ -111,37 +127,32 @@ public class SkysongStats extends JavaPlugin {
 
         super.onEnable();
 
-        try {
-            database.dumpDatabaseData();
-        }catch (SQLException e){
-            Bukkit.getLogger().warning("[SkysongStats] Unable to dump stats into the plugin!");
-            e.printStackTrace();
-        }
-        InitializeStats();
         Bukkit.getScheduler().runTaskTimer(this, new Pinger(), 0L, 6000L);
 
     }
 
     public void InitializeCommands(){
-        getCommand("heal").setExecutor(addHP);
-        getCommand("addhp").setExecutor(addHP);
-        getCommand("damage").setExecutor(damageHP);
-        getCommand("reducehp").setExecutor(reduceHP);
-        getCommand("rhp").setExecutor(reduceHP);
-        getCommand("dhp").setExecutor(damageHP);
-        getCommand("temphp").setExecutor(tempHp);
+        Supplier<List<String>> onlinePlayers = () -> Bukkit.getOnlinePlayers().stream().map(Player::getName).toList();
+        CommandTargets targets = new CommandTargets(statService, utils.getProfileManager()::activeCharacter,
+                Bukkit::getPlayer, texts);
+        StatActionRunner runner = new StatActionRunner(statService, targets, texts);
+        StatsRootCommand statsCommand = new StatsRootCommand(statService, runner, targets,
+                new StatSheet(statService, texts), texts, onlinePlayers);
+        getCommand("stats").setExecutor(statsCommand);
+        getCommand("sstats").setExecutor(statsCommand);
+        getCommand("modifier").setExecutor(new StatModifierCommand(statService, targets, texts, onlinePlayers));
+        // The per-stat names from stats.yml (/heal, /damage, /temphp...).
+        statCommands = new StatCommandRegistry(getServer().getCommandMap(), getName().toLowerCase(Locale.ROOT),
+                label -> new StatAliasCommand(label, statService, runner, texts, onlinePlayers));
+        statPermissions = new StatPermissionRegistry(getServer().getPluginManager());
+        registerStatCommands();
 
-        getCommand("modifier").setExecutor(modifierCommand);
         getCommand("profile").setExecutor(profileCommand);
         getCommand("setup").setExecutor(setupCommand);
         getCommand("skills").setExecutor(skillsCommand);
-        getCommand("sstats").setExecutor(statsCommand);
         getCommand("ssreload").setExecutor(new ReloadCommand());
         getCommand("schar").setExecutor(characterCommand);
         getCommand("char").setExecutor(characterCommand);
-        getCommand("stats").setExecutor(statsCommand);
-        getCommand("ac").setExecutor(new ACCommand());
-        getCommand("potionsickness").setExecutor(new PotionSickness());
         downtimeCommand = new DowntimeCommand(downtimeService);
         getCommand("downtime").setExecutor(downtimeCommand);
         //getCommand("fictis").setExecutor(new Fictis());
@@ -152,10 +163,11 @@ public class SkysongStats extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new PlayerRegisterListener(), this);
         getServer().getPluginManager().registerEvents(new ProfileUpdateListener(), this);
         getServer().getPluginManager().registerEvents(new SkillLevelListener(), this);
-        getServer().getPluginManager().registerEvents(new StatPointsGUIListener(), this);
+        getServer().getPluginManager().registerEvents(new StatSetupListener(), this);
         getServer().getPluginManager().registerEvents(new SkillAllocGUIListener(), this);
         getServer().getPluginManager().registerEvents(new PlayerShiftRightClickListener(), this);
-        getServer().getPluginManager().registerEvents(new AfflictionsListener(), this);
+        getServer().getPluginManager().registerEvents(
+                new ItemTagListener(statService, utils.getProfileManager()::activeCharacter), this);
     }
 
     public void InitializeDowntime(){
@@ -171,8 +183,22 @@ public class SkysongStats extends JavaPlugin {
         }
     }
 
+    // Registers the command names and permissions of the current stats.yml, and
+    // updates the command lists players see.
+    private void registerStatCommands(){
+        List<String> taken = statCommands.register(statService.definitions());
+        taken.forEach(label -> getLogger().log(Level.WARNING,
+                "Another plugin already has /{0}, use /skysongstats:{0} for that stat command", label));
+        statPermissions.register(statService.definitions());
+        Bukkit.getOnlinePlayers().forEach(Player::updateCommands);
+    }
+
     @Override
     public void onDisable() {
+        if (statCommands != null) {
+            statCommands.unregisterAll();
+            statPermissions.unregisterAll();
+        }
         if (statStorage != null) {
             statStorage.close();
         }
@@ -238,6 +264,7 @@ public class SkysongStats extends JavaPlugin {
         }
         if (statService != null) {
             statService.setDefinitions(statsConfig.stats());
+            registerStatCommands();
         }
     }
 

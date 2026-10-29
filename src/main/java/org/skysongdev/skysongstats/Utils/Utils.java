@@ -21,10 +21,6 @@ public class Utils {
         return skillManager;
     }
 
-    public StatsManager getStatsManager() {
-        return statsManager;
-    }
-
     public ProfileManager getProfileManager() {
         return profileManager;
     }
@@ -34,7 +30,6 @@ public class Utils {
     }
 
     private final SkillManager skillManager = new SkillManager();
-    private final StatsManager statsManager = new StatsManager();
     private final ProfileManager profileManager = new ProfileManager();
     private final CharacterManager characterManager = new CharacterManager();
 
@@ -43,35 +38,6 @@ public class Utils {
     }
     public static MiniMessage getMiniMessage(){ return mm; }
 
-    public enum StaticStats{
-        STRENGTH,
-        DEXTERITY,
-        CONSTITUTION,
-        FOCUS,
-        SPEED,
-        MAXHP,
-        FICTIS_MAX,
-        ARCROT_MAX,
-        POTION_MAX,
-        ARCROT,
-        FICTIS;
-
-        public static String getStatName(StaticStats stat){
-            return switch(stat){
-                case STRENGTH -> "Strength";
-                case DEXTERITY -> "Dexterity";
-                case CONSTITUTION -> "Constitution";
-                case FOCUS -> "Focus";
-                case SPEED -> "Speed";
-                case MAXHP -> "Max HP";
-                case FICTIS_MAX -> "Fictis Max";
-                case ARCROT_MAX -> "Arcrot Max";
-                case POTION_MAX -> "Potion Max";
-                case ARCROT -> "Arcrot";
-                case FICTIS -> "Fictis";
-            };
-        }
-    }
     public enum Skills{
         ANIMAL_HANDLING(0),
         FARMING(1),
@@ -190,66 +156,6 @@ public class Utils {
         }
     }
 
-    public static int toInt(StaticStats stat){
-        return switch (stat) {
-            case StaticStats.STRENGTH -> 0;
-            case StaticStats.DEXTERITY -> 1;
-            case StaticStats.CONSTITUTION -> 2;
-            case StaticStats.FOCUS -> 3;
-            case StaticStats.SPEED -> 4;
-            case StaticStats.MAXHP -> 5;
-            case StaticStats.FICTIS_MAX -> 6;
-            case StaticStats.ARCROT_MAX -> 7;
-            case StaticStats.POTION_MAX -> 8;
-            case StaticStats.ARCROT -> 9;
-            case StaticStats.FICTIS -> 10;
-        };
-    }
-
-    public static StaticStats toStatEnum(int id){
-        return switch(id){
-            case 0 -> StaticStats.STRENGTH;
-            case 1 -> StaticStats.DEXTERITY;
-            case 2 -> StaticStats.CONSTITUTION;
-            case 3 -> StaticStats.FOCUS;
-            case 4 -> StaticStats.SPEED;
-            case 5 -> StaticStats.MAXHP;
-            case 6 -> StaticStats.FICTIS_MAX;
-            case 7 -> StaticStats.ARCROT_MAX;
-            case 8 -> StaticStats.POTION_MAX;
-            case 9 -> StaticStats.ARCROT;
-            case 10 -> StaticStats.FICTIS;
-            default -> null;
-        };
-    }
-
-    public static boolean isAStat(String input){
-        switch(input.toLowerCase()){
-            case "strength":
-            case "str":
-            case "dexterity":
-            case "dex":
-            case "constitution":
-            case "con":
-            case "speed":
-            case "spd":
-            case "focus":
-            case "foc":
-            case "hp":
-            case "temphp":
-            case "maxhp":
-            case "arcrot":
-            case "fictis":
-            case "potion":
-            case "ac":
-            case "fictis-max":
-            case "arcrot-max":
-            case "potion-max":
-                return true;
-            default:
-                return false;
-        }
-    }
 
     public static boolean isASkill(String input){
         switch(input.toLowerCase()){

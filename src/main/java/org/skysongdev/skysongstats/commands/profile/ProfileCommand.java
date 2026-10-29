@@ -49,7 +49,7 @@ public class ProfileCommand implements TabExecutor {
                 break;
             case "view":
                 getPlugin().getMessages().send(commandSender, "profile.current",
-                        Map.of("profile", getPlugin().getUtils().getProfileManager().findActiveStats(player.getUniqueId().toString()).getProfile()));
+                        Map.of("profile", getPlugin().getUtils().getProfileManager().getActiveProfileName(player.getUniqueId().toString())));
                 break;
             default:
                 getPlugin().getMessages().send(commandSender, "profile.invalid-subcommand");

@@ -70,7 +70,7 @@ public final class Messages {
      * {@link #playerStyledText(String)}.
      */
     public Component get(String key, Map<String, String> placeholders, Map<String, Component> components) {
-        return render(String.join("\n", lines(key)), placeholders, components);
+        return render(String.join("\n", rawLines(key)), placeholders, components);
     }
 
     public List<Component> getLines(String key) {
@@ -83,7 +83,7 @@ public final class Messages {
 
     /** The message as one component per line; a single line gives a list of one. */
     public List<Component> getLines(String key, Map<String, String> placeholders, Map<String, Component> components) {
-        return lines(key).stream().map(line -> render(line, placeholders, components)).toList();
+        return rawLines(key).stream().map(line -> render(line, placeholders, components)).toList();
     }
 
     public void send(CommandSender sender, String key) {
@@ -99,7 +99,11 @@ public final class Messages {
         getLines(key, placeholders, components).forEach(sender::sendMessage);
     }
 
-    private List<String> lines(String key) {
+    /**
+     * The message's lines as written in the file, placeholders not filled in, with
+     * the same fallback to the bundled text as the other methods.
+     */
+    public List<String> rawLines(String key) {
         return readLines(texts, key).orElseGet(() -> defaultLines(key));
     }
 
@@ -149,7 +153,7 @@ public final class Messages {
             return MINI_MESSAGE.escapeTags(placeholders.get(name));
         }
         if (name.equals(PREFIX_KEY)) {
-            return String.join("", lines(PREFIX_KEY));
+            return String.join("", rawLines(PREFIX_KEY));
         }
         return unknown;
     }

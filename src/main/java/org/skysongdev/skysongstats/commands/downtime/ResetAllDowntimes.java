@@ -4,8 +4,7 @@ import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.jetbrains.annotations.NotNull;
-import org.skysongdev.skysongstats.Utils.StatsManager;
-import org.skysongdev.skysongstats.database.PlayerStats;
+import org.skysongdev.skysongstats.storage.ProfileKey;
 import org.skysongdev.skysongstats.service.downtime.DowntimeService;
 
 import java.util.ArrayList;
@@ -30,18 +29,11 @@ public class ResetAllDowntimes implements CommandExecutor {
         return true;
     }
 
-    /** Every player with a stats profile, with all their profile names, so players without downtime rows get refilled too. */
+    /** Every player's profiles, so players without downtime rows get refilled too. */
     static Map<UUID, List<String>> knownProfiles() {
         Map<UUID, List<String>> profiles = new HashMap<>();
-        if (StatsManager.statsProfileList == null) {
-            return profiles;
-        }
-        for (PlayerStats stats : StatsManager.statsProfileList) {
-            try {
-                profiles.computeIfAbsent(UUID.fromString(stats.getUuid()), uuid -> new ArrayList<>()).add(stats.getProfile());
-            } catch (IllegalArgumentException e) {
-                // A malformed UUID in skysong_stats: skip it, its downtime cannot be stored either.
-            }
+        for (ProfileKey character : getPlugin().getStatService().characters()) {
+            profiles.computeIfAbsent(character.player(), uuid -> new ArrayList<>()).add(character.profile());
         }
         return profiles;
     }

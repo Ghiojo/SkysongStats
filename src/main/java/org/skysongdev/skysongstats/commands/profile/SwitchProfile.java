@@ -11,7 +11,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.skysongdev.skysongstats.SkysongStats;
 import org.skysongdev.skysongstats.database.PlayerSkills;
-import org.skysongdev.skysongstats.database.PlayerStats;
 import org.skysongdev.skysongstats.events.ProfileUpdateEvent;
 
 import java.util.ArrayList;
@@ -28,13 +27,11 @@ public class SwitchProfile implements TabExecutor {
             getPlugin().getMessages().send(commandSender, "profile.switch.usage");
             return true;
         }
-        if(SkysongStats.getPlugin().getUtils().getStatsManager().findStats(player.getUniqueId().toString(), strings[0]) == null){
+        if(!getPlugin().getUtils().getProfileManager().hasProfile(player.getUniqueId(), strings[0])){
             getPlugin().getMessages().send(commandSender, "profile.switch.not-found");
             return true;
         }
-        PlayerStats stat = SkysongStats.getPlugin().getUtils().getStatsManager().findStats(player.getUniqueId().toString(), strings[0]);
-
-        SkysongStats.getPlugin().getUtils().getProfileManager().setProfile(stat);
+        getPlugin().getUtils().getProfileManager().setProfile(player.getUniqueId().toString(), strings[0]);
         try{
             getPlugin().getDatabase().updateActiveProfileData(getPlugin().getUtils().getProfileManager().findActiveProfile(player.getUniqueId().toString()));
         } catch (Exception e){

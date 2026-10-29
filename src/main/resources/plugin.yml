@@ -18,34 +18,6 @@ commands:
     description: "Reload the plugin"
     usage: "/statsreload"
     permission: "skysongstats.reload"
-  damage:
-    description: "deal damage to yourself"
-    usage: "/damage [player]"
-    permission: "skysongstats.damage"
-  dhp:
-    description: "deal damage to yourself"
-    usage: "/dhp [player]"
-    permission: "skysongstats.dhp"
-  reducehp:
-    description: "reduce your health"
-    usage: "/reducehp [player]"
-    permission: "skysongstats.reducehp"
-  rhp:
-    description: "reduce your health"
-    usage: "/rhp [player]"
-    permission: "skysongstats.rhp"
-  temphp:
-    description: "View your temporary health"
-    usage: "/temphp [player]"
-    permission: "skysongstats.temphp"
-  heal:
-    description: "heal yourself"
-    usage: "/heal [player]"
-    permission: "skysongstats.heal"
-  addhp:
-    description: "heal yourself"
-    usage: "/damagehp [player]"
-    permission: "skysongstats.damagehp"
   skills:
     description: "View your skills"
     usage: "/skills [player]"
@@ -82,16 +54,9 @@ commands:
     description: "View your stats"
     usage: "/stats [player]"
     permission: "skysongstats.stats"
-  ac:
-    description: "Set your AC"
-    usage: "/ac [player] [amount]"
-    permission: "skysongstats.ac"
   arcrot:
     description: "Set your Arcane Resistance"
     usage: "/arcrot [player] [amount]"
-  potionsickness:
-    description: "Set your potion sickness"
-    usage: "/potionsickness [player] [amount]"
   fictis:
     description: "Set your fictis"
     usage: "/fictis [player] [amount]"
@@ -101,15 +66,11 @@ commands:
     aliases:
       - dt
 permissions:
-  skysongstats.heal.other:
-    description: "Allows you to heal other players"
-    default: op
-  skysongstats.damage.other:
-    description: "Allows you to damage other players"
-    default: op
-  skysongstats.temphp.other:
-    description: "Allows you to view other players temporary health"
-    default: op
+  # The stat command nodes (skysongstats.stat.<stat>.<action>[.other]) are made
+  # from stats.yml when the plugin starts and on /ssreload.
+  skysongstats.stats.view.other:
+    description: "Allows you to view other players' stat sheets"
+    default: true
   skysongstats.reload:
     description: "Allows you to reload the plugin"
     default: op
@@ -128,12 +89,6 @@ permissions:
   skysongstats.setxp:
     description: "Allows you to set xp to yourself"
     default: op
-  skysongstats.stats.add:
-    description: "Allows you to add stats to yourself"
-    default: op
-  skysongstats.stats.set:
-    description: "Allows you to set stats to yourself"
-    default: op
   skysongstats.downtime.manage:
     description: "Allows you to add, remove and reset downtime"
     default: op
@@ -144,17 +99,13 @@ permissions:
     description: "Wildcard permission"
     default: op
     children:
-        skysongstats.heal.other: true
-        skysongstats.damage.other: true
-        skysongstats.temphp.other: true
         skysongstats.reload: true
+        skysongstats.stats.view.other: true
         skysongstats.modifier.add.other: true
         skysongstats.modifier.del.other: true
         skysongstats.modifier.view.other: true
         skysongstats.addxp: true
         skysongstats.setxp: true
-        skysongstats.stats.add: true
-        skysongstats.stats.set: true
 
   skysongstats.skill.animalhandling.novice:
     description: "Allows you to use the novice animal handling skill"

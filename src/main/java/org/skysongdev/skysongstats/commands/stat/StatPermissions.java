@@ -8,7 +8,7 @@ import org.skysongdev.skysongstats.definition.StatDefinition;
 //   skysongstats.stat.<id>.<action>.other  use it on someone else
 //   skysongstats.stat.<id>.view.other      see someone else's value
 public final class StatPermissions {
-    private static final String PREFIX = "skysongstats.stat.";
+    static final String PREFIX = "skysongstats.stat.";
     private static final String OTHER = ".other";
 
     private StatPermissions() {

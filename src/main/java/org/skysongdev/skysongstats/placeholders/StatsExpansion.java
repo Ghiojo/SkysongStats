@@ -5,14 +5,53 @@ import me.clip.placeholderapi.expansion.PlaceholderExpansion;
 import org.bukkit.entity.Player;
 import org.skysongdev.skysongstats.SkysongStats;
 import org.skysongdev.skysongstats.Utils.Utils;
-import org.skysongdev.skysongstats.database.PlayerSkills;
-import org.skysongdev.skysongstats.database.PlayerStats;
+import org.skysongdev.skysongstats.database.CharacterProfile;
 
+import java.util.HashMap;
+import java.util.Locale;
+import java.util.Map;
+import java.util.function.Function;
+
+// %skysongstats_<name>%. Stat placeholders come from stats.yml (see
+// StatPlaceholders): <stat>, <stat>_base, <stat>_modifiers, max_<bar>... Then the
+// skill levels (<skill id>), the character sheet fields (character_<field>) and
+// downtime (global_downtime, character_downtime).
 public class StatsExpansion extends PlaceholderExpansion {
 
     private final SkysongStats plugin;
+    private final StatPlaceholders stats;
+    private final Map<String, Function<Player, String>> others = new HashMap<>();
 
-    public StatsExpansion(SkysongStats plugin) { this.plugin = plugin; }
+    public StatsExpansion(SkysongStats plugin) {
+        this.plugin = plugin;
+        this.stats = new StatPlaceholders(plugin.getStatService());
+        for (Utils.Skills skill : Utils.Skills.values()) {
+            others.put(Utils.Skills.getSkillid(skill), player -> Integer.toString(
+                    plugin.getUtils().getSkillManager().findActiveSkills(player.getUniqueId().toString()).getSkill(skill)));
+        }
+        character("name", CharacterProfile::getName);
+        character("age", CharacterProfile::getAge);
+        character("gender", CharacterProfile::getGender);
+        character("pronouns", CharacterProfile::getPronouns);
+        character("ancestry", CharacterProfile::getAncestry);
+        character("description", CharacterProfile::getDescription);
+        others.put("global_downtime", player -> Integer.toString(plugin.getDowntimeService().getGlobal(player.getUniqueId())));
+        others.put("character_downtime", this::characterDowntime);
+    }
+
+    private void character(String field, Function<CharacterProfile, String> value) {
+        others.put("character_" + field, player -> value.apply(
+                plugin.getUtils().getCharacterManager().findActiveCharacter(player.getUniqueId().toString())));
+    }
+
+    private String characterDowntime(Player player) {
+        String profileName = plugin.getUtils().getProfileManager().getActiveProfileName(player.getUniqueId().toString());
+        if (profileName == null) {
+            return "0";
+        }
+        return Integer.toString(plugin.getDowntimeService().getCharacter(player.getUniqueId(), profileName));
+    }
+
     @Override
     public String getAuthor() {
         return "Ghiojo"; //
@@ -28,262 +67,20 @@ public class StatsExpansion extends PlaceholderExpansion {
         return "1.0.0"; //
     }
 
-    public String onPlaceholderRequest(Player player,String params){
-        PlayerStats stats = plugin.getUtils().getProfileManager().findActiveStats(player.getUniqueId().toString());
-        PlayerSkills skills = plugin.getUtils().getSkillManager().findActiveSkills(player.getUniqueId().toString());
-        String returnString;
+    @Override
+    public String onPlaceholderRequest(Player player, String params) {
+        return plugin.getUtils().getProfileManager().activeCharacter(player)
+                .flatMap(character -> stats.resolve(character, params))
+                .orElseGet(() -> otherPlaceholder(player, params));
+    }
 
-        switch(params.toLowerCase()){
-            case "strength":
-                returnString = Integer.toString(stats.getStrength());
-                returnString = PlaceholderAPI.setPlaceholders(player, returnString);
-                return returnString;
-            case "dexterity":
-                returnString = Integer.toString(stats.getDexterity());
-                returnString = PlaceholderAPI.setPlaceholders(player, returnString);
-                return returnString;
-            case "constitution":
-                returnString = Integer.toString(stats.getConstitution());
-                returnString = PlaceholderAPI.setPlaceholders(player, returnString);
-                return returnString;
-            case "focus":
-                returnString = Integer.toString(stats.getFocus());
-                returnString = PlaceholderAPI.setPlaceholders(player, returnString);
-                return returnString;
-            case "speed":
-                returnString = Integer.toString(stats.getSpeed());
-                returnString = PlaceholderAPI.setPlaceholders(player, returnString);
-                return returnString;
-            case "potion":
-                returnString = Integer.toString(stats.getPotion());
-                returnString = PlaceholderAPI.setPlaceholders(player, returnString);
-                return returnString;
-            case "potion_max":
-                returnString = Integer.toString(stats.getPotion_max());
-                returnString = PlaceholderAPI.setPlaceholders(player, returnString);
-                return returnString;
-            case "arcrot":
-                returnString = Integer.toString(stats.getArcrot());
-                returnString = PlaceholderAPI.setPlaceholders(player, returnString);
-                return returnString;
-            case "arcrot_max":
-                returnString = Integer.toString(stats.getArcrot_max());
-                returnString = PlaceholderAPI.setPlaceholders(player, returnString);
-                return returnString;
-            case "fictis":
-                returnString = Integer.toString(stats.getFictis());
-                returnString = PlaceholderAPI.setPlaceholders(player, returnString);
-                return returnString;
-            case "fictis_max":
-                returnString = Integer.toString(stats.getFictis_max());
-                returnString = PlaceholderAPI.setPlaceholders(player, returnString);
-                return returnString;
-            case "hp":
-                returnString = Integer.toString(stats.getHp());
-                returnString = PlaceholderAPI.setPlaceholders(player, returnString);
-                return returnString;
-            case "hp_max":
-                returnString = Integer.toString(stats.getHp_max());
-                returnString = PlaceholderAPI.setPlaceholders(player, returnString);
-                return returnString;
-            case "temp_hp":
-                returnString = Integer.toString(stats.getTemp_hp());
-                returnString = PlaceholderAPI.setPlaceholders(player, returnString);
-                return returnString;
-            case "ac":
-                returnString = Integer.toString(stats.getAc());
-                returnString = PlaceholderAPI.setPlaceholders(player, returnString);
-                return returnString;
-            //Skills
-            case "animalhandling":
-                returnString = Integer.toString(skills.getSkill(Utils.Skills.ANIMAL_HANDLING));
-                returnString = PlaceholderAPI.setPlaceholders(player, returnString);
-                return returnString;
-            case "farming":
-                returnString = Integer.toString(skills.getSkill(Utils.Skills.FARMING));
-                returnString = PlaceholderAPI.setPlaceholders(player, returnString);
-                return returnString;
-            case "forestry":
-                returnString = Integer.toString(skills.getSkill(Utils.Skills.FORESTRY));
-                returnString = PlaceholderAPI.setPlaceholders(player, returnString);
-                return returnString;
-            case "mining":
-                returnString = Integer.toString(skills.getSkill(Utils.Skills.MINING));
-                returnString = PlaceholderAPI.setPlaceholders(player, returnString);
-                return returnString;
-            case "mistgathering":
-                returnString = Integer.toString(skills.getSkill(Utils.Skills.MIST_GATHERING));
-                returnString = PlaceholderAPI.setPlaceholders(player, returnString);
-                return returnString;
-            case "woodprocessing":
-                returnString = Integer.toString(skills.getSkill(Utils.Skills.WOOD_PROCESSING));
-                returnString = PlaceholderAPI.setPlaceholders(player, returnString);
-                return returnString;
-            case "alchemy":
-                returnString = Integer.toString(skills.getSkill(Utils.Skills.ALCHEMY));
-                returnString = PlaceholderAPI.setPlaceholders(player, returnString);
-                return returnString;
-            case "artificing":
-                returnString = Integer.toString(skills.getSkill(Utils.Skills.ARTIFICING));
-                returnString = PlaceholderAPI.setPlaceholders(player, returnString);
-                return returnString;
-            case "cooking":
-                returnString = Integer.toString(skills.getSkill(Utils.Skills.COOKING));
-                returnString = PlaceholderAPI.setPlaceholders(player, returnString);
-                return returnString;
-            case "craftsman":
-                returnString = Integer.toString(skills.getSkill(Utils.Skills.CRAFTSMAN));
-                returnString = PlaceholderAPI.setPlaceholders(player, returnString);
-                return returnString;
-            case "metalworking":
-                returnString = Integer.toString(skills.getSkill(Utils.Skills.METALWORKING));
-                returnString = PlaceholderAPI.setPlaceholders(player, returnString);
-                return returnString;
-            case "witchcraft":
-                returnString = Integer.toString(skills.getSkill(Utils.Skills.WITCHCRAFT));
-                returnString = PlaceholderAPI.setPlaceholders(player, returnString);
-                return returnString;
-            case "economical":
-                returnString = Integer.toString(skills.getSkill(Utils.Skills.ECONOMICAL));
-                returnString = PlaceholderAPI.setPlaceholders(player, returnString);
-                return returnString;
-            case "entertainment":
-                returnString = Integer.toString(skills.getSkill(Utils.Skills.ENTERTAINMENT));
-                returnString = PlaceholderAPI.setPlaceholders(player, returnString);
-                return returnString;
-            case "martial":
-                returnString = Integer.toString(skills.getSkill(Utils.Skills.MARTIAL));
-                returnString = PlaceholderAPI.setPlaceholders(player, returnString);
-                return returnString;
-            case "medical":
-                returnString = Integer.toString(skills.getSkill(Utils.Skills.MEDICAL));
-                returnString = PlaceholderAPI.setPlaceholders(player, returnString);
-                return returnString;
-            case "tande":
-                returnString = Integer.toString(skills.getSkill(Utils.Skills.TRANSPORTATION_AND_EXPLORATION));
-                returnString = PlaceholderAPI.setPlaceholders(player, returnString);
-                return returnString;
-            //Modifiers
-            case "strength_modifiers":
-                returnString = Integer.toString(stats.getStrengthModifiers());
-                returnString = PlaceholderAPI.setPlaceholders(player, returnString);
-                return returnString;
-            case "dexterity_modifiers":
-                returnString = Integer.toString(stats.getDexterityModifiers());
-                returnString = PlaceholderAPI.setPlaceholders(player, returnString);
-                return returnString;
-            case "constitution_modifiers":
-                returnString = Integer.toString(stats.getConstitutionModifiers());
-                returnString = PlaceholderAPI.setPlaceholders(player, returnString);
-                return returnString;
-            case "focus_modifiers":
-                returnString = Integer.toString(stats.getFocusModifiers());
-                returnString = PlaceholderAPI.setPlaceholders(player, returnString);
-                return returnString;
-            case "speed_modifiers":
-                returnString = Integer.toString(stats.getSpeedModifiers());
-                returnString = PlaceholderAPI.setPlaceholders(player, returnString);
-                return returnString;
-            case "maxhp_modifiers":
-                returnString = Integer.toString(stats.getMaxHPModifiers());
-                returnString = PlaceholderAPI.setPlaceholders(player, returnString);
-                return returnString;
-            case "maxpotion_modifiers":
-                returnString = Integer.toString(stats.getMaxPotionModifiers());
-                returnString = PlaceholderAPI.setPlaceholders(player, returnString);
-                return returnString;
-            case "maxarcrot_modifiers":
-                returnString = Integer.toString(stats.getMaxArcrotModifiers());
-                returnString = PlaceholderAPI.setPlaceholders(player, returnString);
-                return returnString;
-            case "maxfictis_modifiers":
-                returnString = Integer.toString(stats.getMaxFictisModifiers());
-                returnString = PlaceholderAPI.setPlaceholders(player, returnString);
-                return returnString;
-            //Full Modifiers
-            case "str_full":
-                returnString = Integer.toString(stats.getStrength() + stats.getStrengthModifiers());
-                returnString = PlaceholderAPI.setPlaceholders(player, returnString);
-                return returnString;
-            case "dex_full":
-                returnString = Integer.toString(stats.getDexterity() + stats.getDexterityModifiers());
-                returnString = PlaceholderAPI.setPlaceholders(player, returnString);
-                return returnString;
-            case "con_full":
-                returnString = Integer.toString(stats.getConstitution() + stats.getConstitutionModifiers());
-                returnString = PlaceholderAPI.setPlaceholders(player, returnString);
-                return returnString;
-            case "foc_full":
-                returnString = Integer.toString(stats.getFocus() + stats.getFocusModifiers());
-                returnString = PlaceholderAPI.setPlaceholders(player, returnString);
-                return returnString;
-            case "spd_full":
-                returnString = Integer.toString(stats.getSpeed() + stats.getSpeedModifiers());
-                returnString = PlaceholderAPI.setPlaceholders(player, returnString);
-                return returnString;
-            case "maxhp_full":
-                returnString = Integer.toString(stats.getHp_max() + stats.getMaxHPModifiers());
-                returnString = PlaceholderAPI.setPlaceholders(player, returnString);
-                return returnString;
-            case "maxpotion_full":
-                returnString = Integer.toString(stats.getPotion_max() + stats.getMaxPotionModifiers());
-                returnString = PlaceholderAPI.setPlaceholders(player, returnString);
-                return returnString;
-            case "maxarcrot_full":
-                returnString = Integer.toString(stats.getArcrot_max() + stats.getMaxArcrotModifiers());
-                returnString = PlaceholderAPI.setPlaceholders(player, returnString);
-                return returnString;
-            case "maxfictis_full":
-                returnString = Integer.toString(stats.getFictis_max() + stats.getMaxFictisModifiers());
-                returnString = PlaceholderAPI.setPlaceholders(player, returnString);
-                return returnString;
-            case "arcrot_full":
-                returnString = Integer.toString(stats.getArcrot() + stats.getArcrotModifiers());
-                returnString = PlaceholderAPI.setPlaceholders(player, returnString);
-                return returnString;
-            case "fictis_full":
-                returnString = Integer.toString(stats.getFictis() + stats.getFictisModifiers());
-                returnString = PlaceholderAPI.setPlaceholders(player, returnString);
-                return returnString;
-            //Character Sheet
-            case "character_name":
-                returnString = plugin.getUtils().getCharacterManager().findActiveCharacter(player.getUniqueId().toString()).getName();
-                returnString = PlaceholderAPI.setPlaceholders(player, returnString);
-                return returnString;
-            case "character_age":
-                returnString = plugin.getUtils().getCharacterManager().findActiveCharacter(player.getUniqueId().toString()).getAge();
-                returnString = PlaceholderAPI.setPlaceholders(player, returnString);
-                return returnString;
-            case "character_gender":
-                returnString = plugin.getUtils().getCharacterManager().findActiveCharacter(player.getUniqueId().toString()).getGender();
-                returnString = PlaceholderAPI.setPlaceholders(player, returnString);
-                return returnString;
-            case "character_pronouns":
-                returnString = plugin.getUtils().getCharacterManager().findActiveCharacter(player.getUniqueId().toString()).getPronouns();
-                returnString = PlaceholderAPI.setPlaceholders(player, returnString);
-                return returnString;
-            case "character_ancestry":
-                returnString = plugin.getUtils().getCharacterManager().findActiveCharacter(player.getUniqueId().toString()).getAncestry();
-                returnString = PlaceholderAPI.setPlaceholders(player, returnString);
-                return returnString;
-            case "character_description":
-                returnString = plugin.getUtils().getCharacterManager().findActiveCharacter(player.getUniqueId().toString()).getDescription();
-                returnString = PlaceholderAPI.setPlaceholders(player, returnString);
-                return returnString;
-            case "global_downtime":
-                returnString = Integer.toString(plugin.getDowntimeService().getGlobal(player.getUniqueId()));
-                returnString = PlaceholderAPI.setPlaceholders(player, returnString);
-                return returnString;
-            case "character_downtime":
-                String profileName = plugin.getUtils().getProfileManager().getActiveProfileName(player.getUniqueId().toString());
-                if (profileName == null) {
-                    return "0";
-                }
-                returnString = Integer.toString(plugin.getDowntimeService().getCharacter(player.getUniqueId(), profileName));
-                returnString = PlaceholderAPI.setPlaceholders(player, returnString);
-                return returnString;
+    // null for names this plugin doesn't know.
+    private String otherPlaceholder(Player player, String params) {
+        Function<Player, String> other = others.get(params.toLowerCase(Locale.ROOT));
+        if (other == null) {
+            return null;
         }
-
-        return null;
+        // Character fields are player-written text that may hold placeholders, as before.
+        return PlaceholderAPI.setPlaceholders(player, other.apply(player));
     }
 }

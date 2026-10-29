@@ -37,12 +37,8 @@ public class Database {
     }
     public void initializeDatabase() throws SQLException{
         Statement buildStatement = getConnection().createStatement();
-        String sql = "CREATE TABLE IF NOT EXISTS skysong_stats(id INT AUTO_INCREMENT primary key , uuid varchar(36), profile varchar(20), strength INT, dexterity INT, focus INT, constitution INT, speed INT, arcrot INT, potion INT, fictis INT, hp INT, temphp INT, ac INT)";
-        buildStatement.execute(sql);
         String sqlactive = "CREATE TABLE IF NOT EXISTS skysong_active_stats(uuid varchar(36) primary key, profile varchar(20))";
         buildStatement.execute(sqlactive);
-        String sqlmodifiers = "CREATE TABLE IF NOT EXISTS skysong_modifiers(id INT AUTO_INCREMENT primary key, uuid varchar(36), profile varchar(20), modid INT, stat INT, modifier INT)";
-        buildStatement.execute(sqlmodifiers);
         String sqlSkills = "CREATE TABLE IF NOT EXISTS skysong_skills(id INT AUTO_INCREMENT primary key, uuid varchar(36), profile varchar(20), animal_handling INT, farming INT, forestry INT, mining INT, mist_gathering INT, wood_processing INT, alchemy INT, artificing INT, cooking INT, craftsman INT, metalworking INT, tailoring INT, witchcraft INT, economical INT, entertainment INT, martial INT, medical INT, transportation_and_exploration INT)";
         buildStatement.execute(sqlSkills);
         String sqlSetup = "CREATE TABLE IF NOT EXISTS skysong_setup(id INT AUTO_INCREMENT primary key, uuid varchar(36), profile varchar(20), setup BOOLEAN)";
@@ -58,94 +54,6 @@ public class Database {
         buildStatement.close();
     }
 
-    //Stats Handling
-    public void createStatData(PlayerStats data) throws SQLException{
-        PreparedStatement statement = getConnection().prepareStatement("INSERT INTO skysong_stats(uuid, profile, strength, dexterity, focus, constitution, speed, arcrot, potion, fictis, hp, temphp, ac) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
-        statement.setString(1, data.getUuid());
-        statement.setString(2, data.getProfile());
-        statement.setInt(3, data.getStrength());
-        statement.setInt(4, data.getDexterity());
-        statement.setInt(5, data.getFocus());
-        statement.setInt(6, data.getConstitution());
-        statement.setInt(7, data.getSpeed());
-        statement.setInt(8, data.getArcrot());
-        statement.setInt(9, data.getPotion());
-        statement.setInt(10, data.getFictis());
-        statement.setInt(11, data.getHp());
-        statement.setInt(12, data.getTemp_hp());
-        statement.setInt(13, data.getAc());
-
-        statement.executeUpdate();
-        statement.close();
-    }
-    public void updateStatData(PlayerStats data) throws SQLException{
-        PreparedStatement statement = getConnection().prepareStatement("UPDATE skysong_stats SET strength = ?, dexterity = ?, focus = ?, constitution = ?, speed = ?, arcrot = ?, potion = ?, fictis = ?, hp = ?, temphp = ?, ac = ? WHERE uuid = ? AND profile = ?");
-
-        statement.setInt(1, data.getStrength());
-        statement.setInt(2, data.getDexterity());
-        statement.setInt(3, data.getFocus());
-        statement.setInt(4, data.getConstitution());
-        statement.setInt(5, data.getSpeed());
-        statement.setInt(6, data.getArcrot());
-        statement.setInt(7, data.getPotion());
-        statement.setInt(8, data.getFictis());
-        statement.setInt(9, data.getHp());
-        statement.setInt(10, data.getTemp_hp());
-        statement.setInt(11, data.getAc());
-        statement.setString(12, data.getUuid());
-        statement.setString(13, data.getProfile());
-
-        statement.executeUpdate();
-        statement.close();
-    }
-    public void deleteStatData(PlayerStats data) throws SQLException{
-        PreparedStatement statement = getConnection().prepareStatement("DELETE FROM skysong_stats WHERE uuid = ? AND profile = ?");
-        statement.setString(1, data.getUuid());
-        statement.setString(2, data.getProfile());
-        statement.executeUpdate();
-        statement.close();
-    }
-    public PlayerStats findStats(String uuid, String profile) throws SQLException{
-        Statement statement = getConnection().createStatement();
-        String sql = "SELECT * FROM skysong_stats WHERE uuid = \"" + uuid + "\" AND profile = \"" + profile + "\"";
-        ResultSet results = statement.executeQuery(sql);
-        Statement modStatement = getConnection().createStatement();
-        String modsql = "SELECT * FROM skysong_modifiers WHERE uuid = \"" + uuid + "\" AND profile = \"" + profile + "\"";
-        ResultSet modifiers = modStatement.executeQuery(modsql);
-
-        if(results.next()){
-            int strength = results.getInt("strength");
-            int dexterity = results.getInt("dexterity");
-            int focus = results.getInt("focus");
-            int constitution = results.getInt("constitution");
-            int speed = results.getInt("speed");
-            int arcrot = results.getInt("arcrot");
-            int potion = results.getInt("potion");
-            int fictis = results.getInt("fictis");
-            int ac = results.getInt("ac");
-            int hp = results.getInt("hp");
-            int temphp = results.getInt("temphp");
-            ArrayList<Modifier> modarray = new ArrayList<Modifier>();
-            while(modifiers.next()){
-                modarray.add(new Modifier(Utils.toStatEnum(modifiers.getInt("stat")), modifiers.getInt("modifier")));
-            }
-
-            PlayerStats playerStats = new PlayerStats(uuid, profile, strength, dexterity, constitution, focus, speed, ac, potion, arcrot, fictis, hp, temphp, modarray);
-            statement.close();
-            results.close();
-            modifiers.close();
-
-            return playerStats;
-        }
-
-        statement.close();
-        results.close();
-        modifiers.close();
-        modStatement.close();
-        return null;
-    }
-
-
     //Active Profile Handling
     public void createActiveProfileData(ProfileIndex data) throws SQLException{
         PreparedStatement statement = getConnection().prepareStatement("INSERT INTO skysong_active_stats(uuid, profile) VALUES (?, ?)");
@@ -160,36 +68,6 @@ public class Database {
         statement.setString(1, activestat.getProfile());
         statement.setString(2, activestat.getUuid());
 
-        statement.executeUpdate();
-        statement.close();
-    }
-
-    //Modifier Handling
-    public void createModifierData(PlayerStats data, int index) throws SQLException{
-        PreparedStatement statement = getConnection().prepareStatement("INSERT INTO skysong_modifiers(uuid, profile, modid, stat, modifier) VALUES (?, ?, ?, ?, ?)");
-        statement.setString(1, data.getUuid());
-        statement.setString(2, data.getProfile());
-        statement.setInt(3, index);
-        statement.setInt(4, Utils.toInt(data.getModifierFromList(index).getStat()));
-        statement.setInt(5, data.getModifierFromList(index).getModifier());
-        statement.executeUpdate();
-        statement.close();
-    }
-    public void updateModifierData(PlayerStats data, int index) throws SQLException{
-        PreparedStatement statement = getConnection().prepareStatement("UPDATE skysong_modifiers SET stat = ?, modifier = ? WHERE uuid = ? AND profile = ? AND modid = ?");
-        statement.setInt(1, Utils.toInt(data.getModifierFromList(index).getStat()));
-        statement.setInt(2, data.getModifierFromList(index).getModifier());
-        statement.setString(3, data.getUuid());
-        statement.setString(4, data.getProfile());
-        statement.setInt(5, index);
-        statement.executeUpdate();
-        statement.close();
-    }
-    public void deleteModifierData(PlayerStats data, int index) throws SQLException{
-        PreparedStatement statement = getConnection().prepareStatement("DELETE FROM skysong_modifiers WHERE uuid = ? AND profile = ? AND modid = ?");
-        statement.setString(1, data.getUuid());
-        statement.setString(2, data.getProfile());
-        statement.setInt(3, index);
         statement.executeUpdate();
         statement.close();
     }
@@ -294,48 +172,10 @@ public class Database {
 
     //Data Dumping
     public void dumpDatabaseData() throws SQLException{
-        dumpStatsDatabase();
         dumpActiveStatsDatabase();
         dumpSkillsDatabase();
         dumpSetupDatabase();
         dumpCharacterDatabase();
-    }
-    public void dumpStatsDatabase() throws SQLException{
-        StatsManager.statsProfileList = new ArrayList<PlayerStats>();
-        Statement statement = getConnection().createStatement();
-        String sql = "SELECT * FROM skysong_stats";
-        ResultSet results = statement.executeQuery(sql);
-
-        while(results.next()){
-            ArrayList<Modifier> modarray = new ArrayList<Modifier>();
-            String uuid = results.getString("uuid");
-            String profile = results.getString("profile");
-            int strength = results.getInt("strength");
-            int dexterity = results.getInt("dexterity");
-            int constitution = results.getInt("constitution");
-            int focus = results.getInt("focus");
-            int speed = results.getInt("speed");
-            int potion = results.getInt("potion");
-            int arcrot = results.getInt("arcrot");
-            int fictis = results.getInt("fictis");
-            int hp = results.getInt("hp");
-            int temp_hp = results.getInt("temphp");
-            int ac = results.getInt("ac");
-            Statement modStatement = getConnection().createStatement();
-            String modsql = "SELECT * FROM skysong_modifiers WHERE uuid = \"" + uuid + "\" AND profile = \"" + profile + "\"";
-            ResultSet modifiers = modStatement.executeQuery(modsql);
-
-            while(modifiers.next()){
-                modarray.add(new Modifier(Utils.toStatEnum(modifiers.getInt("stat")), modifiers.getInt("modifier")));
-            }
-
-            PlayerStats playerStats = new PlayerStats(uuid, profile, strength, dexterity, constitution, focus, speed, ac, potion, arcrot, fictis, hp, temp_hp, modarray);
-            StatsManager.statsProfileList.add(playerStats);
-
-            modifiers.close();
-            modStatement.close();
-        }
-        statement.close();
     }
     public void dumpActiveStatsDatabase() throws SQLException{
         ProfileManager.activeProfiles = new ArrayList<ProfileIndex>();
@@ -413,7 +253,7 @@ public class Database {
     //Miscellaneous
     public boolean checkForUUID(String uuid) throws SQLException{
         Statement statement = getConnection().createStatement();
-        String sql = "SELECT * from skysong_stats WHERE uuid = \"" + uuid + "\"";
+        String sql = "SELECT * from skysong_active_stats WHERE uuid = \"" + uuid + "\"";
         ResultSet results = statement.executeQuery(sql);
         boolean isPlayer = results.next();
         statement.close();
@@ -422,7 +262,7 @@ public class Database {
 
     public void Ping() throws SQLException{
         Statement statement = getConnection().createStatement();
-        String sql = "SELECT * from skysong_stats";
+        String sql = "SELECT * from skysong_active_stats";
         ResultSet results = statement.executeQuery(sql);
         statement.close();
     }
