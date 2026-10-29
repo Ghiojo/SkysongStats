@@ -6,12 +6,12 @@ import org.bukkit.command.TabExecutor;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.skysongdev.skysongstats.Utils.Utils;
 import org.skysongdev.skysongstats.service.downtime.DowntimeService;
 
 import java.util.List;
+import java.util.Map;
 
-import static org.skysongdev.skysongstats.Utils.Utils.PLUGIN_TAG;
+import static org.skysongdev.skysongstats.SkysongStats.getPlugin;
 
 public class ViewDowntime implements TabExecutor {
     private final DowntimeService downtime;
@@ -24,7 +24,7 @@ public class ViewDowntime implements TabExecutor {
     public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String @NotNull [] args) {
         boolean self = args.length == 0;
         if (args.length > 1 || (self && !(sender instanceof Player))) {
-            sender.sendMessage(Utils.getMiniMessage().deserialize(PLUGIN_TAG + "<red>Usage: /downtime view <player>"));
+            getPlugin().getMessages().send(sender, "downtime.view.usage");
             return true;
         }
         DowntimeTarget target = self ? DowntimeTarget.of((Player) sender) : findOther(sender, args[0]);
@@ -36,7 +36,7 @@ public class ViewDowntime implements TabExecutor {
 
     private static DowntimeTarget findOther(CommandSender sender, String name) {
         if (!sender.hasPermission("skysongstats.downtime.view.others")) {
-            sender.sendMessage(Utils.getMiniMessage().deserialize(PLUGIN_TAG + "<red>You do not have permission to view other players' downtime."));
+            getPlugin().getMessages().send(sender, "downtime.view.no-permission-others");
             return null;
         }
         return DowntimeTarget.find(sender, name);
@@ -45,14 +45,14 @@ public class ViewDowntime implements TabExecutor {
     private void show(CommandSender sender, DowntimeTarget target) {
         String activeProfile = target.activeProfile();
         if (activeProfile == null) {
-            sender.sendMessage(Utils.getMiniMessage().deserialize(PLUGIN_TAG + "<red>" + target.name() + " has no active profile."));
+            getPlugin().getMessages().send(sender, "downtime.view.no-active-profile", Map.of("player", target.name()));
             return;
         }
-        sender.sendMessage(Utils.getMiniMessage().deserialize("<gold>" + target.name() + "<green>'s Downtime:"));
-        sender.sendMessage(Utils.getMiniMessage().deserialize("<green>- Global Downtime: <gold>" + downtime.getGlobal(target.uuid())));
-        sender.sendMessage(Utils.getMiniMessage().deserialize("<green>- Character Downtime: <gold>" + downtime.getCharacter(target.uuid(), activeProfile)));
-        String preference = downtime.spendsGlobal(target.uuid()) ? "Global" : "Character";
-        sender.sendMessage(Utils.getMiniMessage().deserialize("<green>- Active Downtime Spending Preference: <gold>" + preference));
+        getPlugin().getMessages().send(sender, "downtime.view.lines", Map.of(
+                "player", target.name(),
+                "global", String.valueOf(downtime.getGlobal(target.uuid())),
+                "character", String.valueOf(downtime.getCharacter(target.uuid(), activeProfile)),
+                "preference", DowntimeTarget.preferenceName(downtime.spendsGlobal(target.uuid()))));
     }
 
     @Override

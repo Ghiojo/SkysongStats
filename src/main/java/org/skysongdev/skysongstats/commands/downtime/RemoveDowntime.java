@@ -5,13 +5,13 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabExecutor;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.skysongdev.skysongstats.Utils.Utils;
 import org.skysongdev.skysongstats.service.downtime.DowntimeChange;
 import org.skysongdev.skysongstats.service.downtime.DowntimeService;
 
 import java.util.List;
 
-import static org.skysongdev.skysongstats.Utils.Utils.PLUGIN_TAG;
+import static org.skysongdev.skysongstats.SkysongStats.getPlugin;
+
 
 public class RemoveDowntime implements TabExecutor {
     private final DowntimeService downtime;
@@ -23,7 +23,7 @@ public class RemoveDowntime implements TabExecutor {
     @Override
     public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String @NotNull [] args) {
         if (args.length < 2) {
-            sender.sendMessage(Utils.getMiniMessage().deserialize(PLUGIN_TAG + "<red>Usage: /downtime remove <amount> <player> [global/profile]"));
+            getPlugin().getMessages().send(sender, "downtime.remove.usage");
             return true;
         }
         int amount = DowntimeTarget.parseAmount(sender, args[0]);
@@ -48,9 +48,8 @@ public class RemoveDowntime implements TabExecutor {
             }
             change = downtime.removeCharacter(target.uuid(), profile, amount);
         }
-        String where = change.profile() == null ? "global downtime" : change.profile() + " profile downtime";
-        String clamped = -change.delta() < amount ? " (stopped at 0)" : "";
-        sender.sendMessage(Utils.getMiniMessage().deserialize(PLUGIN_TAG + "<green>Successfully removed " + (-change.delta()) + " downtime from " + target.name() + "'s " + where + ", now " + change.newValue() + "." + clamped));
+        String key = "downtime.remove." + (change.profile() == null ? "global" : "profile") + (-change.delta() < amount ? "-stopped" : "");
+        getPlugin().getMessages().send(sender, key, DowntimeTarget.changePlaceholders(target, change, -change.delta()));
     }
 
     @Override

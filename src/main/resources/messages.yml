@@ -13,3 +13,47 @@ prefix: "<dark_gray>[<gold>SkysongStats<dark_gray>] "
 general:
   no-permission: "{prefix}<red>You don't have permission to use this command!"
   reloaded: "{prefix}<gray>Config Reloaded!"
+
+downtime:
+  usage: "{prefix}<red>Invalid arguments! Use /downtime <subcommand>"
+  unknown-subcommand: "{prefix}<red>Unknown subcommand!"
+  no-permission: "{prefix}<red>You do not have permission to use this command."
+  players-only: "{prefix}<red>Only players can set downtime preferences!"
+  # {player}
+  player-not-found: "{prefix}<red>Player {player} not found or has no profile."
+  # {profile}, {player}
+  profile-not-found: "{prefix}<red>Profile {profile} not found for player {player}."
+  invalid-amount: "{prefix}<red>Amount must be a whole number of 1 or more."
+  # The words {preference} becomes in the messages below.
+  preference-global: "Global"
+  preference-character: "Character"
+  add:
+    usage: "{prefix}<red>Usage: /downtime add <amount> <player> <global/profile>"
+    # {amount}, {player}, {total}; the -capped versions are used when the maximum stopped the change.
+    global: "{prefix}<green>Added {amount} downtime to player {player}'s global downtime, now {total}."
+    global-capped: "{prefix}<green>Added {amount} downtime to player {player}'s global downtime, now {total}. (capped at the maximum)"
+    # {amount}, {player}, {profile}, {total}
+    profile: "{prefix}<green>Added {amount} downtime to player {player}'s profile {profile}, now {total}."
+    profile-capped: "{prefix}<green>Added {amount} downtime to player {player}'s profile {profile}, now {total}. (capped at the maximum)"
+  remove:
+    usage: "{prefix}<red>Usage: /downtime remove <amount> <player> [global/profile]"
+    # {amount}, {player}, {total}; the -stopped versions are used when the downtime reached 0.
+    global: "{prefix}<green>Successfully removed {amount} downtime from {player}'s global downtime, now {total}."
+    global-stopped: "{prefix}<green>Successfully removed {amount} downtime from {player}'s global downtime, now {total}. (stopped at 0)"
+    # {amount}, {player}, {profile}, {total}
+    profile: "{prefix}<green>Successfully removed {amount} downtime from {player}'s {profile} profile downtime, now {total}."
+    profile-stopped: "{prefix}<green>Successfully removed {amount} downtime from {player}'s {profile} profile downtime, now {total}. (stopped at 0)"
+  view:
+    usage: "{prefix}<red>Usage: /downtime view <player>"
+    no-permission-others: "{prefix}<red>You do not have permission to view other players' downtime."
+    # {player}
+    no-active-profile: "{prefix}<red>{player} has no active profile."
+    # {player}, {global}, {character}, {preference}
+    lines:
+      - "<gold>{player}<green>'s Downtime:"
+      - "<green>- Global Downtime: <gold>{global}"
+      - "<green>- Character Downtime: <gold>{character}"
+      - "<green>- Active Downtime Spending Preference: <gold>{preference}"
+  # {preference}
+  preference-set: "{prefix}<green>Your downtime spending preference has been set to <gold>{preference}<green>."
+  reset-all: "{prefix}<green>All downtimes have been reset successfully."
