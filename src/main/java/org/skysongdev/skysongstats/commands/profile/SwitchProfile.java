@@ -10,13 +10,13 @@ import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.skysongdev.skysongstats.SkysongStats;
-import org.skysongdev.skysongstats.Utils.Utils;
 import org.skysongdev.skysongstats.database.PlayerSkills;
 import org.skysongdev.skysongstats.database.PlayerStats;
 import org.skysongdev.skysongstats.events.ProfileUpdateEvent;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import static org.skysongdev.skysongstats.SkysongStats.getPlugin;
 
@@ -25,11 +25,11 @@ public class SwitchProfile implements TabExecutor {
     public boolean onCommand(@NotNull CommandSender commandSender, @NotNull Command command, @NotNull String s, @NotNull String[] strings) {
         Player player = (Player) commandSender;
         if(strings.length < 1){
-            commandSender.sendMessage(Utils.getMiniMessage().deserialize(Utils.PLUGIN_TAG + "<red>Too Little arguments! (Usage: /profile create (name))"));
+            getPlugin().getMessages().send(commandSender, "profile.switch.usage");
             return true;
         }
         if(SkysongStats.getPlugin().getUtils().getStatsManager().findStats(player.getUniqueId().toString(), strings[0]) == null){
-            commandSender.sendMessage(Utils.getMiniMessage().deserialize(Utils.PLUGIN_TAG + "<red>You have no profile with that name!"));
+            getPlugin().getMessages().send(commandSender, "profile.switch.not-found");
             return true;
         }
         PlayerStats stat = SkysongStats.getPlugin().getUtils().getStatsManager().findStats(player.getUniqueId().toString(), strings[0]);
@@ -44,7 +44,7 @@ public class SwitchProfile implements TabExecutor {
         ProfileUpdateEvent event = new ProfileUpdateEvent(player, player.getUniqueId().toString(), strings[0]);
         Bukkit.getPluginManager().callEvent(event);
 
-        commandSender.sendMessage(Utils.getMiniMessage().deserialize(Utils.PLUGIN_TAG + "<green>Profile switched to " + strings[0]));
+        getPlugin().getMessages().send(commandSender, "profile.switch.switched", Map.of("profile", strings[0]));
 
         return true;
     }

@@ -38,7 +38,7 @@ public class PlayerRegisterListener implements Listener {
             downtime.setPreference(event.getPlayer().getUniqueId(), false);
         }
         if(!getPlugin().getUtils().getProfileManager().findActiveSetupProfile(event.getPlayer().getUniqueId().toString()).isSetUp()){
-            event.getPlayer().sendMessage(getPlugin().getUtils().getMiniMessage().deserialize(getPlugin().getUtils().PLUGIN_TAG + "<green>You have yet to set up your profile! Use /setup to get started!"));
+            getPlugin().getMessages().send(event.getPlayer(), "profile.setup-reminder");
         }
     }
 }

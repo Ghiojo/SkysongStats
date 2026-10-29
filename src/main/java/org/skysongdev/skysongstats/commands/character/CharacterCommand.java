@@ -6,10 +6,11 @@ import org.bukkit.command.TabExecutor;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.skysongdev.skysongstats.Utils.Utils;
 
 import java.util.Arrays;
 import java.util.List;
+
+import static org.skysongdev.skysongstats.SkysongStats.getPlugin;
 
 public class CharacterCommand implements TabExecutor {
     ViewCharacter viewCharacter = new ViewCharacter();
@@ -32,7 +33,7 @@ public class CharacterCommand implements TabExecutor {
                 setField.onCommand(commandSender, command, s, newArgs);
                 break;
             default:
-                commandSender.sendMessage(Utils.getMiniMessage().deserialize(Utils.PLUGIN_TAG + "<red>Invalid subcommand!"));
+                getPlugin().getMessages().send(commandSender, "character.invalid-subcommand");
                 break;
         }
         return true;

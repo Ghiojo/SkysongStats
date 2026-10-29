@@ -2,6 +2,9 @@ package org.skysongdev.skysongstats.messages;
 
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.minimessage.MiniMessage;
+import net.kyori.adventure.text.minimessage.tag.resolver.Placeholder;
+import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver;
+import net.kyori.adventure.text.minimessage.tag.standard.StandardTags;
 import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.ConfigurationSection;
 
@@ -28,6 +31,13 @@ public final class Messages {
     public static final String PREFIX_KEY = "prefix";
     private static final Pattern PLACEHOLDER = Pattern.compile("\\{([a-z0-9_-]+)}");
     private static final MiniMessage MINI_MESSAGE = MiniMessage.miniMessage();
+    // What players may use in text they write for others to read, such as their
+    // character sheet: colours and text styles, but no click, hover or other
+    // interactive tags.
+    private static final MiniMessage PLAYER_STYLES = MiniMessage.builder()
+            .tags(TagResolver.resolver(StandardTags.color(), StandardTags.decorations(), StandardTags.gradient(),
+                    StandardTags.rainbow(), StandardTags.reset()))
+            .build();
 
     private final ConfigurationSection texts;
     private final ConfigurationSection defaults;
@@ -45,31 +55,56 @@ public final class Messages {
         return readLines(texts, key).or(() -> readLines(defaults, key)).isPresent();
     }
 
+    /**
+     * Text a player wrote for others to read, with the colours and text styles it
+     * uses (MiniMessage) and any other tag shown as written. Pass the result as a
+     * component placeholder.
+     */
+    public static Component playerStyledText(String text) {
+        return PLAYER_STYLES.deserialize(text);
+    }
+
     public Component get(String key) {
         return get(key, Map.of());
     }
 
-    /** The message as one component; a list of lines is joined with line breaks. */
     public Component get(String key, Map<String, String> placeholders) {
-        return render(String.join("\n", lines(key)), placeholders);
+        return get(key, placeholders, Map.of());
+    }
+
+    /**
+     * The message as one component; a list of lines is joined with line breaks.
+     * {@code components} fill placeholders with ready-made components, such as
+     * {@link #playerStyledText(String)}.
+     */
+    public Component get(String key, Map<String, String> placeholders, Map<String, Component> components) {
+        return render(String.join("\n", lines(key)), placeholders, components);
     }
 
     public List<Component> getLines(String key) {
         return getLines(key, Map.of());
     }
 
-    /** The message as one component per line; a single line gives a list of one. */
     public List<Component> getLines(String key, Map<String, String> placeholders) {
-        return lines(key).stream().map(line -> render(line, placeholders)).toList();
+        return getLines(key, placeholders, Map.of());
+    }
+
+    /** The message as one component per line; a single line gives a list of one. */
+    public List<Component> getLines(String key, Map<String, String> placeholders, Map<String, Component> components) {
+        return lines(key).stream().map(line -> render(line, placeholders, components)).toList();
     }
 
     public void send(CommandSender sender, String key) {
         send(sender, key, Map.of());
     }
 
-    /** Sends each line of the message as its own chat line. */
     public void send(CommandSender sender, String key, Map<String, String> placeholders) {
-        getLines(key, placeholders).forEach(sender::sendMessage);
+        send(sender, key, placeholders, Map.of());
+    }
+
+    /** Sends each line of the message as its own chat line. */
+    public void send(CommandSender sender, String key, Map<String, String> placeholders, Map<String, Component> components) {
+        getLines(key, placeholders, components).forEach(sender::sendMessage);
     }
 
     private List<String> lines(String key) {
@@ -99,17 +134,25 @@ public final class Messages {
         }
     }
 
-    private Component render(String text, Map<String, String> placeholders) {
+    // Text placeholders are written into the MiniMessage text, escaped. Component
+    // placeholders become a <name> tag that MiniMessage fills with the component.
+    private Component render(String text, Map<String, String> placeholders, Map<String, Component> components) {
         Matcher matcher = PLACEHOLDER.matcher(text);
         StringBuilder result = new StringBuilder();
         while (matcher.find()) {
-            matcher.appendReplacement(result, Matcher.quoteReplacement(valueOf(matcher.group(1), placeholders, matcher.group())));
+            matcher.appendReplacement(result, Matcher.quoteReplacement(valueOf(matcher.group(1), placeholders, components, matcher.group())));
         }
         matcher.appendTail(result);
-        return MINI_MESSAGE.deserialize(result.toString());
+        TagResolver[] componentTags = components.entrySet().stream()
+                .map(entry -> Placeholder.component(entry.getKey(), entry.getValue()))
+                .toArray(TagResolver[]::new);
+        return MINI_MESSAGE.deserialize(result.toString(), componentTags);
     }
 
-    private String valueOf(String name, Map<String, String> placeholders, String unknown) {
+    private String valueOf(String name, Map<String, String> placeholders, Map<String, Component> components, String unknown) {
+        if (components.containsKey(name)) {
+            return "<" + name + ">";
+        }
         if (placeholders.containsKey(name)) {
             return MINI_MESSAGE.escapeTags(placeholders.get(name));
         }

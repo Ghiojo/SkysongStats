@@ -9,10 +9,10 @@ import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.skysongdev.skysongstats.SkysongStats;
-import org.skysongdev.skysongstats.Utils.Utils;
 import org.skysongdev.skysongstats.database.*;
 
 import java.util.List;
+import java.util.Map;
 
 import static org.skysongdev.skysongstats.SkysongStats.getPlugin;
 
@@ -23,15 +23,15 @@ public class CreateProfile implements TabExecutor {
     public boolean onCommand(@NotNull CommandSender commandSender, @NotNull Command command, @NotNull String s, @NotNull String[] strings) {
         Player player = (Player) commandSender;
         if(strings.length < 1){
-            commandSender.sendMessage(Utils.getMiniMessage().deserialize(Utils.PLUGIN_TAG + "<gray>Too Little arguments! (Usage: /profile create (name))"));
+            getPlugin().getMessages().send(commandSender, "profile.create.usage");
             return true;
         }
         if(getPlugin().getUtils().getStatsManager().findStats(player.getUniqueId().toString(), strings[0]) != null){
-            commandSender.sendMessage(Utils.getMiniMessage().deserialize(Utils.PLUGIN_TAG  + "<gray> already have a profile with this name!"));
+            getPlugin().getMessages().send(commandSender, "profile.create.already-exists");
             return true;
         }
         if(strings[0].length() > 20){
-            commandSender.sendMessage(Utils.getMiniMessage().deserialize(Utils.PLUGIN_TAG +  "<gray>Profile name is too long! (Max 20 characters)"));
+            getPlugin().getMessages().send(commandSender, "profile.create.name-too-long");
             return true;
         }
 
@@ -54,7 +54,7 @@ public class CreateProfile implements TabExecutor {
         getPlugin().getDowntimeService().getCharacter(player.getUniqueId(), strings[0]);
 
 
-        player.sendMessage(Utils.getMiniMessage().deserialize(Utils.PLUGIN_TAG +  "<gray>Profile \"" + strings[0] + "\" has been created!"));
+        getPlugin().getMessages().send(player, "profile.create.created", Map.of("profile", strings[0]));
 
         return true;
     }

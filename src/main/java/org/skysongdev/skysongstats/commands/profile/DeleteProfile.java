@@ -9,10 +9,10 @@ import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.skysongdev.skysongstats.SkysongStats;
-import org.skysongdev.skysongstats.Utils.Utils;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 
 import static org.skysongdev.skysongstats.SkysongStats.getPlugin;
@@ -23,17 +23,17 @@ public class DeleteProfile implements TabExecutor {
     public boolean onCommand(@NotNull CommandSender commandSender, @NotNull Command command, @NotNull String s, @NotNull String[] strings) {
         Player player = (Player) commandSender;
         if(strings.length < 1){
-            commandSender.sendMessage(Utils.getMiniMessage().deserialize(Utils.PLUGIN_TAG + "<red>Too Little arguments! (Usage: /profile create (name))"));
+            getPlugin().getMessages().send(commandSender, "profile.delete.usage");
             return true;
         }
         if(getPlugin().getUtils().getStatsManager().findStats(player.getUniqueId().toString(), strings[0]) == null){
-            commandSender.sendMessage(Utils.getMiniMessage().deserialize(Utils.PLUGIN_TAG + "<red>There's no profile with that name!"));
+            getPlugin().getMessages().send(commandSender, "profile.delete.not-found");
             return true;
         }
         String activeProfile = getPlugin().getUtils().getProfileManager().findActiveStats(player.getUniqueId().toString()).getProfile();
         String targetProfile = getPlugin().getUtils().getStatsManager().findStats(player.getUniqueId().toString(), strings[0]).getProfile();
         if(activeProfile.equals(targetProfile)){
-            commandSender.sendMessage(Utils.getMiniMessage().deserialize(Utils.PLUGIN_TAG + "<red>You cannot delete the profile you are currently on, switch profiles before doing so!"));
+            getPlugin().getMessages().send(commandSender, "profile.delete.active");
             return true;
         }
 
@@ -45,7 +45,7 @@ public class DeleteProfile implements TabExecutor {
 
         getPlugin().getUtils().getProfileManager().findAllProfiles(player.getUniqueId().toString()).remove(strings[0]);
 
-        player.sendMessage(Utils.getMiniMessage().deserialize(Utils.PLUGIN_TAG + "<gray>Profile \"" + strings[0] + "\" has been deleted!"));
+        getPlugin().getMessages().send(player, "profile.delete.deleted", Map.of("profile", strings[0]));
         return true;
     }
 

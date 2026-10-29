@@ -114,4 +114,18 @@ class MessagesTest {
         assertEquals("general.nope", plain(messages(DEFAULTS).get("general.nope")));
         assertEquals(1, warnings.size());
     }
+
+    @Test
+    void fillsComponentPlaceholdersKeepingTheirStyle() {
+        Component styled = Messages.playerStyledText("<red>Mage");
+        Component hello = messages(DEFAULTS).get("general.hello", Map.of(), Map.of("player", styled));
+        assertEquals(MiniMessage.miniMessage().deserialize("<green>Hello <red>Mage"), hello.compact());
+    }
+
+    @Test
+    void playerStyledTextKeepsColoursButNotClickOrHover() {
+        Component text = Messages.playerStyledText("<bold><red>Hi</red></bold> <click:run_command:/op me>x</click><hover:show_text:y>z</hover>");
+        assertEquals("Hi <click:run_command:/op me>x</click><hover:show_text:y>z</hover>", plain(text));
+        assertEquals(MiniMessage.miniMessage().deserialize("<bold><red>Hi"), Messages.playerStyledText("<bold><red>Hi").compact());
+    }
 }
