@@ -40,16 +40,18 @@ public class StatService {
     public void load() {
         sheets.clear();
         repository.loadAll().forEach((key, stored) -> sheets.put(key, new CharacterSheet(key, stored)));
+        sheets.values().forEach(this::saveMissingValues);
     }
 
     public StatDefinitions definitions() {
         return definitions;
     }
 
-    // Swaps in a reloaded stats.yml. Bars that may no longer be above their max are
-    // brought down to it.
+    // Swaps in a reloaded stats.yml. Stats new to the file are saved at their
+    // starting value, and bars that are now above their max are brought down to it.
     public void setDefinitions(StatDefinitions definitions) {
         this.definitions = Objects.requireNonNull(definitions, "definitions");
+        sheets.values().forEach(this::saveMissingValues);
         sheets.values().forEach(this::clampBars);
     }
 
@@ -67,16 +69,12 @@ public class StatService {
         return sheet == null ? OptionalInt.empty() : calculator(sheet).value(name);
     }
 
-    // Creates a new character's sheet. Bars are saved at their start value so that
-    // a full bar doesn't keep following its max as stats change later.
+    // Creates a new character's sheet and saves every stat's starting value, so the
+    // database holds the whole character from the start (and a full bar doesn't
+    // keep following its max as stats change later).
     public CharacterSheet createCharacter(ProfileKey character) {
         CharacterSheet sheet = new CharacterSheet(character, new StoredStats(Map.of(), List.of()));
-        StatCalculator calculator = calculator(sheet);
-        for (StatDefinition stat : definitions.all()) {
-            if (stat.isBar()) {
-                save(sheet, stat, calculator.base(stat));
-            }
-        }
+        saveMissingValues(sheet);
         sheets.put(character, sheet);
         return sheet;
     }
@@ -183,6 +181,17 @@ public class StatService {
                     change(sheet, stat, calculator.base(stat));
                     report(sheet, stat, before);
                 }
+            }
+        }
+    }
+
+    // Saves the starting value of every stat the character has no saved value for:
+    // all of them for a new character, or the stats added to stats.yml since.
+    private void saveMissingValues(CharacterSheet sheet) {
+        StatCalculator calculator = calculator(sheet);
+        for (StatDefinition stat : definitions.all()) {
+            if (sheet.savedValue(stat.id()).isEmpty()) {
+                save(sheet, stat, calculator.base(stat));
             }
         }
     }
