@@ -1,5 +1,7 @@
 package org.skysongdev.skysongstats.commands.misc;
 
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 import org.bukkit.command.Command;
 import org.bukkit.event.HandlerList;
 import org.junit.jupiter.api.AfterEach;
@@ -11,9 +13,13 @@ import org.mockbukkit.mockbukkit.entity.PlayerMock;
 import org.skysongdev.skysongstats.SkysongStats;
 import org.skysongdev.skysongstats.service.downtime.DowntimeSettings;
 
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-/** /ssreload must apply changed downtime limits without a restart. */
+/** /ssreload must apply changed downtime limits and messages without a restart. */
 class ReloadCommandTest {
 
     private ServerMock server;
@@ -59,5 +65,34 @@ class ReloadCommandTest {
         PlayerMock player = server.addPlayer("Player");
         new ReloadCommand().onCommand(player, command, "ssreload", new String[0]);
         assertEquals(DowntimeSettings.defaults(), plugin.getDowntimeService().getSettings());
+    }
+
+    private static String plain(Component message) {
+        return PlainTextComponentSerializer.plainText().serialize(message);
+    }
+
+    @Test
+    void reloadTellsThePlayerWithTheMessageFromMessagesYml() {
+        PlayerMock player = server.addPlayer("Admin");
+        player.setOp(true);
+        new ReloadCommand().onCommand(player, command, "ssreload", new String[0]);
+        assertEquals("[SkysongStats] Config Reloaded!", plain(player.nextComponentMessage()));
+    }
+
+    @Test
+    void reloadWithoutPermissionSendsTheNoPermissionMessage() {
+        PlayerMock player = server.addPlayer("Player");
+        new ReloadCommand().onCommand(player, command, "ssreload", new String[0]);
+        assertEquals("[SkysongStats] You don't have permission to use this command!", plain(player.nextComponentMessage()));
+    }
+
+    @Test
+    void reloadReadsEditedMessages() throws IOException {
+        File file = new File(plugin.getDataFolder(), "messages.yml");
+        Files.writeString(file.toPath(), Files.readString(file.toPath()).replace("Config Reloaded!", "Recargado"));
+        PlayerMock player = server.addPlayer("Admin");
+        player.setOp(true);
+        new ReloadCommand().onCommand(player, command, "ssreload", new String[0]);
+        assertEquals("[SkysongStats] Recargado", plain(player.nextComponentMessage()));
     }
 }
