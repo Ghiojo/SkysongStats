@@ -62,7 +62,6 @@ class StatPlaceholdersTest {
         }
     };
 
-    private StatService service;
     private StatPlaceholders placeholders;
 
     private static StatDefinitions defaultStats() throws Exception {
@@ -74,7 +73,7 @@ class StatPlaceholdersTest {
 
     @BeforeEach
     void setUp() throws Exception {
-        service = new StatService(defaultStats(), NO_STORAGE, change -> { });
+        StatService service = new StatService(defaultStats(), NO_STORAGE, change -> { });
         service.createCharacter(ALICE);
         placeholders = new StatPlaceholders(service);
         service.apply(ALICE, service.definitions().get("con").orElseThrow(), StatAction.SET, 2);
