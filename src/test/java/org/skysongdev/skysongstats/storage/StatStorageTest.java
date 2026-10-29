@@ -52,4 +52,21 @@ class StatStorageTest {
             assertEquals(3, new SqlStatRepository(again).loadAll().get(alice).values().get("str"));
         }
     }
+
+    @Test
+    void skillXpIsSavedThroughTheSamePool() {
+        HikariDataSource pool = h2Pool();
+        String url = pool.getJdbcUrl();
+        ProfileKey alice = new ProfileKey(UUID.randomUUID(), "Default");
+        StatStorage storage = new StatStorage(pool, line -> { });
+        storage.skillRepository().createTables();
+        storage.skillRepository().saveXp(alice, "farming", 16);
+        storage.close();
+
+        HikariConfig config = new HikariConfig();
+        config.setJdbcUrl(url);
+        try (HikariDataSource again = new HikariDataSource(config)) {
+            assertEquals(16, new SqlSkillRepository(again).loadAll().get(alice).get("farming"));
+        }
+    }
 }
