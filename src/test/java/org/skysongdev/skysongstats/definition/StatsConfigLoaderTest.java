@@ -96,7 +96,15 @@ class StatsConfigLoaderTest {
         assertFalse(bar.bar().startAtMax());
         assertEquals(0, bar.bar().start());
         assertNull(bar.bar().shield());
+        assertFalse(bar.bar().canExceedMax());
         assertEquals(10, bar.bar().max().evaluate(id -> 0));
+    }
+
+    @Test
+    void barsCanBeAllowedAboveTheirMax() {
+        StatDefinition bar = load("stats:\n  arcrot: {type: bar, max: 35, can-exceed-max: true}\n")
+                .stats().get("arcrot").orElseThrow();
+        assertTrue(bar.bar().canExceedMax());
     }
 
     @Test
@@ -199,6 +207,8 @@ class StatsConfigLoaderTest {
         assertError("stats:\n  str: {baseline: 1.5}\n", "stats.str.baseline: '1.5' is not a whole number");
         assertError("stats:\n  hp: {type: bar, max: 10, start: half}\n", "stats.hp.start: 'half' is not a whole number");
         assertError("setup: {points: -1}\nstats: {}\n", "setup.points: can't be negative");
+        assertError("stats:\n  hp: {type: bar, max: 10, can-exceed-max: sometimes}\n",
+                "stats.hp.can-exceed-max: 'sometimes' must be true or false");
     }
 
     @Test
@@ -206,6 +216,7 @@ class StatsConfigLoaderTest {
         assertError("stats:\n  ac: {max: 10}\n", "stats.ac.max: only bars have 'max'");
         assertError("stats:\n  ac: {start: 1}\n", "stats.ac.start: only bars");
         assertError("stats:\n  ac: {shield: str}\n", "stats.ac.shield: only bars");
+        assertError("stats:\n  ac: {can-exceed-max: true}\n", "stats.ac.can-exceed-max: only bars");
     }
 
     @Test

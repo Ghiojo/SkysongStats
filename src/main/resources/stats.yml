@@ -11,6 +11,8 @@
 #   start                 bars: "max" or a number, the current value of a new character
 #   min                   lowest value (bars default to 0, values have no floor)
 #   shield                bars: a stat that absorbs "damage" first
+#   can-exceed-max        bars: true lets the current value go above the max (default
+#                         false: changes stop at the max)
 #   item-tags             Skysong item tags that add to the current value: the tag's
 #                         value on each item times the stack size, recounted from the
 #                         inventory; requires-charges: true only counts items with charges
@@ -132,6 +134,7 @@ stats:
     type: bar
     max: "9 + {con}"
     start: 0
+    can-exceed-max: true
     commands:
       set: [potionsickness]
   arcrot:
@@ -139,6 +142,7 @@ stats:
     type: bar
     max: "35 + {foc} * 2"
     start: 0
+    can-exceed-max: true
     item-tags:
       - tag: arcrot
       - tag: charged_arcrot
@@ -148,5 +152,6 @@ stats:
     type: bar
     max: "10 + {foc}"
     start: 0
+    can-exceed-max: true
     item-tags:
       - tag: fictis
