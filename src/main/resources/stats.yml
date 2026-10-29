@@ -1,0 +1,152 @@
+# SkysongStats stat definitions.
+#
+# Each entry under "stats:" is one stat; its key is the stat's id (lowercase
+# letters, digits, '_' and '-'). Fields:
+#   name, color, aliases  display name, MiniMessage colour, other names commands accept
+#   baseline              value a new character starts at
+#   type                  value (default) or bar (a current value and a max)
+#   max                   bars: a number or a formula such as "60 + {con} * 10".
+#                         Formulas use stat totals (base + modifiers); a bar's max
+#                         is {max_<id>}. Results are rounded down.
+#   start                 bars: "max" or a number, the current value of a new character
+#   min                   lowest value (bars default to 0, values have no floor)
+#   shield                bars: a stat that absorbs "damage" first
+#   item-tags             Skysong item tags that add to the current value: the tag's
+#                         value on each item times the stack size, recounted from the
+#                         inventory; requires-charges: true only counts items with charges
+#   commands              command names for this stat's actions: set, add, reduce,
+#                         damage. "/heal 5 Steve" below runs "/stats add hp 5 Steve".
+#   setup                 shows the stat in /setup: icon (a Material or
+#                         model:<namespace:id>), slot (0-26), how far below (min) and
+#                         above (max) the baseline it can go, and lore lines.
+#
+# Ids starting with "max_" are reserved: bar "hp" gives "max_hp" for its max.
+
+setup:
+  points: 7
+  negative-points: 3
+
+stats:
+  str:
+    name: "Strength"
+    aliases: [strength]
+    color: "<red>"
+    baseline: 0
+    setup:
+      icon: IRON_SWORD
+      slot: 9
+      min: -3
+      max: 4
+      lore:
+        - "<gray>Determines your character's Physical Strength"
+        - "<gray>Strength Affects:"
+        - "<gray> - Regular Melee Attack Chances (+1 per point)"
+        - "<gray> - Regular Melee Damage (+1 per two points over 0)"
+        - "<gray> - The types of Armor you can wear (some armors have STR requirements)"
+  dex:
+    name: "Dexterity"
+    aliases: [dexterity]
+    color: "<green>"
+    baseline: 0
+    setup:
+      icon: BOW
+      slot: 11
+      min: -3
+      max: 4
+      lore:
+        - "<gray>Determines your character's Balance and Coordination"
+        - "<gray>Dexterity Affects:"
+        - "<gray> - Ranged Attack Chances (+1 per point)"
+        - "<gray> - Finesse Weapon Melee Attack Chances (+1 per point)"
+        - "<gray> - AC granted by an armor's Dexterity Cap"
+  con:
+    name: "Constitution"
+    aliases: [constitution]
+    color: "<light_purple>"
+    baseline: 0
+    setup:
+      icon: APPLE
+      slot: 13
+      min: -3
+      max: 4
+      lore:
+        - "<gray>Determines your character's Health, Stamina and Resistance"
+        - "<gray>Constitution Affects:"
+        - "<gray> - Health (+10HP per point over 0)"
+        - "<gray> - Potion Sickness Tolerance (+1 per point)"
+        - "<gray> - Saves against Wounds (+1 per point)"
+  foc:
+    name: "Focus"
+    aliases: [focus]
+    color: "<blue>"
+    baseline: 0
+    setup:
+      icon: ENDER_EYE
+      slot: 15
+      min: -3
+      max: 4
+      lore:
+        - "<gray>Determines your character's attunement to the supernatural"
+        - "<gray>Focus Affects:"
+        - "<gray> - Spellcasting DCs and Attack Rolls (+1 per point)"
+        - "<gray> - Perception checks on the supernatural (+1 per point)"
+        - "<gray> - Your Arcrot Tolerance (+2 per point)"
+        - "<gray> - Your Fictis Tolerance (+1 per point)"
+  spd:
+    name: "Speed"
+    aliases: [speed]
+    color: "<blue>"
+    baseline: 6
+    setup:
+      icon: FEATHER
+      slot: 17
+      min: -3
+      max: 4
+      lore:
+        - "<gray>Determines your character's physical speed"
+        - "<gray>Speed Affects:"
+        - "<gray> - Movement Speed (+1 block per point)"
+
+  hp:
+    name: "HP"
+    type: bar
+    max: "60 + {con} * 10"
+    start: max
+    shield: temphp
+    commands:
+      add: [heal, addhp]
+      reduce: [reducehp, rhp]
+      damage: [damage, dhp]
+  temphp:
+    name: "Temp HP"
+    min: 0
+    commands:
+      set: [temphp]
+  ac:
+    name: "AC"
+    min: 0
+    commands:
+      set: [ac]
+  potion:
+    name: "Potion Sickness"
+    type: bar
+    max: "9 + {con}"
+    start: 0
+    commands:
+      set: [potionsickness]
+  arcrot:
+    name: "Arcrot"
+    type: bar
+    max: "35 + {foc} * 2"
+    start: 0
+    item-tags:
+      - tag: arcrot
+      - tag: charged_arcrot
+        requires-charges: true
+  fictis:
+    name: "Fictis"
+    type: bar
+    max: "10 + {foc}"
+    start: 0
+    item-tags:
+      - tag: fictis
