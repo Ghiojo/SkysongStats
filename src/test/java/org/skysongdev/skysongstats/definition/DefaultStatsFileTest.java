@@ -112,6 +112,15 @@ class DefaultStatsFileTest {
         }
     }
 
+    // Today only HP stops at its max; Arcrot, Fictis and Potion Sickness can go above it.
+    @Test
+    void onlyHpIsCappedAtItsMax() {
+        assertFalse(stat("hp").bar().canExceedMax());
+        for (String id : List.of("potion", "arcrot", "fictis")) {
+            assertTrue(stat(id).bar().canExceedMax(), id);
+        }
+    }
+
     @Test
     void tempHpShieldsHpFromDamage() {
         assertEquals("temphp", stat("hp").bar().shield());

@@ -107,7 +107,7 @@ public final class StatsConfigLoader {
         if (!type.equals("value")) {
             errors.add(path(id) + ".type: '" + type + "' is not a stat type, use 'value' or 'bar'");
         }
-        for (String barOnly : List.of("max", "start", "shield")) {
+        for (String barOnly : List.of("max", "start", "shield", "can-exceed-max")) {
             if (stat.contains(barOnly)) {
                 errors.add(path(id) + "." + barOnly + ": only bars have '" + barOnly + "' (add 'type: bar')");
             }
@@ -125,7 +125,7 @@ public final class StatsConfigLoader {
         }
         String shield = stat.getString("shield");
         return new BarSettings(max, startAtMax, startValue,
-                shield == null ? null : shield.trim().toLowerCase(Locale.ROOT));
+                shield == null ? null : shield.trim().toLowerCase(Locale.ROOT), readBoolean(stat, "can-exceed-max"));
     }
 
     private Formula readFormula(ConfigurationSection stat) {
@@ -230,6 +230,14 @@ public final class StatsConfigLoader {
             errors.add(where + ": " + e.getMessage());
             return Icon.parse("BARRIER");
         }
+    }
+
+    private boolean readBoolean(ConfigurationSection section, String key) {
+        if (section.contains(key) && !section.isBoolean(key)) {
+            errors.add(section.getCurrentPath() + "." + key + ": '" + section.get(key) + "' must be true or false");
+            return false;
+        }
+        return section.getBoolean(key, false);
     }
 
     private int readRequiredInt(ConfigurationSection section, String key) {
