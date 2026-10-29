@@ -201,16 +201,25 @@ public final class StatsConfigLoader {
         if (isBar) {
             errors.add(path(id) + ".setup: bars can't be allocated in /setup, only plain values");
         }
-        int slot = readRequiredInt(setup, "slot");
-        if (slot < 0 || slot >= GUI_SLOTS) {
-            errors.add(setup.getCurrentPath() + ".slot: must be between 0 and " + (GUI_SLOTS - 1));
-        }
+        int slot = readSlot(setup);
         int min = readRequiredInt(setup, "min");
         int max = readRequiredInt(setup, "max");
         if (min > 0 || max < 0) {
             errors.add(setup.getCurrentPath() + ": min must be 0 or less and max 0 or more (they are relative to the baseline)");
         }
         return new StatSetup(readIcon(setup), slot, min, max, setup.getStringList("lore"));
+    }
+
+    private int readSlot(ConfigurationSection setup) {
+        int slot = readRequiredInt(setup, "slot");
+        if (slot < 0 || slot >= GUI_SLOTS) {
+            errors.add(setup.getCurrentPath() + ".slot: must be between 0 and " + (GUI_SLOTS - 1));
+        }
+        if (slot == StatSetup.HEADER_SLOT || slot == StatSetup.CONFIRM_SLOT) {
+            errors.add(setup.getCurrentPath() + ".slot: slots " + StatSetup.HEADER_SLOT + " and "
+                    + StatSetup.CONFIRM_SLOT + " hold the /setup header and confirm button");
+        }
+        return slot;
     }
 
     private Icon readIcon(ConfigurationSection section) {

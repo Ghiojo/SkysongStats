@@ -290,6 +290,8 @@ class StatsConfigLoaderTest {
         assertError("stats:\n  str: {setup: {icon: \"model:bad\", slot: 1, min: 0, max: 1}}\n", "not a valid item model");
         assertError("stats:\n  str: {setup: {icon: FEATHER, min: 0, max: 1}}\n", "stats.str.setup.slot: missing");
         assertError("stats:\n  str: {setup: {icon: FEATHER, slot: 27, min: 0, max: 1}}\n", "must be between 0 and 26");
+        assertError("stats:\n  str: {setup: {icon: FEATHER, slot: 4, min: 0, max: 1}}\n", "hold the /setup header");
+        assertError("stats:\n  str: {setup: {icon: FEATHER, slot: 22, min: 0, max: 1}}\n", "hold the /setup header");
         assertError("stats:\n  str: {setup: {icon: FEATHER, slot: 1, min: 1, max: 2}}\n", "relative to the baseline");
         assertError("""
                 stats:
