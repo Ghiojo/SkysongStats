@@ -34,7 +34,7 @@ public final class CharacterSheet {
         return key;
     }
 
-    // The saved base value of a stat, or empty when it was never changed (it is
+    // The saved base value of a stat, or empty when none is saved yet (the stat is
     // then at its baseline or, for a bar, its start value).
     public OptionalInt savedValue(String statId) {
         Integer value = values.get(statId);

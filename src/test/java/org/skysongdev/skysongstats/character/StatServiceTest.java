@@ -131,8 +131,11 @@ class StatServiceTest {
     }
 
     @Test
-    void barsAreSavedAtTheirStartValueOnCreation() {
-        assertEquals(Map.of("hp", 60, "potion", 0, "arcrot", 0, "fictis", 0), repository.values.get(ALICE));
+    void everyStatIsSavedAtItsStartValueOnCreation() {
+        Map<String, Integer> expected = new HashMap<>(Map.of("str", 0, "dex", 0, "con", 0, "foc", 0, "spd", 6,
+                "hp", 60, "temphp", 0, "ac", 0, "potion", 0, "arcrot", 0));
+        expected.put("fictis", 0);
+        assertEquals(expected, repository.values.get(ALICE));
     }
 
     @Test
@@ -319,6 +322,18 @@ class StatServiceTest {
         assertEquals(70, restarted.value(ALICE, "max_hp").orElseThrow());
     }
 
+    @Test
+    void loadingSavesStatsTheCharacterHasNoValueFor() {
+        ProfileKey bob = new ProfileKey(UUID.randomUUID(), "main");
+        repository.saveValue(bob, "str", 2);
+        StatService restarted = new StatService(defaultStats, repository, change -> { });
+        restarted.load();
+        assertEquals(2, repository.values.get(bob).get("str"), "saved values are kept");
+        assertEquals(6, repository.values.get(bob).get("spd"));
+        assertEquals(60, repository.values.get(bob).get("hp"));
+        assertEquals(defaultStats.all().size(), repository.values.get(bob).size());
+    }
+
     // Bug 6: deleted profiles left their modifiers behind.
     @Test
     void deletingACharacterRemovesEverything() {
@@ -347,6 +362,7 @@ class StatServiceTest {
                 """));
         assertEquals(40, value("hp"));
         assertEquals(3, value("luck"));
+        assertEquals(3, repository.values.get(ALICE).get("luck"), "new stats are saved at their baseline");
         assertTrue(service.value(ALICE, "str").isEmpty(), "removed stats are hidden");
         assertEquals(0, repository.values.get(ALICE).get("arcrot"), "their saved values are kept");
     }
