@@ -28,13 +28,12 @@ public class ProfileCommand implements TabExecutor {
 
     @Override
     public boolean onCommand(@NotNull CommandSender commandSender, @NotNull Command command, @NotNull String s, @NotNull String[] strings) {
-        String[] newArgs = Arrays.copyOfRange(strings, 1, strings.length);
-        Player player = (Player) commandSender;
-
         if(strings.length < 1){
             getPlugin().getMessages().send(commandSender, "profile.usage");
             return true;
         }
+        String[] newArgs = Arrays.copyOfRange(strings, 1, strings.length);
+        Player player = (Player) commandSender;
 
         switch(strings[0].toLowerCase()) {
             case "create":
