@@ -4,6 +4,9 @@ main: org.skysongdev.skysongstats.SkysongStats
 api-version: '1.20'
 
 softdepend: [PlaceholderAPI, LuckPerms, Skysong_Items]
+# Downloaded by Paper at startup: the connection pool for the stat tables.
+libraries:
+  - com.zaxxer:HikariCP:6.2.1
 loadbefore: [CMI, CMILib]
 
 commands:

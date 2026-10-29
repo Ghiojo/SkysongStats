@@ -7,6 +7,7 @@ import org.bukkit.event.player.PlayerJoinEvent;
 import org.skysongdev.skysongstats.SkysongStats;
 import org.skysongdev.skysongstats.database.*;
 import org.skysongdev.skysongstats.service.downtime.DowntimeService;
+import org.skysongdev.skysongstats.storage.ProfileKey;
 
 import java.sql.SQLException;
 
@@ -36,6 +37,7 @@ public class PlayerRegisterListener implements Listener {
             downtime.getGlobal(event.getPlayer().getUniqueId());
             downtime.getCharacter(event.getPlayer().getUniqueId(), character.getProfile());
             downtime.setPreference(event.getPlayer().getUniqueId(), false);
+            getPlugin().getStatService().createCharacter(new ProfileKey(event.getPlayer().getUniqueId(), character.getProfile()));
         }
         if(!getPlugin().getUtils().getProfileManager().findActiveSetupProfile(event.getPlayer().getUniqueId().toString()).isSetUp()){
             getPlugin().getMessages().send(event.getPlayer(), "profile.setup-reminder");

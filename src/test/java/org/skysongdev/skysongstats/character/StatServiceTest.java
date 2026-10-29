@@ -131,6 +131,21 @@ class StatServiceTest {
     }
 
     @Test
+    void ensureCharacterKeepsAnExistingCharacter() {
+        service.apply(ALICE, stat("str"), StatAction.SET, 3);
+        service.ensureCharacter(ALICE);
+        assertEquals(3, value("str"));
+    }
+
+    @Test
+    void ensureCharacterCreatesAMissingCharacterAtItsStartValues() {
+        ProfileKey older = new ProfileKey(UUID.randomUUID(), "Default");
+        service.ensureCharacter(older);
+        assertEquals(6, service.value(older, "spd").orElseThrow());
+        assertEquals(6, repository.values.get(older).get("spd"));
+    }
+
+    @Test
     void everyStatIsSavedAtItsStartValueOnCreation() {
         Map<String, Integer> expected = new HashMap<>(Map.of("str", 0, "dex", 0, "con", 0, "foc", 0, "spd", 6,
                 "hp", 60, "temphp", 0, "ac", 0, "potion", 0, "arcrot", 0));
