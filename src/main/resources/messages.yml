@@ -13,6 +13,9 @@ prefix: "<dark_gray>[<gold>SkysongStats<dark_gray>] "
 general:
   no-permission: "{prefix}<red>You don't have permission to use this command!"
   reloaded: "{prefix}<gray>Config Reloaded!"
+  # {player}
+  player-not-found: "{prefix}<red>Player {player} not found!"
+  console-needs-player: "{prefix}<red>You must specify a player if you are running this command on console!"
 
 downtime:
   usage: "{prefix}<red>Invalid arguments! Use /downtime <subcommand>"
@@ -116,3 +119,42 @@ character:
     failed: "{prefix}<red>Failed to update character data!"
     # {field}, {value}
     updated: "{prefix}<green>Updated {field} to {value}"
+
+skills:
+  invalid-subcommand: "{prefix}<red>Incorrect Arguments! Usage: /skill (addxp/setxp/view) (skill) (value)"
+  invalid-skill: "{prefix}<red>Invalid Skill!"
+  invalid-xp: "{prefix}<red>Invalid XP!"
+  addxp:
+    usage: "{prefix}<red>Too Little arguments! (Usage: /skill addxp (skill) (xp) (player (optional)))"
+    # {xp}, {player}, {skill}
+    added: "{prefix}<red>Added {xp} XP to {player}'s {skill} skill!"
+    # Sent to the player who got the XP. {xp}, {skill}
+    gained: "{prefix}<green>You have gained <gold>{xp} XP <green>in your {skill} skill!"
+  setxp:
+    usage: "{prefix}<red>Too Little arguments! (Usage: /skill setxp (skill) (xp) (player (optional)))"
+    # {skill}, {xp}, {player}
+    set: "{prefix}<red>Set {skill} XP to {xp} for {player}"
+  view:
+    player-not-online: "<red>That player is not online!"
+    book-title: "Skills"
+    book-author: "Skysong"
+    # One book page per group. {skills} is the group's skill-line entries, one per line.
+    gathering-page: "<green>Gathering Skills:</green>\n\n{skills}"
+    crafting-page: "<blue>Crafting Skills:</blue>\n\n{skills}"
+    service-page: "<gold>Service Skills:</gold>\n\n{skills}"
+    # {skill} and {level} are the coloured skill name and level; {xp}
+    skill-line: "{skill}: {level}({xp})"
+  # The skill picker shown during /setup.
+  choice:
+    title: "<gold><bold>Skills Selection"
+    # {points}
+    lore:
+      - "<gray>Select two skills that you want to specialize in."
+      - "<gray>You can't change them later."
+      - "<gray>You have {points} skills left to choose."
+    confirm: "<green>Confirm"
+
+setup:
+  already-set-up: "{prefix}<red>You have already set up your profile!"
+  started: "{prefix}<red>You are now setting up your profile!"
+  completed: "{prefix}<green>Your Setup have been Completed!"

@@ -62,7 +62,7 @@ public class SkillAllocGUIListener implements Listener {
                     setup.setSkillsSelected(setup.skillsSelected);
                     setup.finishProfileSetup();
                     event.getWhoClicked().closeInventory();
-                    event.getWhoClicked().sendMessage(getPlugin().getUtils().getMiniMessage().deserialize(getPlugin().getUtils().PLUGIN_TAG + "<green>Your Setup have been Completed!"));
+                    getPlugin().getMessages().send(event.getWhoClicked(), "setup.completed");
                 }
             }
         }

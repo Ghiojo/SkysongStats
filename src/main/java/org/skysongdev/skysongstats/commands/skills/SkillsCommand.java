@@ -6,10 +6,11 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabExecutor;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.skysongdev.skysongstats.Utils.Utils;
 
 import java.util.Arrays;
 import java.util.List;
+
+import static org.skysongdev.skysongstats.SkysongStats.getPlugin;
 
 public class SkillsCommand implements TabExecutor {
     AddSkillXP addSkillXP;
@@ -41,7 +42,7 @@ public class SkillsCommand implements TabExecutor {
                 viewSkills.onCommand(commandSender, command, s, newArgs);
                 break;
             default:
-                commandSender.sendMessage(Utils.getMiniMessage().deserialize(Utils.PLUGIN_TAG + "<red>Incorrect Arguments! Usage: /skill (addxp/setxp/view) (skill) (value)"));
+                getPlugin().getMessages().send(commandSender, "skills.invalid-subcommand");
                 break;
         }
 

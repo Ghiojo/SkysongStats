@@ -16,6 +16,7 @@ import org.skysongdev.skysongstats.database.SetupProfile;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import static org.skysongdev.skysongstats.SkysongStats.getPlugin;
 import static org.skysongdev.skysongstats.Utils.Utils.*;
@@ -285,7 +286,7 @@ public class SkillChoiceGUI implements InventoryHolder {
 
         ItemStack confirmItem = new ItemStack(Material.LIME_STAINED_GLASS_PANE);
         bufferMeta = confirmItem.getItemMeta();
-        bufferMeta.displayName(getPlugin().getUtils().getMiniMessage().deserialize("<green>Confirm"));
+        bufferMeta.displayName(getPlugin().getMessages().get("skills.choice.confirm"));
         bufferContainer = bufferMeta.getPersistentDataContainer();
         bufferContainer.set(selectableKey, PersistentDataType.BOOLEAN, true);
         bufferContainer.set(optionButtonKey, PersistentDataType.STRING, "confirm");
@@ -297,12 +298,8 @@ public class SkillChoiceGUI implements InventoryHolder {
 
     public void updateHeader(){
         ItemMeta meta = headerItem.getItemMeta();
-        meta.displayName(getPlugin().getUtils().getMiniMessage().deserialize("<gold><bold>Skills Selection"));
-        List<Component> lore = new ArrayList<>();
-        lore.add(getPlugin().getUtils().getMiniMessage().deserialize("<gray>Select two skills that you want to specialize in."));
-        lore.add(getPlugin().getUtils().getMiniMessage().deserialize("<gray>You can't change them later."));
-        lore.add(getPlugin().getUtils().getMiniMessage().deserialize("<gray>You have " + setupProfile.skillPoints + " skills left to choose."));
-        meta.lore(lore);
+        meta.displayName(getPlugin().getMessages().get("skills.choice.title"));
+        meta.lore(getPlugin().getMessages().getLines("skills.choice.lore", Map.of("points", String.valueOf(setupProfile.skillPoints))));
         headerItem.setItemMeta(meta);
         this.inventory.setItem(4, headerItem);
     }

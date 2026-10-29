@@ -1,6 +1,8 @@
 package org.skysongdev.skysongstats.commands.skills;
 
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.JoinConfiguration;
+import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 import net.md_5.bungee.api.ChatColor;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
@@ -16,15 +18,22 @@ import org.jetbrains.annotations.Nullable;
 import org.skysongdev.skysongstats.SkysongStats;
 import org.skysongdev.skysongstats.Utils.Utils;
 import org.skysongdev.skysongstats.database.PlayerSkills;
+import org.skysongdev.skysongstats.messages.Messages;
 import org.skysongdev.skysongstats.database.PlayerStats;
 
 import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import static org.skysongdev.skysongstats.SkysongStats.getPlugin;
 
 public class ViewSkills implements TabExecutor {
+    // The book's pages: the messages.yml key of each page and the skills it lists
+    // (Utils.Skills numbers, first included, last excluded).
+    private static final String[] PAGE_KEYS = {"skills.view.gathering-page", "skills.view.crafting-page", "skills.view.service-page"};
+    private static final int[] PAGE_STARTS = {0, 6, 13, 18};
+
     @Override
     public boolean onCommand(@NotNull CommandSender commandSender, @NotNull Command command, @NotNull String s, @NotNull String[] strings) {
         Player player = (Player) commandSender;
@@ -33,7 +42,7 @@ public class ViewSkills implements TabExecutor {
         if(strings.length > 0){
             target = Bukkit.getServer().getPlayer(strings[0]);
             if(target == null){
-                player.sendMessage(getPlugin().getUtils().getMiniMessage().deserialize("<red>That player is not online!"));
+                getPlugin().getMessages().send(player, "skills.view.player-not-online");
                 return true;
             }
         } else {
@@ -42,42 +51,40 @@ public class ViewSkills implements TabExecutor {
         ItemStack gui = new ItemStack(Material.WRITTEN_BOOK);
         BookMeta meta = (BookMeta) gui.getItemMeta();
         PlayerSkills skills = getPlugin().getUtils().getSkillManager().findActiveSkills(target.getUniqueId().toString());
-        ArrayList<Component> pages = new ArrayList<Component>();
+        pages(skills).forEach(meta::addPages);
 
-        int skillIndex = 0;
-        int sectionIndex = 0;
-        String[] sections = {"<green>Gathering Skills:\n\n", "<blue>Crafting Skills:\n\n", "<gold>Service Skills:\n\n"};
-        String pageoutput = "";
-        Utils.Skills currentSkill;
-
-        for(skillIndex = 0; skillIndex < 6; skillIndex++) {
-            currentSkill = Utils.Skills.fromInt(skillIndex);
-            pageoutput += Utils.Skills.getSkillNameFormatted(currentSkill) + ": " + getPlugin().getUtils().getSkillManager().getSkillLevelFormatted(skills.getSkill(currentSkill)) + "(" + skills.getSkill(currentSkill) + ")\n";
-        }
-        pages.add(getPlugin().getUtils().getMiniMessage().deserialize(sections[sectionIndex] + pageoutput));
-        pageoutput = "";
-        for(sectionIndex++; skillIndex < 13; skillIndex++) {
-            currentSkill = Utils.Skills.fromInt(skillIndex);
-            pageoutput += Utils.Skills.getSkillNameFormatted(currentSkill) + ": " + getPlugin().getUtils().getSkillManager().getSkillLevelFormatted(skills.getSkill(currentSkill)) + "(" + skills.getSkill(currentSkill) + ")\n";
-        }
-        pages.add(getPlugin().getUtils().getMiniMessage().deserialize(sections[sectionIndex] + pageoutput));
-        pageoutput = "";
-        for(sectionIndex++; skillIndex < 18; skillIndex++) {
-            currentSkill = Utils.Skills.fromInt(skillIndex);
-            pageoutput += Utils.Skills.getSkillNameFormatted(currentSkill) + ": " + getPlugin().getUtils().getSkillManager().getSkillLevelFormatted(skills.getSkill(currentSkill)) + "(" + skills.getSkill(currentSkill) + ")\n";
-        }
-        pages.add(getPlugin().getUtils().getMiniMessage().deserialize(sections[sectionIndex] + pageoutput));
-        pageoutput = "";
-
-        for(Component page : pages) {
-            meta.addPages(page);
-        }
-
-        meta.setTitle("Skills");
-        meta.setAuthor("Skysong");
+        meta.setTitle(plainText("skills.view.book-title"));
+        meta.setAuthor(plainText("skills.view.book-author"));
         gui.setItemMeta(meta);
         player.openBook(gui);
         return true;
+    }
+
+    /** The book's pages for these skills. */
+    static List<Component> pages(PlayerSkills skills) {
+        List<Component> pages = new ArrayList<>();
+        for(int page = 0; page < PAGE_KEYS.length; page++) {
+            pages.add(page(skills, PAGE_KEYS[page], PAGE_STARTS[page], PAGE_STARTS[page + 1]));
+        }
+        return pages;
+    }
+
+    private static Component page(PlayerSkills skills, String key, int firstSkill, int endSkill) {
+        Messages messages = getPlugin().getMessages();
+        List<Component> lines = new ArrayList<>();
+        for(int skillIndex = firstSkill; skillIndex < endSkill; skillIndex++) {
+            Utils.Skills skill = Utils.Skills.fromInt(skillIndex);
+            int xp = skills.getSkill(skill);
+            lines.add(messages.get("skills.view.skill-line", Map.of("xp", String.valueOf(xp)), Map.of(
+                    "skill", Utils.getMiniMessage().deserialize(Utils.Skills.getSkillNameFormatted(skill)),
+                    "level", Utils.getMiniMessage().deserialize(getPlugin().getUtils().getSkillManager().getSkillLevelFormatted(xp)))));
+        }
+        Component skillLines = Component.join(JoinConfiguration.newlines(), lines);
+        return messages.get(key, Map.of(), Map.of("skills", skillLines));
+    }
+
+    private static String plainText(String key) {
+        return PlainTextComponentSerializer.plainText().serialize(getPlugin().getMessages().get(key));
     }
 
     @Override

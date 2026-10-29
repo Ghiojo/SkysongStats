@@ -13,6 +13,7 @@ import org.skysongdev.skysongstats.database.PlayerSkills;
 import org.skysongdev.skysongstats.events.SkillUpdateEvent;
 
 import java.util.List;
+import java.util.Map;
 
 import static org.skysongdev.skysongstats.SkysongStats.getPlugin;
 
@@ -25,19 +26,18 @@ public class AddSkillXP implements TabExecutor {
         int xpammount;
         if(commandSender instanceof Player){
             if(!commandSender.hasPermission("skysongstats.addxp")){
-                commandSender.sendMessage(Utils.getMiniMessage().deserialize(Utils.PLUGIN_TAG + "<red>You do not have permission to use this command!"));
+                getPlugin().getMessages().send(commandSender, "general.no-permission");
                 return true;
             }
             player = (Player) commandSender;
         }
         if(strings.length < 2){
-            if(player != null)
-                player.sendMessage(Utils.getMiniMessage().deserialize(Utils.PLUGIN_TAG + "<red>Too Little arguments! (Usage: /skill addxp (skill) (xp) (player (optional)))"));
+            getPlugin().getMessages().send(commandSender, "skills.addxp.usage");
             return true;
         }
         if(strings.length < 3) {
             if(!(commandSender instanceof  Player)){
-                Bukkit.getLogger().warning("You must specify a player if you are running this command on console!");
+                getPlugin().getMessages().send(commandSender, "general.console-needs-player");
                 return true;
             }
             target = (Player) commandSender;
@@ -45,27 +45,23 @@ public class AddSkillXP implements TabExecutor {
         else{
             target = Bukkit.getPlayer(strings[2]);
             if(target == null){
-                if(player != null)
-                    player.sendMessage(Utils.getMiniMessage().deserialize(Utils.PLUGIN_TAG + "<red>Player not found!"));
+                getPlugin().getMessages().send(commandSender, "general.player-not-found", Map.of("player", strings[2]));
                 return true;
             }
         }
 
         if(!Utils.isASkill(strings[0])){
-            if(player != null)
-                player.sendMessage(Utils.getMiniMessage().deserialize(Utils.PLUGIN_TAG + "<red>Invalid Skill!"));
+            getPlugin().getMessages().send(commandSender, "skills.invalid-skill");
             return true;
         }
         try{
             xpammount = Integer.parseInt(strings[1]);
             if(xpammount < 0){
-                if(player != null)
-                    player.sendMessage(Utils.getMiniMessage().deserialize(Utils.PLUGIN_TAG + "<red>Invalid XP!"));
+                getPlugin().getMessages().send(commandSender, "skills.invalid-xp");
                 return true;
             }
         } catch (NumberFormatException e) {
-            if(player != null)
-                player.sendMessage(Utils.getMiniMessage().deserialize(Utils.PLUGIN_TAG + "<red>Invalid XP!"));
+            getPlugin().getMessages().send(commandSender, "skills.invalid-xp");
             return true;
         }
 
@@ -78,11 +74,11 @@ public class AddSkillXP implements TabExecutor {
 
 
         if(commandSender instanceof Player){
-            player.sendMessage(Utils.getMiniMessage().deserialize(Utils.PLUGIN_TAG + "<red>Added " + xpammount + " XP to " + target.getName() + "'s " + strings[0] + " skill!"));
+            getPlugin().getMessages().send(player, "skills.addxp.added", Map.of("xp", String.valueOf(xpammount), "player", target.getName(), "skill", strings[0]));
         }
         Bukkit.getLogger().info("[SkysongStats] Added " + xpammount + " XP to " + target.getName() + "'s " + strings[0] + " skill!");
         if(target != player)
-            target.sendMessage(Utils.getMiniMessage().deserialize(Utils.PLUGIN_TAG + "<green>You have gained <gold>" + xpammount + " XP <green>in your " + strings[0] + " skill!"));
+            getPlugin().getMessages().send(target, "skills.addxp.gained", Map.of("xp", String.valueOf(xpammount), "skill", strings[0]));
 
         SkillUpdateEvent event = new SkillUpdateEvent(target, target.getUniqueId().toString(), getPlugin().getUtils().getSkillManager().getSkill(strings[0]));
         Bukkit.getPluginManager().callEvent(event);
