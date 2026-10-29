@@ -32,8 +32,12 @@ public class ProfileCommand implements TabExecutor {
             getPlugin().getMessages().send(commandSender, "profile.usage");
             return true;
         }
+        // Profiles belong to players: the console has none to create, switch or delete.
+        if(!(commandSender instanceof Player player)){
+            getPlugin().getMessages().send(commandSender, "general.players-only");
+            return true;
+        }
         String[] newArgs = Arrays.copyOfRange(strings, 1, strings.length);
-        Player player = (Player) commandSender;
 
         switch(strings[0].toLowerCase()) {
             case "create":
@@ -61,6 +65,9 @@ public class ProfileCommand implements TabExecutor {
 
     @Override
     public @Nullable List<String> onTabComplete(@NotNull CommandSender commandSender, @NotNull Command command, @NotNull String s, @NotNull String[] strings) {
+        if(!(commandSender instanceof Player)){
+            return List.of();
+        }
         String[] newstrings = Arrays.copyOfRange(strings, 1, strings.length);
         if(strings.length == 1){
             return Arrays.asList("create", "switch", "delete", "view").stream().filter(a -> a.startsWith(strings[0])).toList();
