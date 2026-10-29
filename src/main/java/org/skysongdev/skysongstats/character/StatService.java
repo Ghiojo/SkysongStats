@@ -101,6 +101,7 @@ public class StatService {
             case ADD -> change(sheet, stat, calculator.base(stat) + amount);
             case REDUCE -> change(sheet, stat, calculator.base(stat) - amount);
             case DAMAGE -> damage(sheet, stat, amount);
+            default -> throw new IllegalStateException("Unknown action " + action);
         }
         clampBars(sheet);
         return report(sheet, stat, before);
