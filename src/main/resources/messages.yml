@@ -16,6 +16,8 @@ general:
   # {player}
   player-not-found: "{prefix}<red>Player {player} not found!"
   console-needs-player: "{prefix}<red>You must specify a player if you are running this command on console!"
+  # {input}
+  not-a-number: "{prefix}<yellow>\"{input}\" <red>is not a number!"
 
 downtime:
   usage: "{prefix}<red>Invalid arguments! Use /downtime <subcommand>"
@@ -158,3 +160,128 @@ setup:
   already-set-up: "{prefix}<red>You have already set up your profile!"
   started: "{prefix}<red>You are now setting up your profile!"
   completed: "{prefix}<green>Your Setup have been Completed!"
+  # The stat point screen of /setup, built from the setup: parts of stats.yml.
+  title: "Stat Points Allocation"
+  header:
+    name: "<gold>Stat Points Allocation"
+    # {points} {negative-points}
+    lore:
+      - "<gray>Allocate your stat points to your character's base stats"
+      - "<gray>You can lower a stat below its starting value"
+      - "<gray>to gain 1 extra point for each point lowered"
+      - "<gray>Points Remaining: <gold>{points}"
+      - "<gray>Negative Points: <red>{negative-points}"
+  stat:
+    # {name} {value} {min} {max}. The text takes the stat's colour from stats.yml;
+    # the stat's own lore lines from stats.yml come after these.
+    name: "<bold>{name}:</bold> {value}"
+    lore:
+      - "<gold>Points Allocated: {value}"
+      - "<gold>Left Click to Increase by 1, Right Click to Decrease by 1"
+  confirm:
+    name: "<green>Confirm"
+  points-left: "{prefix}<red>You still have points to allocate!"
+
+# Stat commands: /stats, and the command names in stats.yml (/heal, /damage...).
+# A stat action's messages are stats.<stat id>.<action> (set, add, reduce or
+# damage) when they exist here, otherwise stats.default.<action>. ".player" goes
+# to the player whose stat changed, ".sender" to whoever ran the command when that
+# is someone else.
+# They get {amount} {value} (the new value) {old} {player} {sender} {name} {stat}.
+stats:
+  default:
+    set:
+      player: "{prefix}<yellow>{name} <gray>has been set to <yellow>{value}"
+      sender: "{prefix}<yellow>{player}<gray>'s <yellow>{name} <gray>has been set to <yellow>{value}"
+    add:
+      player: "{prefix}<yellow>{name} <gray>has been raised by <yellow>{amount}<gray>, it is now <yellow>{value}"
+      sender: "{prefix}<gray>Added <yellow>{amount} {name} <gray>to <yellow>{player}<gray>, it is now <yellow>{value}"
+    reduce:
+      player: "{prefix}<yellow>{name} <gray>has been reduced by <yellow>{amount}<gray>, it is now <yellow>{value}"
+      sender: "{prefix}<gray>Reduced <yellow>{player}<gray>'s <yellow>{name} <gray>by <yellow>{amount}<gray>, it is now <yellow>{value}"
+    damage:
+      player: "{prefix}<gray>You have been damaged for <red>{amount} <gray>{name}! It is now <red>{value}<gray>!"
+      sender: "{prefix}<gray>Damaged {player} for <red>{amount} <gray>{name}! It is now <red>{value}<gray>!"
+  hp:
+    add:
+      player: "{prefix}<green>You have been healed for<gold> {amount} HP<green>! Your health is now <gold>{value}<green>!"
+      sender: "{prefix}<gray>Added {amount} HP to {player}!"
+    reduce:
+      player: "{prefix}<red>Your HP has been reduced by <gold> {amount}<red>! Your current HP is <gold> {value}<red>!"
+      sender: "{prefix}<gray>Reduced {amount} HP to {player}!"
+    damage:
+      player: "{prefix}<gray>You have been damaged for <red> {amount} <gray>hp! Your health is now <red>{value}<gray>!"
+      sender: "{prefix}<gray>Damaged {player} for <red>{amount} <gray>hp! Their health is now <red>{value}<gray>!"
+  temphp:
+    set:
+      player: "{prefix}<#67e4e1>Your temp HP has been set to <gold>{amount}<#67e4e1>!"
+      sender: "{prefix}<#67e4e1>Set <yellow>{player}<#67e4e1>'s temp HP to <gold>{amount}<#67e4e1>!"
+  ac:
+    set:
+      player: "{prefix}<green>AC set to <gold>{amount}<green>"
+      sender: "{prefix}<green>Set {player}'s AC to <gold>{amount}"
+  potion:
+    set:
+      player: "{prefix}<green>Your Potion Sickness has been set to {amount}"
+      sender: "{prefix}<green>Set {player}'s Potion Sickness to {amount}"
+  errors:
+    # {usage}
+    usage: "{prefix}<red>Not enough arguments! (Usage: {usage})"
+    # {stat}
+    unknown-stat: "{prefix}<yellow>\"{stat}\" <red>is not a stat!"
+    unknown-command: "{prefix}<red>This command is no longer in stats.yml."
+    # {input}
+    negative-amount: "{prefix}<red>The amount can't be negative: {input}"
+    # {name}
+    no-shield: "{prefix}<red>{name} can't be damaged, it has no shield. Use reduce instead."
+    # {player}
+    no-character: "{prefix}<red>{player} has no character with stats."
+  # /stats view. The lines get {player} and every stat placeholder: {str},
+  # {str_base}, {str_modifiers}, {hp}, {max_hp}, {max_hp_modifiers}... (the same
+  # names as the PlaceholderAPI ones). A stat these lines never mention gets a
+  # sheet-auto line under them, so new stats always show; sheet-footer comes last.
+  sheet:
+    - "<#864811>|====================<<<#63C934>₪<#864811>>>====================|"
+    - "                <#F6DA23>{player}' s <#864811>Stat Sheet:"
+    - ""
+    - "<#D0530C><bold>Main Stats</bold>"
+    - "<#B1262C><bold>Str:</bold> <#B1262C>{str}<#71272a> ({str_modifiers}) <#864811>| <#55B141><bold>Dex:</bold> <#55B141>{dex} <#3c5936> ({dex_modifiers}) <#864811>| <#D4992C><bold>Con:</bold> <#D4992C>{con}<#766035> ({con_modifiers})"
+    - "<#2B8EDE><bold>Foc:</bold> <#2B8EDE>{foc}<#3b678a> ({foc_modifiers}) <#864811>| <#F2F39B><bold>Spd:</bold> <#F2F39B>{spd}<#adad5d> ({spd_modifiers})"
+    - ""
+    - "<#D0530C><bold>Health and AC</bold>"
+    - "<#EE5B79><bold>HP:</bold> <#EE5B79>{hp}<#831F34>/<#EE5B79>{max_hp}<#8d394a> ({max_hp_modifiers}) <#864811>| <#513E3E><bold>AC:</bold> <#513E3E>{ac}"
+    - "<#67e4e1><bold>Temp HP:</bold> <#67e4e1>{temphp}"
+    - ""
+    - "<#D0530C><bold>Afflictions</bold>"
+    - "<#21ABA5><bold>Arcrot:</bold> <#21ABA5>{arcrot}<#0D5653>/<#21ABA5>{max_arcrot}<#2d6765> ({arcrot_modifiers}/{max_arcrot_modifiers}) <#864811>| <#2EB12C><bold>Potion Sickness:</bold> <#2EB12C>{potion}<#094C08>/<#2EB12C>{max_potion}<#3c733b> ({max_potion_modifiers})"
+    - "<#710E86><bold>Fictis Apotheosis:</bold> <#710E86>{fictis}<#410F4C>/<#710E86>{max_fictis}<#422947> ({fictis_modifiers}/{max_fictis_modifiers})"
+  sheet-auto:
+    # {name} {stat} {value} {base} {modifiers}, and for bars {max} {max_modifiers}
+    value: "<#864811><bold>{name}:</bold> <#F6DA23>{value}<#864811> ({modifiers})"
+    bar: "<#864811><bold>{name}:</bold> <#F6DA23>{value}<#864811>/<#F6DA23>{max}<#864811> ({modifiers}/{max_modifiers})"
+  sheet-footer:
+    - "<#864811>|====================<<<#63C934>₪<#864811>>>====================|"
+
+# /modifier add|del|view. The "-max" messages are for modifiers on a bar's max
+# (max_hp...), so they can say "Max HP" in any language.
+# They get {target} (the stat id or max_<bar>) {name} {amount} {index} {player}.
+modifier:
+  added: "{prefix}<gold>{name} <gray>has been modified by <gold>{amount}"
+  added-max: "{prefix}<gold>Max {name} <gray>has been modified by <gold>{amount}"
+  removed: "{prefix}<gray>Modifier removed!"
+  removed-max: "{prefix}<gray>Modifier removed!"
+  # {input}
+  not-a-target: "{prefix}<gray>\"{input}\" is not a stat!"
+  # {index}
+  no-such-modifier: "{prefix}<gray>index \"{index}\" is out of bounds! There's no modifier with that id"
+  # {input}
+  invalid-page: "{prefix}<red>Invalid page number!"
+  view:
+    # header, empty and footer get {player} {page}
+    header:
+      - "<#864811>|====================<<<#63C934>₪<#864811>>>====================|"
+      - "                <#F6DA23>{player}' s <#864811>Modifiers (page {page}):"
+    empty: "<#F6DA23>No modifiers found!"
+    line: "<#F6DA23>{index}. <#864811>{name}: <#63C934>{amount}"
+    line-max: "<#F6DA23>{index}. <#864811>Max {name}: <#63C934>{amount}"
+    footer: "<#864811>|====================<<<#63C934>₪<#864811>>>====================|"

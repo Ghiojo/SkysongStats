@@ -1,7 +1,6 @@
 package org.skysongdev.skysongstats.database;
 
 import org.bukkit.Bukkit;
-import org.skysongdev.skysongstats.Utils.StatsManager;
 import org.skysongdev.skysongstats.Utils.Utils;
 
 import java.sql.SQLException;

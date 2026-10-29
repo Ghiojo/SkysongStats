@@ -12,8 +12,7 @@ import org.mockbukkit.mockbukkit.ServerMock;
 import org.mockbukkit.mockbukkit.entity.PlayerMock;
 import org.skysongdev.skysongstats.SkysongStats;
 import org.skysongdev.skysongstats.Utils.ProfileManager;
-import org.skysongdev.skysongstats.Utils.StatsManager;
-import org.skysongdev.skysongstats.database.PlayerStats;
+import org.skysongdev.skysongstats.storage.ProfileKey;
 import org.skysongdev.skysongstats.database.ProfileIndex;
 
 import java.util.ArrayList;
@@ -36,7 +35,8 @@ class ProfileCommandTest {
         command = plugin.getCommand("profile");
         alice = server.addPlayer("Alice");
         String uuid = alice.getUniqueId().toString();
-        StatsManager.statsProfileList = new ArrayList<>(List.of(new PlayerStats(uuid, "Default"), new PlayerStats(uuid, "Mage")));
+        plugin.getStatService().createCharacter(new ProfileKey(alice.getUniqueId(), "Default"));
+        plugin.getStatService().createCharacter(new ProfileKey(alice.getUniqueId(), "Mage"));
         ProfileManager.activeProfiles = new ArrayList<>(List.of(new ProfileIndex(uuid, "Default")));
     }
 
@@ -81,5 +81,10 @@ class ProfileCommandTest {
         assertEquals("[SkysongStats] Too Little arguments! (Usage: /profile switch (name))", run("switch"));
         assertEquals("[SkysongStats] Too Little arguments! (Usage: /profile delete (name))", run("delete"));
         assertEquals("[SkysongStats] Incorrect Arguments! Usage: /profile (create/switch/delete) (profile)", run("nope"));
+    }
+
+    @Test
+    void profileNamesComeFromTheCharactersWithStats() {
+        assertEquals(List.of("Default", "Mage"), profile.onTabComplete(alice, command, "profile", new String[]{"switch", ""}));
     }
 }

@@ -25,9 +25,7 @@ public class PlayerRegisterListener implements Listener {
             e.printStackTrace();
         }
         if(!isOldPlayer){
-            PlayerStats stats = new PlayerStats(event.getPlayer().getUniqueId().toString());
-            getPlugin().getUtils().getStatsManager().addStatProfile(stats);
-            getPlugin().getUtils().getProfileManager().createProfile(stats);
+            getPlugin().getUtils().getProfileManager().createProfile(event.getPlayer().getUniqueId().toString(), "Default");
             PlayerSkills skills = new PlayerSkills(event.getPlayer().getUniqueId().toString());
             getPlugin().getUtils().getSkillManager().addSkillProfile(skills);
             getPlugin().getUtils().getProfileManager().createSetupProfile(event.getPlayer().getUniqueId().toString());

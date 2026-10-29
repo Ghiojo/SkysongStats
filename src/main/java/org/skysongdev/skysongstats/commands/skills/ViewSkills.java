@@ -19,7 +19,6 @@ import org.skysongdev.skysongstats.SkysongStats;
 import org.skysongdev.skysongstats.Utils.Utils;
 import org.skysongdev.skysongstats.database.PlayerSkills;
 import org.skysongdev.skysongstats.messages.Messages;
-import org.skysongdev.skysongstats.database.PlayerStats;
 
 import java.awt.*;
 import java.util.ArrayList;

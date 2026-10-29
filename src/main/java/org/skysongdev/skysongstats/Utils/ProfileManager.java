@@ -2,13 +2,16 @@ package org.skysongdev.skysongstats.Utils;
 
 import org.bukkit.Bukkit;
 import org.skysongdev.skysongstats.SkysongStats;
-import org.skysongdev.skysongstats.database.PlayerStats;
+import org.bukkit.entity.Player;
 import org.skysongdev.skysongstats.database.ProfileIndex;
 import org.skysongdev.skysongstats.database.SetupProfile;
+import org.skysongdev.skysongstats.storage.ProfileKey;
 
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Objects;
+import java.util.Optional;
+import java.util.UUID;
 
 import static org.skysongdev.skysongstats.SkysongStats.getPlugin;
 
@@ -16,29 +19,37 @@ public class ProfileManager {
     public static ArrayList<ProfileIndex> activeProfiles;
     public static ArrayList<SetupProfile> setupProfiles;
 
-    public PlayerStats findActiveStats(String uuid){
-        for(ProfileIndex current : ProfileManager.activeProfiles){
-            if(Objects.equals(current.getUuid(), uuid)){
-                return getPlugin().getUtils().getStatsManager().findStats(current.getUuid(), current.getProfile());
-            }
+    // The player's active profile as a stat character, or empty when they have
+    // none (or the profiles could not be loaded).
+    public Optional<ProfileKey> activeCharacter(Player player){
+        if(ProfileManager.activeProfiles == null){
+            return Optional.empty();
         }
-        return null;
+        return Optional.ofNullable(getActiveProfileName(player.getUniqueId().toString()))
+                .map(profile -> new ProfileKey(player.getUniqueId(), profile));
     }
 
+    // Every profile of the player: each profile has its stats.
     public ArrayList<String> findAllProfiles(String uuid){
         ArrayList<String> profiles = new ArrayList<>();
-        for(PlayerStats current : StatsManager.statsProfileList){
-            if(Objects.equals(current.getUuid(), uuid)){
-                profiles.add(current.getProfile());
+        for(ProfileKey character : getPlugin().getStatService().characters()){
+            if(Objects.equals(character.player().toString(), uuid)){
+                profiles.add(character.profile());
             }
         }
+        profiles.sort(String.CASE_INSENSITIVE_ORDER);
         return profiles;
     }
 
-    public void setProfile(PlayerStats stat){
+    // Whether the player has a profile with this name.
+    public boolean hasProfile(UUID player, String profile){
+        return getPlugin().getStatService().sheet(new ProfileKey(player, profile)).isPresent();
+    }
+
+    public void setProfile(String uuid, String profile){
         for(ProfileIndex current : ProfileManager.activeProfiles){
-            if(Objects.equals(current.getUuid(), stat.getUuid())){
-                current.setProfile(stat.getProfile());
+            if(Objects.equals(current.getUuid(), uuid)){
+                current.setProfile(profile);
                 try {
                     SkysongStats.getPlugin().getDatabase().updateActiveProfileData(current);
                 }catch(SQLException e){
@@ -67,8 +78,8 @@ public class ProfileManager {
         return null;
     }
 
-    public void createProfile(PlayerStats stat){
-        ProfileIndex newindex = new ProfileIndex(stat.getUuid(), stat.getProfile());
+    public void createProfile(String uuid, String profile){
+        ProfileIndex newindex = new ProfileIndex(uuid, profile);
         try {
             getPlugin().getDatabase().createActiveProfileData(newindex);
             ProfileManager.activeProfiles.add(newindex);

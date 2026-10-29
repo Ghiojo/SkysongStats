@@ -15,6 +15,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.OptionalInt;
+import java.util.Set;
 import java.util.UUID;
 
 // All the rules for changing stats live here: what set/add/reduce/damage do, the
@@ -53,6 +54,11 @@ public class StatService {
         this.definitions = Objects.requireNonNull(definitions, "definitions");
         sheets.values().forEach(this::saveMissingValues);
         sheets.values().forEach(this::clampBars);
+    }
+
+    // Every character with stats: one per profile.
+    public Set<ProfileKey> characters() {
+        return Set.copyOf(sheets.keySet());
     }
 
     public Optional<CharacterSheet> sheet(ProfileKey character) {

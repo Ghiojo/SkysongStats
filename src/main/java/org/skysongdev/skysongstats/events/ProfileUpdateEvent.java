@@ -14,7 +14,7 @@ public class ProfileUpdateEvent extends Event {
 
     public ProfileUpdateEvent(String playerUUID) {
         this.playerUUID = playerUUID;
-        this.profile = getPlugin().getUtils().getProfileManager().findActiveStats(playerUUID).getProfile();
+        this.profile = getPlugin().getUtils().getProfileManager().getActiveProfileName(playerUUID);
         this.player = null;
     }
 

@@ -27,7 +27,7 @@ public class CreateProfile implements TabExecutor {
             getPlugin().getMessages().send(commandSender, "profile.create.usage");
             return true;
         }
-        if(getPlugin().getUtils().getStatsManager().findStats(player.getUniqueId().toString(), strings[0]) != null){
+        if(getPlugin().getUtils().getProfileManager().hasProfile(player.getUniqueId(), strings[0])){
             getPlugin().getMessages().send(commandSender, "profile.create.already-exists");
             return true;
         }
@@ -35,10 +35,6 @@ public class CreateProfile implements TabExecutor {
             getPlugin().getMessages().send(commandSender, "profile.create.name-too-long");
             return true;
         }
-
-        //We add the Stat Profile to the list of profiles
-        PlayerStats profile = new PlayerStats(player.getUniqueId().toString(), strings[0]);
-        getPlugin().getUtils().getStatsManager().addStatProfile(profile);
 
         //We add the Setup Profile to the list
         SetupProfile setupProfile = new SetupProfile(player.getUniqueId().toString(), strings[0], false);

@@ -14,8 +14,7 @@ import org.mockbukkit.mockbukkit.command.ConsoleCommandSenderMock;
 import org.mockbukkit.mockbukkit.entity.PlayerMock;
 import org.skysongdev.skysongstats.SkysongStats;
 import org.skysongdev.skysongstats.Utils.ProfileManager;
-import org.skysongdev.skysongstats.Utils.StatsManager;
-import org.skysongdev.skysongstats.database.PlayerStats;
+import org.skysongdev.skysongstats.storage.ProfileKey;
 import org.skysongdev.skysongstats.database.ProfileIndex;
 import org.skysongdev.skysongstats.service.downtime.CharacterKey;
 import org.skysongdev.skysongstats.service.downtime.DowntimeChangeListener;
@@ -57,7 +56,6 @@ class DowntimeCommandTest {
         server = MockBukkit.mock();
         plugin = MockBukkit.load(SkysongStats.class);
         HandlerList.unregisterAll(plugin);
-        StatsManager.statsProfileList = new ArrayList<>();
         ProfileManager.activeProfiles = new ArrayList<>();
 
         repository = new InMemoryDowntimeRepository();
@@ -78,9 +76,9 @@ class DowntimeCommandTest {
         MockBukkit.unmock();
     }
 
-    private static void giveProfiles(PlayerMock player, String... profiles) {
+    private void giveProfiles(PlayerMock player, String... profiles) {
         for (String profile : profiles) {
-            StatsManager.statsProfileList.add(new PlayerStats(player.getUniqueId().toString(), profile));
+            plugin.getStatService().createCharacter(new ProfileKey(player.getUniqueId(), profile));
         }
         ProfileManager.activeProfiles.add(new ProfileIndex(player.getUniqueId().toString(), profiles[0]));
     }
