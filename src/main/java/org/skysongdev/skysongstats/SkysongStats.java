@@ -52,6 +52,7 @@ import java.io.InputStream;
 import java.io.UncheckedIOException;
 import java.nio.charset.StandardCharsets;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.UUID;
@@ -247,25 +248,32 @@ public class SkysongStats extends JavaPlugin {
      * Re-reads config.yml and applies every setting that can change while the
      * server runs. The database connection is only read on startup.
      */
-    public void reloadSettings(){
+    // Returns the files that had mistakes and were not reloaded, so /ssreload can
+    // tell whoever ran it; the details are in the console.
+    public List<String> reloadSettings(){
         reloadConfig();
         downtimeService.setSettings(DowntimeSettings.fromConfig(getConfig().getConfigurationSection("downtime")));
         loadMessages();
-        reloadStatsConfig();
+        List<String> notReloaded = new ArrayList<>();
+        if (!reloadStatsConfig()) {
+            notReloaded.add(StatsConfigFile.FILE_NAME);
+        }
+        return notReloaded;
     }
 
     // A stats.yml with mistakes is reported and the stats already loaded are kept.
-    private void reloadStatsConfig(){
+    private boolean reloadStatsConfig(){
         try {
             statsConfig = loadStatsConfig();
         } catch (DefinitionException e) {
             getLogger().log(Level.WARNING, "stats.yml was not reloaded, keeping the stats from before", e);
-            return;
+            return false;
         }
         if (statService != null) {
             statService.setDefinitions(statsConfig.stats());
             registerStatCommands();
         }
+        return true;
     }
 
     private StatsConfig loadStatsConfig(){
