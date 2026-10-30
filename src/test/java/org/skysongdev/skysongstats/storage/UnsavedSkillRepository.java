@@ -4,9 +4,8 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.function.Consumer;
 
-// Used when the database can't be opened at all, like UnsavedStatRepository:
-// skill XP then lives in memory until the server stops, and every change is
-// reported as not saved.
+// For tests that have no MySQL, like UnsavedStatRepository: skill XP lives in
+// memory, and every change is reported as not saved.
 public final class UnsavedSkillRepository implements SkillRepository {
     private final Consumer<String> log;
 

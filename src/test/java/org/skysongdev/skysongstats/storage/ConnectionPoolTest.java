@@ -67,6 +67,6 @@ class ConnectionPoolTest {
         assertEquals(PASSWORD, config.getPassword());
         assertEquals(ConnectionPool.MAXIMUM_POOL_SIZE, config.getMaximumPoolSize());
         assertEquals("SkysongStats", config.getPoolName());
-        assertEquals(-1, config.getInitializationFailTimeout(), "starts even when MySQL is down");
+        assertEquals(1, config.getInitializationFailTimeout(), "fails to open when MySQL is down");
     }
 }

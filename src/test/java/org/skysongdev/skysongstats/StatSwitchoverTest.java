@@ -45,7 +45,7 @@ class StatSwitchoverTest {
     @BeforeEach
     void setUp() {
         server = MockBukkit.mock();
-        plugin = MockBukkit.load(SkysongStats.class);
+        plugin = OfflineSkysongStats.load();
         // The join listeners need the old tables, which tests don't have.
         HandlerList.unregisterAll(plugin);
         alice = server.addPlayer("Alice");

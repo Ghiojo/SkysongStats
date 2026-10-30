@@ -4,9 +4,8 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.function.Consumer;
 
-// Used when the stat tables can't be opened at all (no MySQL driver, a broken
-// database: section). Stats then live in memory until the server stops: nothing
-// is loaded, and every change is reported as not saved.
+// For tests that have no MySQL. Stats live in memory: nothing is loaded, and
+// every change is reported as not saved.
 public final class UnsavedStatRepository implements StatRepository {
     private final Consumer<String> log;
 

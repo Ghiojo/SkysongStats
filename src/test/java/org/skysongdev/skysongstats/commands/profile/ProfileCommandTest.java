@@ -11,6 +11,7 @@ import org.mockbukkit.mockbukkit.MockBukkit;
 import org.mockbukkit.mockbukkit.ServerMock;
 import org.mockbukkit.mockbukkit.command.ConsoleCommandSenderMock;
 import org.mockbukkit.mockbukkit.entity.PlayerMock;
+import org.skysongdev.skysongstats.OfflineSkysongStats;
 import org.skysongdev.skysongstats.SkysongStats;
 import org.skysongdev.skysongstats.Utils.ProfileManager;
 import org.skysongdev.skysongstats.storage.ProfileKey;
@@ -30,7 +31,7 @@ class ProfileCommandTest {
     @BeforeEach
     void setUp() {
         ServerMock server = MockBukkit.mock();
-        SkysongStats plugin = MockBukkit.load(SkysongStats.class);
+        SkysongStats plugin = OfflineSkysongStats.load();
         HandlerList.unregisterAll(plugin);
         profile = new ProfileCommand();
         command = plugin.getCommand("profile");

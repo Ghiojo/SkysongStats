@@ -5,6 +5,7 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockbukkit.mockbukkit.MockBukkit;
+import org.skysongdev.skysongstats.OfflineSkysongStats;
 import org.skysongdev.skysongstats.SkysongStats;
 
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -16,7 +17,7 @@ class StatsExpansionTest {
     @BeforeEach
     void setUp() {
         MockBukkit.mock();
-        SkysongStats plugin = MockBukkit.load(SkysongStats.class);
+        SkysongStats plugin = OfflineSkysongStats.load();
         HandlerList.unregisterAll(plugin);
         expansion = new StatsExpansion(plugin);
     }

@@ -8,7 +8,7 @@ import java.util.function.Consumer;
 // The stat and skill tables as the plugin uses them: a connection pool, the SQL
 // repositories, and the background writer every save goes through. Closing waits
 // for the queued saves, then closes the pool.
-public final class StatStorage implements AutoCloseable {
+public final class StatStorage implements CharacterStorage {
     private final HikariDataSource pool;
     private final AsyncWriter writer;
     private final StatRepository repository;
@@ -21,16 +21,18 @@ public final class StatStorage implements AutoCloseable {
         this.skillRepository = new AsyncSkillRepository(new SqlSkillRepository(pool), writer);
     }
 
-    // log gets every save that failed.
+    // log gets every save that failed. Throws when MySQL can't be reached.
     public static StatStorage open(DatabaseSettings settings, Consumer<String> log) {
         Objects.requireNonNull(log, "log");
         return new StatStorage(ConnectionPool.create(settings), log);
     }
 
+    @Override
     public StatRepository repository() {
         return repository;
     }
 
+    @Override
     public SkillRepository skillRepository() {
         return skillRepository;
     }

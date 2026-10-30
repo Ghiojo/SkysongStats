@@ -26,9 +26,9 @@ public final class ConnectionPool {
         // Writes go through one background thread and loads happen at startup, so
         // a few connections are plenty.
         config.setMaximumPoolSize(MAXIMUM_POOL_SIZE);
-        // Start even when MySQL can't be reached yet, like the old connection did:
-        // loading the stats then fails and is logged, and the pool keeps trying.
-        config.setInitializationFailTimeout(-1);
+        // The plugin can't work without MySQL, so opening the pool fails right
+        // away when it can't get a first connection.
+        config.setInitializationFailTimeout(1);
         return config;
     }
 }

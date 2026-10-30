@@ -7,6 +7,7 @@ import org.junit.jupiter.api.Test;
 import org.mockbukkit.mockbukkit.MockBukkit;
 import org.mockbukkit.mockbukkit.ServerMock;
 import org.mockbukkit.mockbukkit.command.ConsoleCommandSenderMock;
+import org.skysongdev.skysongstats.OfflineSkysongStats;
 import org.skysongdev.skysongstats.SkysongStats;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -21,7 +22,7 @@ class SetupCommandTest {
     @Test
     void consoleIsToldOnlyPlayersCanSetUp() {
         ServerMock server = MockBukkit.mock();
-        SkysongStats plugin = MockBukkit.load(SkysongStats.class);
+        SkysongStats plugin = OfflineSkysongStats.load();
         HandlerList.unregisterAll(plugin);
         ConsoleCommandSenderMock console = server.getConsoleSender();
 

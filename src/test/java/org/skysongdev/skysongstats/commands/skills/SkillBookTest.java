@@ -9,6 +9,7 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockbukkit.mockbukkit.MockBukkit;
+import org.skysongdev.skysongstats.OfflineSkysongStats;
 import org.skysongdev.skysongstats.SkysongStats;
 import org.skysongdev.skysongstats.definition.SkillsConfig;
 import org.skysongdev.skysongstats.definition.SkillsConfigLoader;
@@ -26,7 +27,7 @@ class SkillBookTest {
     @BeforeEach
     void setUp() {
         MockBukkit.mock();
-        plugin = MockBukkit.load(SkysongStats.class);
+        plugin = OfflineSkysongStats.load();
         HandlerList.unregisterAll(plugin);
         book = new SkillBook(plugin::getMessages);
     }
