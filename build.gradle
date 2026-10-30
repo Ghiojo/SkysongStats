@@ -48,6 +48,8 @@ dependencies {
     testImplementation 'com.h2database:h2:2.3.232'
     testImplementation 'com.zaxxer:HikariCP:6.2.1'
     testImplementation 'net.luckperms:api:5.3'
+    // StatsExpansion extends PlaceholderAPI's PlaceholderExpansion.
+    testImplementation 'me.clip:placeholderapi:2.11.6'
 }
 
 test {

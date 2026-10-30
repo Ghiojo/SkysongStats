@@ -69,6 +69,12 @@ public class StatsExpansion extends PlaceholderExpansion {
 
     @Override
     public String onPlaceholderRequest(Player player, String params) {
+        // PlaceholderAPI passes no player for offline players and for text that
+        // isn't about a player (some scoreboards, holograms, the console). There is
+        // no character to read then, so the placeholder stays unresolved.
+        if (player == null) {
+            return null;
+        }
         return plugin.getUtils().getProfileManager().activeCharacter(player)
                 .flatMap(character -> stats.resolve(character, params))
                 .orElseGet(() -> otherPlaceholder(player, params));
