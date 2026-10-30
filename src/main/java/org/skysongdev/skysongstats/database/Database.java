@@ -39,8 +39,6 @@ public class Database {
         Statement buildStatement = getConnection().createStatement();
         String sqlactive = "CREATE TABLE IF NOT EXISTS skysong_active_stats(uuid varchar(36) primary key, profile varchar(20))";
         buildStatement.execute(sqlactive);
-        String sqlSkills = "CREATE TABLE IF NOT EXISTS skysong_skills(id INT AUTO_INCREMENT primary key, uuid varchar(36), profile varchar(20), animal_handling INT, farming INT, forestry INT, mining INT, mist_gathering INT, wood_processing INT, alchemy INT, artificing INT, cooking INT, craftsman INT, metalworking INT, tailoring INT, witchcraft INT, economical INT, entertainment INT, martial INT, medical INT, transportation_and_exploration INT)";
-        buildStatement.execute(sqlSkills);
         String sqlSetup = "CREATE TABLE IF NOT EXISTS skysong_setup(id INT AUTO_INCREMENT primary key, uuid varchar(36), profile varchar(20), setup BOOLEAN)";
         buildStatement.execute(sqlSetup);
         String sqlCharacter = "CREATE TABLE IF NOT EXISTS skysong_characters(id INT AUTO_INCREMENT primary key, uuid varchar(36), profile varchar(20), name varchar(100), age varchar(20), gender varchar(20), ancestry varchar(50), pronouns varchar(20), description varchar(500))";
@@ -68,35 +66,6 @@ public class Database {
         statement.setString(1, activestat.getProfile());
         statement.setString(2, activestat.getUuid());
 
-        statement.executeUpdate();
-        statement.close();
-    }
-
-    //Skill Handling
-    public void createSkillsData(PlayerSkills data) throws SQLException {
-        PreparedStatement statement = getConnection().prepareStatement("INSERT INTO skysong_skills(uuid, profile, animal_handling, farming, forestry, mining, mist_gathering, wood_processing, alchemy, artificing, cooking, craftsman, metalworking, tailoring, witchcraft, economical, entertainment, martial, medical, transportation_and_exploration) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)");
-        statement.setString(1, data.getUuid());
-        statement.setString(2, data.getProfile());
-        for (int i = 0; i < 18; i++) {
-            statement.setInt(i + 3, data.getSkill(Utils.Skills.values()[i]));
-        }
-        statement.executeUpdate();
-        statement.close();
-    }
-    public void updateSkillsData(PlayerSkills data) throws SQLException{
-        PreparedStatement statement = getConnection().prepareStatement("UPDATE skysong_skills SET animal_handling = ?, farming = ?, forestry = ?, mining = ?, mist_gathering = ?, wood_processing = ?, alchemy = ?, artificing = ?, cooking = ?, craftsman = ?, metalworking = ?, tailoring = ?, witchcraft = ?, economical = ?, entertainment = ?, martial = ?, medical = ?, transportation_and_exploration = ? WHERE uuid = ? AND profile = ?");
-        for(int i = 0; i < 18; i++){
-            statement.setInt(i + 1, data.getSkill(Utils.Skills.values()[i]));
-        }
-        statement.setString(19, data.getUuid());
-        statement.setString(20, data.getProfile());
-        statement.executeUpdate();
-        statement.close();
-    }
-    public void deleteSkillData(PlayerSkills data) throws SQLException{
-        PreparedStatement statement = getConnection().prepareStatement("DELETE FROM skysong_skills WHERE uuid = ? AND profile = ?");
-        statement.setString(1, data.getUuid());
-        statement.setString(2, data.getProfile());
         statement.executeUpdate();
         statement.close();
     }
@@ -173,7 +142,6 @@ public class Database {
     //Data Dumping
     public void dumpDatabaseData() throws SQLException{
         dumpActiveStatsDatabase();
-        dumpSkillsDatabase();
         dumpSetupDatabase();
         dumpCharacterDatabase();
     }
@@ -189,25 +157,6 @@ public class Database {
 
             ProfileIndex statIndex = new ProfileIndex(uuid, profile);
             ProfileManager.activeProfiles.add(statIndex);
-        }
-        statement.close();
-    }
-
-    public void dumpSkillsDatabase() throws SQLException{
-        SkillManager.playerSkills = new ArrayList<PlayerSkills>();
-        Statement statement = getConnection().createStatement();
-        String sql = "SELECT * FROM skysong_skills";
-        ResultSet results = statement.executeQuery(sql);
-
-        while(results.next()){
-            String uuid = results.getString("uuid");
-            String profile = results.getString("profile");
-            ArrayList<Integer> skills = new ArrayList<>();
-            for(Utils.Skills s : Utils.Skills.values()){
-                skills.add(results.getInt(s.toString().toLowerCase()));
-            }
-            PlayerSkills playerSkills = new PlayerSkills(uuid, profile, skills);
-            SkillManager.playerSkills.add(playerSkills);
         }
         statement.close();
     }

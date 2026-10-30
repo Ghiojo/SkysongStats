@@ -140,13 +140,13 @@ skills:
     # {skill}, {xp}, {player}
     set: "{prefix}<red>Set {skill} XP to {xp} for {player}"
   view:
-    player-not-online: "<red>That player is not online!"
     book-title: "Skills"
     book-author: "Skysong"
-    # One book page per group. {skills} is the group's skill-line entries, one per line.
-    gathering-page: "<green>Gathering Skills:</green>\n\n{skills}"
-    crafting-page: "<blue>Crafting Skills:</blue>\n\n{skills}"
-    service-page: "<gold>Service Skills:</gold>\n\n{skills}"
+    # One book page per book: entry of skills.yml. {title} is the page's title
+    # there, {skills} its skill-line entries, one per line.
+    page: "{title}\n\n{skills}"
+    # The title of the extra last page that lists the skills on no page.
+    other-title: "<gray>Other Skills:</gray>"
     # {skill} and {level} are the coloured skill name and level; {xp}
     skill-line: "{skill}: {level}({xp})"
   # The skill picker shown during /setup.

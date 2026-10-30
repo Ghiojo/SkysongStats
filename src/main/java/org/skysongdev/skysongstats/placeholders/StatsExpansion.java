@@ -4,18 +4,20 @@ import me.clip.placeholderapi.PlaceholderAPI;
 import me.clip.placeholderapi.expansion.PlaceholderExpansion;
 import org.bukkit.entity.Player;
 import org.skysongdev.skysongstats.SkysongStats;
-import org.skysongdev.skysongstats.Utils.Utils;
 import org.skysongdev.skysongstats.database.CharacterProfile;
+import org.skysongdev.skysongstats.storage.ProfileKey;
 
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Optional;
+import java.util.OptionalInt;
 import java.util.function.Function;
 
 // %skysongstats_<name>%. Stat placeholders come from stats.yml (see
 // StatPlaceholders): <stat>, <stat>_base, <stat>_modifiers, max_<bar>... Then the
-// skill levels (<skill id>), the character sheet fields (character_<field>) and
-// downtime (global_downtime, character_downtime).
+// skill XP (<skill id> from skills.yml), the character sheet fields
+// (character_<field>) and downtime (global_downtime, character_downtime).
 public class StatsExpansion extends PlaceholderExpansion {
 
     private final SkysongStats plugin;
@@ -25,10 +27,6 @@ public class StatsExpansion extends PlaceholderExpansion {
     public StatsExpansion(SkysongStats plugin) {
         this.plugin = plugin;
         this.stats = new StatPlaceholders(plugin.getStatService());
-        for (Utils.Skills skill : Utils.Skills.values()) {
-            others.put(Utils.Skills.getSkillid(skill), player -> Integer.toString(
-                    plugin.getUtils().getSkillManager().findActiveSkills(player.getUniqueId().toString()).getSkill(skill)));
-        }
         character("name", CharacterProfile::getName);
         character("age", CharacterProfile::getAge);
         character("gender", CharacterProfile::getGender);
@@ -76,8 +74,17 @@ public class StatsExpansion extends PlaceholderExpansion {
             return null;
         }
         return plugin.getUtils().getProfileManager().activeCharacter(player)
-                .flatMap(character -> stats.resolve(character, params))
+                .flatMap(character -> stats.resolve(character, params).or(() -> skillXp(character, params)))
                 .orElseGet(() -> otherPlaceholder(player, params));
+    }
+
+    // The character's XP in the skill with this id. Read on every request, so a
+    // reloaded skills.yml applies at once.
+    private Optional<String> skillXp(ProfileKey character, String params) {
+        return plugin.getSkillService().config().skills().get(params.toLowerCase(Locale.ROOT))
+                .map(skill -> plugin.getSkillService().xp(character, skill))
+                .filter(OptionalInt::isPresent)
+                .map(xp -> Integer.toString(xp.getAsInt()));
     }
 
     // null for names this plugin doesn't know.

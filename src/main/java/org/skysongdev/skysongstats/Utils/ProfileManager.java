@@ -29,6 +29,12 @@ public class ProfileManager {
                 .map(profile -> new ProfileKey(player.getUniqueId(), profile));
     }
 
+    // Whether this character is the profile its player is playing now.
+    public boolean isActive(ProfileKey character){
+        return ProfileManager.activeProfiles != null
+                && character.profile().equals(getActiveProfileName(character.player().toString()));
+    }
+
     // Every profile of the player: each profile has its stats.
     public ArrayList<String> findAllProfiles(String uuid){
         ArrayList<String> profiles = new ArrayList<>();

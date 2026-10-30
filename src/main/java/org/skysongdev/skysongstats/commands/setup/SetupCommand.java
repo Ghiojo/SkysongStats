@@ -6,8 +6,10 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 import org.skysongdev.skysongstats.database.SetupProfile;
+import org.skysongdev.skysongstats.definition.SkillsConfig;
 import org.skysongdev.skysongstats.definition.StatsConfig;
 import org.skysongdev.skysongstats.setup.MenuTexts;
+import org.skysongdev.skysongstats.setup.SkillSetupMenu;
 import org.skysongdev.skysongstats.setup.StatSetupMenu;
 
 import java.util.Objects;
@@ -34,13 +36,20 @@ public class SetupCommand implements CommandExecutor {
         }
         getPlugin().getMessages().send(target, "setup.started");
         // The stat point screen comes from stats.yml; confirming it moves on to
-        // the skill picker.
+        // the skill screen from skills.yml, and confirming that finishes the setup.
         StatsConfig config = getPlugin().getStatsConfig();
         new StatSetupMenu(config.stats().setupStats(), config.setupRules(), texts, (player, values) -> {
             setup.setChosenStats(values);
-            setup.setupSkillChoiceGui();
-            player.openInventory(setup.getSkillChoiceGUI().getInventory());
+            openSkillScreen(player, setup);
         }).open(target);
         return true;
+    }
+
+    private void openSkillScreen(Player player, SetupProfile setup) {
+        SkillsConfig skills = getPlugin().getSkillService().config();
+        new SkillSetupMenu(skills.skills().setupSkills(), skills.setup(), texts, (confirmer, picked) -> {
+            setup.finishProfileSetup(getPlugin().getStatService(), getPlugin().getSkillService(), picked);
+            getPlugin().getMessages().send(confirmer, "setup.completed");
+        }).open(player);
     }
 }

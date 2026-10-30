@@ -1,13 +1,13 @@
 package org.skysongdev.skysongstats.database;
 
 import org.bukkit.Bukkit;
-import org.skysongdev.skysongstats.Utils.Utils;
+import org.skysongdev.skysongstats.character.SkillService;
 import org.skysongdev.skysongstats.character.StatService;
+import org.skysongdev.skysongstats.definition.SkillDefinition;
 import org.skysongdev.skysongstats.definition.StatAction;
 import org.skysongdev.skysongstats.storage.ProfileKey;
-import org.skysongdev.skysongstats.inventories.SkillChoiceGUI;
 
-import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -18,13 +18,8 @@ public class SetupProfile {
     private String profile;
     private boolean isSetUp;
 
-    private SkillChoiceGUI skillChoiceGUI = new SkillChoiceGUI(this);
-
     // The stat values picked on the /setup point screen, by stat id.
     private Map<String, Integer> chosenStats = Map.of();
-
-    public ArrayList<Integer> skillsSelected = new ArrayList<Integer>();
-    public int skillPoints = 2;
 
     public Map<String, Integer> getChosenStats() {
         return chosenStats;
@@ -32,14 +27,6 @@ public class SetupProfile {
 
     public void setChosenStats(Map<String, Integer> chosenStats) {
         this.chosenStats = Map.copyOf(chosenStats);
-    }
-
-    public ArrayList<Integer> getSkillsSelected() {
-        return skillsSelected;
-    }
-
-    public void setSkillsSelected(ArrayList<Integer> skillsSelected) {
-        this.skillsSelected = skillsSelected;
     }
 
     public String getUuid() {
@@ -68,13 +55,11 @@ public class SetupProfile {
         this.isSetUp = isSetUp;
     }
 
-    public void finishProfileSetup(){
-        applyChosenStats(getPlugin().getStatService());
-
-        PlayerSkills playerSkills = getPlugin().getUtils().getSkillManager().findSkills(uuid, profile);
-        playerSkills.setSkill(Utils.Skills.fromInt(skillsSelected.get(0)), 16);
-        playerSkills.setSkill(Utils.Skills.fromInt(skillsSelected.get(1)), 16);
-        getPlugin().getUtils().getSkillManager().updateSkillProfile(playerSkills);
+    // Gives the character the stats picked on the point screen and the skills
+    // picked on the skill screen, and marks the profile as set up.
+    public void finishProfileSetup(StatService stats, SkillService skills, List<SkillDefinition> pickedSkills){
+        applyChosenStats(stats);
+        applyPickedSkills(skills, pickedSkills);
 
         this.isSetUp = true;
         try{
@@ -92,11 +77,10 @@ public class SetupProfile {
                 .ifPresent(stat -> stats.apply(character, stat, StatAction.SET, value)));
     }
 
-    public SkillChoiceGUI getSkillChoiceGUI() {
-        return skillChoiceGUI;
-    }
-
-    public void setupSkillChoiceGui(){
-        skillChoiceGUI.setupInventory(Bukkit.getPlayer(UUID.fromString(uuid)));
+    // Each picked skill starts at the XP of the setup: picked-level of skills.yml.
+    public void applyPickedSkills(SkillService skills, List<SkillDefinition> pickedSkills){
+        ProfileKey character = new ProfileKey(UUID.fromString(uuid), profile);
+        int xp = skills.config().setup().pickedLevel().xp();
+        pickedSkills.forEach(skill -> skills.setXp(character, skill, xp));
     }
 }

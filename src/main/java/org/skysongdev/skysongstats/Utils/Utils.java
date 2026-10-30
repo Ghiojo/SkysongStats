@@ -10,16 +10,9 @@ public class Utils {
     private final SkysongStats plugin;
     private static final MiniMessage mm = MiniMessage.miniMessage();
     public static final String PLUGIN_TAG = "<dark_gray>[<gold>SkysongStats<dark_gray>] ";
-    public static NamespacedKey selectableKey = new NamespacedKey(SkysongStats.getPlugin(), "selectable");
     public static NamespacedKey statlineKey = new NamespacedKey(SkysongStats.getPlugin(), "id");
     public static NamespacedKey statButtonKey = new NamespacedKey(SkysongStats.getPlugin(), "stat");
-    public static NamespacedKey optionButtonKey = new NamespacedKey(SkysongStats.getPlugin(), "option");
-    public static NamespacedKey skillButtonKey = new NamespacedKey(SkysongStats.getPlugin(), "skill");
 
-
-    public SkillManager getSkillManager() {
-        return skillManager;
-    }
 
     public ProfileManager getProfileManager() {
         return profileManager;
@@ -29,7 +22,6 @@ public class Utils {
         return characterManager;
     }
 
-    private final SkillManager skillManager = new SkillManager();
     private final ProfileManager profileManager = new ProfileManager();
     private final CharacterManager characterManager = new CharacterManager();
 
@@ -37,169 +29,6 @@ public class Utils {
         this.plugin = plugin;
     }
     public static MiniMessage getMiniMessage(){ return mm; }
-
-    public enum Skills{
-        ANIMAL_HANDLING(0),
-        FARMING(1),
-        FORESTRY(2),
-        MINING(3),
-        MIST_GATHERING(4),
-        WOOD_PROCESSING(5),
-        ALCHEMY(6),
-        ARTIFICING(7),
-        COOKING(8),
-        CRAFTSMAN(9),
-        METALWORKING(10),
-        TAILORING(11),
-        WITCHCRAFT(12),
-        ECONOMICAL(13),
-        ENTERTAINMENT(14),
-        MARTIAL(15),
-        MEDICAL(16),
-        TRANSPORTATION_AND_EXPLORATION(17);
-
-        private final int value;
-        private Skills(int value){
-            this.value = value;
-        }
-        public int getValue(){
-            return value;
-        }
-        public static Skills fromInt(int id){
-            return switch(id){
-                case 0 -> ANIMAL_HANDLING;
-                case 1 -> FARMING;
-                case 2 -> FORESTRY;
-                case 3 -> MINING;
-                case 4 -> MIST_GATHERING;
-                case 5 -> WOOD_PROCESSING;
-                case 6 -> ALCHEMY;
-                case 7 -> ARTIFICING;
-                case 8 -> COOKING;
-                case 9 -> CRAFTSMAN;
-                case 10 -> METALWORKING;
-                case 11 -> TAILORING;
-                case 12 -> WITCHCRAFT;
-                case 13 -> ECONOMICAL;
-                case 14 -> ENTERTAINMENT;
-                case 15 -> MARTIAL;
-                case 16 -> MEDICAL;
-                case 17 -> TRANSPORTATION_AND_EXPLORATION;
-                default -> null;
-            };
-        }
-        public static String getSkillName(Skills skill){
-            return switch(skill){
-                case ANIMAL_HANDLING -> "Animal Handling";
-                case FARMING -> "Farming";
-                case FORESTRY -> "Forestry";
-                case MINING -> "Mining";
-                case MIST_GATHERING -> "Mist Gathering";
-                case WOOD_PROCESSING -> "Wood Processing";
-                case ALCHEMY -> "Alchemy";
-                case ARTIFICING -> "Artificing";
-                case COOKING -> "Cooking";
-                case CRAFTSMAN -> "Craftsman";
-                case METALWORKING -> "Metalworking";
-                case TAILORING -> "Tailoring";
-                case WITCHCRAFT -> "Witchcraft";
-                case ECONOMICAL -> "Economical";
-                case ENTERTAINMENT -> "Entertainment";
-                case MARTIAL -> "Martial";
-                case MEDICAL -> "Medical";
-                case TRANSPORTATION_AND_EXPLORATION -> "T&E";
-            };
-        }
-        public static String getSkillNameFormatted(Skills skill){
-            return switch(skill){
-                case ANIMAL_HANDLING -> "<#45c2ea>Animal Handling<reset>";
-                case FARMING -> "<#cdaf22>Farming<reset>";
-                case FORESTRY -> "<#54bf3e>Forestry<reset>";
-                case MINING -> "<#a0836f>Mining<reset>";
-                case MIST_GATHERING -> "<gold>Mist Gathering<reset>";
-                case WOOD_PROCESSING -> "<#ba7f3d>Wood Processing<reset>";
-                case ALCHEMY -> "<#aaeb38>Alchemy<reset>";
-                case ARTIFICING -> "<#2cf0f1>Artificing<reset>";
-                case COOKING -> "<#f77b3c>Cooking<reset>";
-                case CRAFTSMAN -> "<#eba751>Craftsman<reset>";
-                case METALWORKING -> "<#8d8d8d>Metalworking<reset>";
-                case TAILORING -> "<#ea5be7>Tailoring<reset>";
-                case WITCHCRAFT -> "<#8235b0>Witchcraft<reset>";
-                case ECONOMICAL -> "<gold>Economical<reset>";
-                case ENTERTAINMENT -> "<#f22a93>Entertainment<reset>";
-                case MARTIAL -> "<#e18048>Martial<reset>";
-                case MEDICAL -> "<#f14f4f>Medical<reset>";
-                case TRANSPORTATION_AND_EXPLORATION -> "<#7fe95b>T&E<reset>";
-            };
-        }
-        public static String getSkillid(Skills skill){
-            return switch(skill){
-                case ANIMAL_HANDLING -> "animalhandling";
-                case FARMING -> "farming";
-                case FORESTRY -> "forestry";
-                case MINING -> "mining";
-                case MIST_GATHERING -> "mistgathering";
-                case WOOD_PROCESSING -> "woodprocessing";
-                case ALCHEMY -> "alchemy";
-                case ARTIFICING -> "artificing";
-                case COOKING -> "cooking";
-                case CRAFTSMAN -> "craftsman";
-                case METALWORKING -> "metalworking";
-                case TAILORING -> "tailoring";
-                case WITCHCRAFT -> "witchcraft";
-                case ECONOMICAL -> "economical";
-                case ENTERTAINMENT -> "entertainment";
-                case MARTIAL -> "martial";
-                case MEDICAL -> "medical";
-                case TRANSPORTATION_AND_EXPLORATION -> "tande";
-            };
-        }
-    }
-
-
-    public static boolean isASkill(String input){
-        switch(input.toLowerCase()){
-            case "animalhandling":
-            case "ah":
-            case "farming":
-            case "farm":
-            case "forestry":
-            case "for":
-            case "mining":
-            case "min":
-            case "mistgathering":
-            case "mist":
-            case "woodprocessing":
-            case "wood":
-            case "alchemy":
-            case "alch":
-            case "artificing":
-            case "arti":
-            case "cooking":
-            case "cook":
-            case "craftsman":
-            case "craft":
-            case "metalworking":
-            case "metal":
-            case "tailoring":
-            case "witchcraft":
-            case "witch":
-            case "economical":
-            case "eco":
-            case "entertainment":
-            case "ent":
-            case "martial":
-            case "medical":
-            case "med":
-            case "medic":
-            case "transportationandexploration":
-            case "tande":
-            case "t&e":
-                return true;
-            default:
-                return false;
-        }
-    }
 
     public boolean isPlayerInDatabase(String uuid) throws SQLException{
         return plugin.getDatabase().checkForUUID(uuid);

@@ -38,11 +38,11 @@ public class DeleteProfile implements TabExecutor {
             return true;
         }
 
-        getPlugin().getUtils().getSkillManager().deleteSkillProfile(getPlugin().getUtils().getSkillManager().findSkills(player.getUniqueId().toString(), strings[0]));
         getPlugin().getUtils().getProfileManager().deleteSetupProfile(getPlugin().getUtils().getProfileManager().findSetupProfile(player.getUniqueId().toString(), strings[0]));
         getPlugin().getUtils().getCharacterManager().deleteCharacterProfile(getPlugin().getUtils().getCharacterManager().findCharacterProfile(player.getUniqueId().toString(), strings[0]));
         getPlugin().getDowntimeService().deleteCharacter(player.getUniqueId(), targetProfile);
         getPlugin().getStatService().deleteCharacter(new ProfileKey(player.getUniqueId(), targetProfile));
+        getPlugin().getSkillService().deleteCharacter(new ProfileKey(player.getUniqueId(), targetProfile));
 
         getPlugin().getUtils().getProfileManager().findAllProfiles(player.getUniqueId().toString()).remove(strings[0]);
 

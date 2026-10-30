@@ -26,8 +26,6 @@ public class PlayerRegisterListener implements Listener {
         }
         if(!isOldPlayer){
             getPlugin().getUtils().getProfileManager().createProfile(event.getPlayer().getUniqueId().toString(), "Default");
-            PlayerSkills skills = new PlayerSkills(event.getPlayer().getUniqueId().toString());
-            getPlugin().getUtils().getSkillManager().addSkillProfile(skills);
             getPlugin().getUtils().getProfileManager().createSetupProfile(event.getPlayer().getUniqueId().toString());
             CharacterProfile character = new CharacterProfile(event.getPlayer().getUniqueId().toString());
             getPlugin().getUtils().getCharacterManager().addCharacter(character);
@@ -36,6 +34,7 @@ public class PlayerRegisterListener implements Listener {
             downtime.getCharacter(event.getPlayer().getUniqueId(), character.getProfile());
             downtime.setPreference(event.getPlayer().getUniqueId(), false);
             getPlugin().getStatService().createCharacter(new ProfileKey(event.getPlayer().getUniqueId(), character.getProfile()));
+            getPlugin().getSkillService().createCharacter(new ProfileKey(event.getPlayer().getUniqueId(), character.getProfile()));
         }
         if(!getPlugin().getUtils().getProfileManager().findActiveSetupProfile(event.getPlayer().getUniqueId().toString()).isSetUp()){
             getPlugin().getMessages().send(event.getPlayer(), "profile.setup-reminder");
