@@ -130,18 +130,22 @@ public final class SkillsCommand implements TabExecutor {
                 + ", now " + change.after());
     }
 
-    // XP typed in a command: a whole number of 0 or more.
     private OptionalInt xp(CommandSender sender, String input) {
+        OptionalInt xp = parseXp(input);
+        if (xp.isEmpty()) {
+            messages.send(sender, SKILLS + "invalid-xp", Map.of());
+        }
+        return xp;
+    }
+
+    // XP typed in a command: a whole number of 0 or more.
+    private static OptionalInt parseXp(String input) {
         try {
             int xp = Integer.parseInt(input);
-            if (xp >= 0) {
-                return OptionalInt.of(xp);
-            }
+            return xp < 0 ? OptionalInt.empty() : OptionalInt.of(xp);
         } catch (NumberFormatException e) {
-            // Told below, like a negative number.
+            return OptionalInt.empty();
         }
-        messages.send(sender, SKILLS + "invalid-xp", Map.of());
-        return OptionalInt.empty();
     }
 
     private static String argument(String[] args, int index) {

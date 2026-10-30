@@ -266,11 +266,10 @@ public class SkysongStats extends JavaPlugin {
     // memory only when that database could not be opened), and keeps the
     // LuckPerms skill level nodes of active characters up to date.
     public void InitializeSkills(SkillsConfig config){
-        PlayerNodes nodes = playerNodes();
-        skillLevels = new SkillLevelPermissions(nodes, () -> skillService.config(), utils.getProfileManager()::isActive);
         SkillRepository repository = statStorage != null ? statStorage.skillRepository()
                 : new UnsavedSkillRepository(getLogger()::warning);
         skillService = new SkillService(config, repository, this::onSkillChange);
+        skillLevels = new SkillLevelPermissions(playerNodes(), skillService::config, utils.getProfileManager()::isActive);
         skillLevelSync = new SkillLevelSync(skillLevels, skillService, utils.getProfileManager()::activeCharacter);
         skillPermissions = new SkillPermissionRegistry(getServer().getPluginManager());
         skillPermissions.register(config);

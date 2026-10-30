@@ -29,7 +29,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class SkillLevelSyncTest {
     private final List<Set<String>> granted = new ArrayList<>();
     private final Map<Player, ProfileKey> active = new HashMap<>();
-    private SkillsConfig config;
     private SkillService skills;
     private SkillLevelSync sync;
     private PlayerMock alice;
@@ -42,7 +41,7 @@ class SkillLevelSyncTest {
         alice = server.addPlayer("Alice");
         main = new ProfileKey(alice.getUniqueId(), "main");
         alt = new ProfileKey(alice.getUniqueId(), "alt");
-        config = SkillTestConfig.load();
+        SkillsConfig config = SkillTestConfig.load();
         SkillLevelPermissions permissions = new SkillLevelPermissions(
                 (player, grant, revoke) -> granted.add(grant), () -> config, character -> false);
         skills = new SkillService(config, new UnsavedSkillRepository(line -> { }), permissions);
