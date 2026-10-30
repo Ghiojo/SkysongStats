@@ -30,6 +30,16 @@ class PluginDescriptionTest {
         assertFalse(description.getSoftDepend().contains("LuckPerms"));
     }
 
+    // These names had no code behind them and only printed their usage. Leaving
+    // them out of plugin.yml lets stats.yml give them to a stat.
+    @Test
+    void doesNotDeclareCommandsWithoutCode() throws Exception {
+        PluginDescriptionFile description = load();
+        for (String name : new String[]{"hp", "arcrot", "fictis"}) {
+            assertFalse(description.getCommands().containsKey(name), name);
+        }
+    }
+
     @Test
     void softDependsOnPlaceholderApiAndSkysongItems() throws Exception {
         PluginDescriptionFile description = load();

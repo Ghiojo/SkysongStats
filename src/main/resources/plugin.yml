@@ -32,10 +32,6 @@ commands:
     description: "View your modifiers"
     usage: "/modifier [player]"
     permission: "skysongstats.modifier"
-  hp:
-    description: "View your health"
-    usage: "/hp [player]"
-    permission: "skysongstats.hp"
   ssreload:
     description: "Reload the plugin"
     usage: "/ssreload"
@@ -56,12 +52,6 @@ commands:
     description: "View your stats"
     usage: "/stats [player]"
     permission: "skysongstats.stats"
-  arcrot:
-    description: "Set your Arcane Resistance"
-    usage: "/arcrot [player] [amount]"
-  fictis:
-    description: "Set your fictis"
-    usage: "/fictis [player] [amount]"
   downtime:
     description: "Set your downtime"
     usage: "/downtime [player] [amount]"
