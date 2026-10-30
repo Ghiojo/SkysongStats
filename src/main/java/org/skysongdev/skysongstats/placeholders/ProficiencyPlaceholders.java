@@ -49,10 +49,10 @@ public final class ProficiencyPlaceholders {
     private Optional<String> focusValue(ProfileKey character, String name) {
         Optional<ProficiencyFocus> focus = proficiencies.focus(character);
         return switch (name) {
-            case FOCUS -> Optional.of(focus.map(f -> f.proficiency().name()).orElse(""));
+            case FOCUS -> Optional.of(focus.map(current -> current.proficiency().name()).orElse(""));
             case FOCUS + "_points" -> Optional.of(Integer.toString(focus.map(ProficiencyFocus::points).orElse(0)));
             case FOCUS + "_cost" -> Optional.of(Integer.toString(
-                    focus.map(f -> proficiencies.pointsNeeded(character, f)).orElse(0)));
+                    focus.map(current -> proficiencies.pointsNeeded(character, current)).orElse(0)));
             default -> Optional.empty();
         };
     }
