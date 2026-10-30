@@ -18,6 +18,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /** /ssreload must apply changed downtime limits and messages without a restart. */
@@ -118,5 +119,26 @@ class ReloadCommandTest {
         Files.writeString(file.toPath(), "stats:\n  str: {type: nonsense}\n");
         new ReloadCommand().onCommand(server.getConsoleSender(), command, "ssreload", new String[0]);
         assertTrue(plugin.getStatService().definitions().get("hp").isPresent());
+    }
+
+    @Test
+    void aStatsYmlWithMistakesIsReportedToWhoeverReloaded() throws IOException {
+        File file = new File(plugin.getDataFolder(), "stats.yml");
+        Files.writeString(file.toPath(), "stats:\n  str: {type: nonsense}\n");
+        PlayerMock player = server.addPlayer("Admin");
+        player.setOp(true);
+        new ReloadCommand().onCommand(player, command, "ssreload", new String[0]);
+        assertEquals("[SkysongStats] Config Reloaded!", plain(player.nextComponentMessage()));
+        assertEquals("[SkysongStats] stats.yml has mistakes and was not reloaded, the previous version is still in use. See the console for details.",
+                plain(player.nextComponentMessage()));
+    }
+
+    @Test
+    void aCleanReloadSendsOnlyTheReloadedMessage() {
+        PlayerMock player = server.addPlayer("Admin");
+        player.setOp(true);
+        new ReloadCommand().onCommand(player, command, "ssreload", new String[0]);
+        player.nextComponentMessage();
+        assertNull(player.nextComponentMessage());
     }
 }

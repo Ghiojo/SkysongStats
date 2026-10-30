@@ -5,6 +5,9 @@ import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.List;
+import java.util.Map;
+
 import static org.skysongdev.skysongstats.SkysongStats.getPlugin;
 
 public class ReloadCommand implements CommandExecutor {
@@ -14,8 +17,9 @@ public class ReloadCommand implements CommandExecutor {
             getPlugin().getMessages().send(commandSender, "general.no-permission");
             return true;
         }
-        getPlugin().reloadSettings();
+        List<String> notReloaded = getPlugin().reloadSettings();
         getPlugin().getMessages().send(commandSender, "general.reloaded");
+        notReloaded.forEach(file -> getPlugin().getMessages().send(commandSender, "general.not-reloaded", Map.of("file", file)));
         return true;
     }
 }

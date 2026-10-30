@@ -13,6 +13,8 @@ prefix: "<dark_gray>[<gold>SkysongStats<dark_gray>] "
 general:
   no-permission: "{prefix}<red>You don't have permission to use this command!"
   reloaded: "{prefix}<gray>Config Reloaded!"
+  # {file}. Sent after "reloaded" for each file with mistakes; the console lists them.
+  not-reloaded: "{prefix}<red>{file} has mistakes and was not reloaded, the previous version is still in use. See the console for details."
   # {player}
   player-not-found: "{prefix}<red>Player {player} not found!"
   console-needs-player: "{prefix}<red>You must specify a player if you are running this command on console!"
