@@ -136,6 +136,21 @@ public class StatService {
         change(sheet, stat, calculator(sheet).base(stat) - (amount - absorbed));
     }
 
+    // Fills every bar that starts full (start: max) up to its max, for when /setup
+    // finishes and the chosen stats may have raised those maxes. Other bars keep
+    // their value.
+    public void fillBarsThatStartFull(ProfileKey character) {
+        CharacterSheet sheet = require(character);
+        for (StatDefinition stat : definitions.all()) {
+            if (stat.isBar() && stat.bar().startAtMax()) {
+                StatCalculator calculator = calculator(sheet);
+                int before = calculator.total(stat);
+                change(sheet, stat, calculator.max(stat) - calculator.extra(stat));
+                report(sheet, stat, before);
+            }
+        }
+    }
+
     public StoredModifier addModifier(ProfileKey character, String target, int amount) {
         if (!isModifierTarget(target)) {
             throw new IllegalArgumentException("'" + target + "' is not a stat or a bar max");

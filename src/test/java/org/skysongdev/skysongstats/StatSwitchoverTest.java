@@ -132,6 +132,14 @@ class StatSwitchoverTest {
     }
 
     @Test
+    void finishingSetupFillsHpToTheMaxTheChosenConstitutionGives() {
+        setup.setChosenStats(Map.of("con", 3));
+        setup.applyChosenStats(plugin.getStatService());
+        assertEquals(90, value("max_hp"));
+        assertEquals(90, value("hp"));
+    }
+
+    @Test
     void theStatSheetIsShownFromMessagesYml() {
         alice.performCommand("stats");
         String first = net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer.plainText()
