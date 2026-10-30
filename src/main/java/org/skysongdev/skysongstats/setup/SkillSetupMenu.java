@@ -29,7 +29,7 @@ import java.util.function.BiConsumer;
 public final class SkillSetupMenu implements SetupScreen {
     public static final int SIZE = 54;
     static final int HEADER_SLOT = 4;
-    static final int CONFIRM_SLOT = 49;
+    public static final int CONFIRM_SLOT = 49;
     private static final String CHOICE = "skills.choice.";
 
     private final Inventory inventory;

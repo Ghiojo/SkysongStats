@@ -14,7 +14,7 @@ import org.skysongdev.skysongstats.commands.stat.StatAliasCommand;
 import org.skysongdev.skysongstats.database.ProfileIndex;
 import org.skysongdev.skysongstats.database.SetupProfile;
 import org.skysongdev.skysongstats.definition.StatSetup;
-import org.skysongdev.skysongstats.inventories.SkillChoiceGUI;
+import org.skysongdev.skysongstats.setup.SkillSetupMenu;
 import org.skysongdev.skysongstats.setup.StatSetupMenu;
 import org.skysongdev.skysongstats.storage.ProfileKey;
 
@@ -120,7 +120,7 @@ class StatSwitchoverTest {
         }
         menu.click(alice, StatSetup.CONFIRM_SLOT, ClickType.LEFT);
         assertEquals(Map.of("str", 4, "dex", 0, "con", 0, "foc", 0, "spd", 9), setup.getChosenStats());
-        assertInstanceOf(SkillChoiceGUI.class, alice.getOpenInventory().getTopInventory().getHolder());
+        assertInstanceOf(SkillSetupMenu.class, alice.getOpenInventory().getTopInventory().getHolder());
     }
 
     @Test

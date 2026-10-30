@@ -1,16 +1,20 @@
 package org.skysongdev.skysongstats;
 
+import net.luckperms.api.LuckPerms;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.skysongdev.skysongstats.Utils.ProfileManager;
 import org.skysongdev.skysongstats.Utils.Utils;
+import org.skysongdev.skysongstats.character.SkillChange;
+import org.skysongdev.skysongstats.character.SkillService;
 import org.skysongdev.skysongstats.character.StatService;
 import org.skysongdev.skysongstats.commands.character.CharacterCommand;
 import org.skysongdev.skysongstats.commands.downtime.DowntimeCommand;
 import org.skysongdev.skysongstats.commands.misc.ReloadCommand;
 import org.skysongdev.skysongstats.commands.profile.ProfileCommand;
 import org.skysongdev.skysongstats.commands.setup.SetupCommand;
+import org.skysongdev.skysongstats.commands.skills.SkillBook;
 import org.skysongdev.skysongstats.commands.skills.SkillsCommand;
 import org.skysongdev.skysongstats.commands.stat.CommandTargets;
 import org.skysongdev.skysongstats.commands.stat.StatActionRunner;
@@ -24,6 +28,8 @@ import org.skysongdev.skysongstats.database.Database;
 import org.skysongdev.skysongstats.database.Pinger;
 import org.skysongdev.skysongstats.database.SetupProfile;
 import org.skysongdev.skysongstats.definition.DefinitionException;
+import org.skysongdev.skysongstats.definition.SkillsConfig;
+import org.skysongdev.skysongstats.definition.SkillsConfigFile;
 import org.skysongdev.skysongstats.definition.StatsConfig;
 import org.skysongdev.skysongstats.definition.StatsConfigFile;
 import org.skysongdev.skysongstats.items.ItemTagListener;
@@ -32,6 +38,7 @@ import org.skysongdev.skysongstats.messages.Messages;
 import org.skysongdev.skysongstats.messages.MessagesFile;
 import org.skysongdev.skysongstats.messages.PluginTexts;
 import org.skysongdev.skysongstats.events.DowntimeChangeEvent;
+import org.skysongdev.skysongstats.events.SkillChangeEvent;
 import org.skysongdev.skysongstats.events.StatChangeEvent;
 import org.skysongdev.skysongstats.placeholders.StatsExpansion;
 import org.skysongdev.skysongstats.service.downtime.DowntimeService;
@@ -39,11 +46,18 @@ import org.skysongdev.skysongstats.service.downtime.DowntimeSettings;
 import org.skysongdev.skysongstats.service.downtime.DowntimeStorageException;
 import org.skysongdev.skysongstats.service.downtime.SqlDowntimeRepository;
 import org.skysongdev.skysongstats.setup.SetupScreenListener;
+import org.skysongdev.skysongstats.skill.LuckPermsNodes;
+import org.skysongdev.skysongstats.skill.PlayerNodes;
+import org.skysongdev.skysongstats.skill.SkillLevelPermissions;
+import org.skysongdev.skysongstats.skill.SkillLevelSync;
+import org.skysongdev.skysongstats.skill.SkillPermissionRegistry;
 import org.skysongdev.skysongstats.storage.DatabaseSettings;
 import org.skysongdev.skysongstats.storage.ProfileKey;
+import org.skysongdev.skysongstats.storage.SkillRepository;
 import org.skysongdev.skysongstats.storage.StatRepository;
 import org.skysongdev.skysongstats.storage.StatStorage;
 import org.skysongdev.skysongstats.storage.StorageException;
+import org.skysongdev.skysongstats.storage.UnsavedSkillRepository;
 import org.skysongdev.skysongstats.storage.UnsavedStatRepository;
 
 import java.io.File;
@@ -75,6 +89,10 @@ public class SkysongStats extends JavaPlugin {
     private StatsConfig statsConfig;
     private StatStorage statStorage;
     private StatService statService;
+    private SkillService skillService;
+    private SkillLevelPermissions skillLevels;
+    private SkillLevelSync skillLevelSync;
+    private SkillPermissionRegistry skillPermissions;
 
     // messages.yml for the stat commands and the /setup screen.
     private final PluginTexts texts = new PluginTexts(this::getMessages);
@@ -83,7 +101,6 @@ public class SkysongStats extends JavaPlugin {
 
     public ProfileCommand profileCommand = new ProfileCommand();
     public SetupCommand setupCommand = new SetupCommand(texts);
-    public SkillsCommand skillsCommand = new SkillsCommand();
     public CharacterCommand characterCommand = new CharacterCommand();
     public DowntimeCommand downtimeCommand;
 
@@ -93,6 +110,7 @@ public class SkysongStats extends JavaPlugin {
     public Messages getMessages() { return messages; }
     public StatsConfig getStatsConfig() { return statsConfig; }
     public StatService getStatService() { return statService; }
+    public SkillService getSkillService() { return skillService; }
 
     @Override
     public void onEnable() {
@@ -108,6 +126,14 @@ public class SkysongStats extends JavaPlugin {
             getServer().getPluginManager().disablePlugin(this);
             return;
         }
+        SkillsConfig skillsConfig;
+        try {
+            skillsConfig = loadSkillsConfig();
+        } catch (DefinitionException e) {
+            getLogger().log(Level.SEVERE, "Fix skills.yml and restart the server. SkysongStats is disabled.", e);
+            getServer().getPluginManager().disablePlugin(this);
+            return;
+        }
         InitializeDatabase();
         try {
             database.dumpDatabaseData();
@@ -117,6 +143,7 @@ public class SkysongStats extends JavaPlugin {
         InitializeDowntime();
         // The stats come before the commands, listeners and placeholders that use them.
         InitializeStats();
+        InitializeSkills(skillsConfig);
 
         InitializeCommands();
         AssignListeners();
@@ -150,7 +177,8 @@ public class SkysongStats extends JavaPlugin {
 
         getCommand("profile").setExecutor(profileCommand);
         getCommand("setup").setExecutor(setupCommand);
-        getCommand("skills").setExecutor(skillsCommand);
+        getCommand("skills").setExecutor(new SkillsCommand(skillService, targets, texts, new SkillBook(this::getMessages),
+                onlinePlayers, getLogger()::info));
         getCommand("ssreload").setExecutor(new ReloadCommand());
         getCommand("schar").setExecutor(characterCommand);
         getCommand("char").setExecutor(characterCommand);
@@ -162,10 +190,8 @@ public class SkysongStats extends JavaPlugin {
 
     public void AssignListeners() {
         getServer().getPluginManager().registerEvents(new PlayerRegisterListener(), this);
-        getServer().getPluginManager().registerEvents(new ProfileUpdateListener(), this);
-        getServer().getPluginManager().registerEvents(new SkillLevelListener(), this);
         getServer().getPluginManager().registerEvents(new SetupScreenListener(), this);
-        getServer().getPluginManager().registerEvents(new SkillAllocGUIListener(), this);
+        getServer().getPluginManager().registerEvents(skillLevelSync, this);
         getServer().getPluginManager().registerEvents(new PlayerShiftRightClickListener(), this);
         getServer().getPluginManager().registerEvents(
                 new ItemTagListener(statService, utils.getProfileManager()::activeCharacter), this);
@@ -200,6 +226,9 @@ public class SkysongStats extends JavaPlugin {
             statCommands.unregisterAll();
             statPermissions.unregisterAll();
         }
+        if (skillPermissions != null) {
+            skillPermissions.unregisterAll();
+        }
         if (statStorage != null) {
             statStorage.close();
         }
@@ -233,6 +262,53 @@ public class SkysongStats extends JavaPlugin {
         }
     }
 
+    // Loads every character's skill XP from the stat database (or keeps it in
+    // memory only when that database could not be opened), and keeps the
+    // LuckPerms skill level nodes of active characters up to date.
+    public void InitializeSkills(SkillsConfig config){
+        SkillRepository repository = statStorage != null ? statStorage.skillRepository()
+                : new UnsavedSkillRepository(getLogger()::warning);
+        skillService = new SkillService(config, repository, this::onSkillChange);
+        skillLevels = new SkillLevelPermissions(playerNodes(), skillService::config, utils.getProfileManager()::isActive);
+        skillLevelSync = new SkillLevelSync(skillLevels, skillService, utils.getProfileManager()::activeCharacter);
+        skillPermissions = new SkillPermissionRegistry(getServer().getPluginManager());
+        skillPermissions.register(config);
+        try {
+            repository.createTables();
+            skillService.load();
+        } catch (StorageException e) {
+            // Creating characters now could overwrite the saved XP once MySQL is back.
+            getLogger().log(Level.SEVERE, "Unable to load the skills from the database", e);
+            return;
+        }
+        addSkillsToOlderProfiles();
+    }
+
+    private void onSkillChange(SkillChange change){
+        skillLevels.onChange(change);
+        Bukkit.getPluginManager().callEvent(new SkillChangeEvent(change));
+    }
+
+    // LuckPerms is a hard dependency, so it is only missing on a test server.
+    private PlayerNodes playerNodes(){
+        LuckPerms luckPerms = Bukkit.getServicesManager().load(LuckPerms.class);
+        if (luckPerms == null) {
+            getLogger().severe("LuckPerms is not running, skill level nodes will not be given");
+            return (player, grant, revoke) -> { };
+        }
+        return new LuckPermsNodes(luckPerms, failure -> getLogger().log(Level.WARNING,
+                "Unable to update a player's skill level nodes in LuckPerms", failure));
+    }
+
+    private void addSkillsToOlderProfiles(){
+        if (ProfileManager.setupProfiles == null) {
+            return;
+        }
+        for (SetupProfile profile : ProfileManager.setupProfiles) {
+            skillService.ensureCharacter(new ProfileKey(UUID.fromString(profile.getUuid()), profile.getProfile()));
+        }
+    }
+
     private StatRepository openStatStorage(){
         try {
             statStorage = StatStorage.open(DatabaseSettings.fromConfig(getConfig().getConfigurationSection("database")),
@@ -258,6 +334,9 @@ public class SkysongStats extends JavaPlugin {
         if (!reloadStatsConfig()) {
             notReloaded.add(StatsConfigFile.FILE_NAME);
         }
+        if (!reloadSkillsConfig()) {
+            notReloaded.add(SkillsConfigFile.FILE_NAME);
+        }
         return notReloaded;
     }
 
@@ -274,6 +353,28 @@ public class SkysongStats extends JavaPlugin {
             registerStatCommands();
         }
         return true;
+    }
+
+    // A skills.yml with mistakes is reported and the skills already loaded are
+    // kept. Otherwise everyone online gets the level nodes of the new file.
+    private boolean reloadSkillsConfig(){
+        SkillsConfig config;
+        try {
+            config = loadSkillsConfig();
+        } catch (DefinitionException e) {
+            getLogger().log(Level.WARNING, "skills.yml was not reloaded, keeping the skills from before", e);
+            return false;
+        }
+        if (skillService != null) {
+            skillService.setConfig(config);
+            skillPermissions.register(config);
+            Bukkit.getOnlinePlayers().forEach(skillLevelSync::sync);
+        }
+        return true;
+    }
+
+    private SkillsConfig loadSkillsConfig(){
+        return SkillsConfigFile.load(new File(getDataFolder(), SkillsConfigFile.FILE_NAME), bundled(SkillsConfigFile.FILE_NAME));
     }
 
     private StatsConfig loadStatsConfig(){
