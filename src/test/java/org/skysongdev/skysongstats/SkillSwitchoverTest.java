@@ -107,6 +107,20 @@ class SkillSwitchoverTest {
     }
 
     @Test
+    void setupRunsOncePerProfile() {
+        setup.setSetUp(true);
+        ProfileManager.setupProfiles.add(new SetupProfile(alice.getUniqueId().toString(), "Second", false));
+
+        alice.performCommand("setup");
+        assertEquals("[SkysongStats] You have already set up your profile!",
+                PlainTextComponentSerializer.plainText().serialize(alice.nextComponentMessage()));
+
+        ProfileManager.activeProfiles.get(0).setProfile("Second");
+        alice.performCommand("setup");
+        assertInstanceOf(StatSetupMenu.class, alice.getOpenInventory().getTopInventory().getHolder());
+    }
+
+    @Test
     void thePickedSkillsAreSavedToTheDatabase() {
         JdbcDataSource dataSource = new JdbcDataSource();
         dataSource.setURL("jdbc:h2:mem:" + UUID.randomUUID() + ";MODE=MySQL;DATABASE_TO_LOWER=TRUE;DB_CLOSE_DELAY=-1");
