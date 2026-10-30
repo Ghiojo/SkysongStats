@@ -16,17 +16,20 @@ import java.util.function.Function;
 
 // %skysongstats_<name>%. Stat placeholders come from stats.yml (see
 // StatPlaceholders): <stat>, <stat>_base, <stat>_modifiers, max_<bar>... Then the
-// skill XP (<skill id> from skills.yml), the character sheet fields
+// skill XP (<skill id> from skills.yml), the proficiencies (proficiency_..., see
+// ProficiencyPlaceholders), the character sheet fields
 // (character_<field>) and downtime (global_downtime, character_downtime).
 public class StatsExpansion extends PlaceholderExpansion {
 
     private final SkysongStats plugin;
     private final StatPlaceholders stats;
+    private final ProficiencyPlaceholders proficiencies;
     private final Map<String, Function<Player, String>> others = new HashMap<>();
 
     public StatsExpansion(SkysongStats plugin) {
         this.plugin = plugin;
         this.stats = new StatPlaceholders(plugin.getStatService());
+        this.proficiencies = new ProficiencyPlaceholders(plugin.getProficiencyService());
         character("name", CharacterProfile::getName);
         character("age", CharacterProfile::getAge);
         character("gender", CharacterProfile::getGender);
@@ -74,7 +77,9 @@ public class StatsExpansion extends PlaceholderExpansion {
             return null;
         }
         return plugin.getUtils().getProfileManager().activeCharacter(player)
-                .flatMap(character -> stats.resolve(character, params).or(() -> skillXp(character, params)))
+                .flatMap(character -> stats.resolve(character, params)
+                        .or(() -> skillXp(character, params))
+                        .or(() -> proficiencies.resolve(character, params)))
                 .orElseGet(() -> otherPlaceholder(player, params));
     }
 
