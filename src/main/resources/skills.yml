@@ -1,0 +1,228 @@
+# SkysongStats skill definitions.
+#
+# levels    Lowest first. A skill is at the highest level whose xp it has
+#           reached; the first level must start at 0. Each level except the
+#           first gives skysongstats.skill.<skill>.<level> in LuckPerms, together
+#           with the nodes of every lower level.
+#             name, color   how the level shows in the /skills book
+#             xp            the XP needed to reach it
+# setup     The /setup skill screen: how many skills a player picks, and the
+#           level a picked skill starts at (it gets that level's xp).
+# book      The pages of the /skills book, in order: each page's title and its
+#           skills in order. Skills on no page are shown on an extra last page.
+# skills    Each entry is one skill; its key is the skill's id (lowercase
+#           letters, digits, '_' and '-'), used in LuckPerms nodes and
+#           placeholders. Fields:
+#             name, color   display name and MiniMessage colour
+#             short-name    the name in the /skills book (default: name)
+#             aliases       other names /skills addxp and setxp accept
+#             baseline      the XP a new character starts with (default 0)
+#             setup         shows the skill on the /setup screen: icon (a Material
+#                           or model:<namespace:id>), slot (9-44), lore lines and
+#                           an optional color for the screen
+
+levels:
+  unskilled:  {name: "Unskilled",  color: "<dark_gray>", xp: 0}
+  novice:     {name: "Novice",     color: "<#6cda33>",   xp: 16}
+  competent:  {name: "Competent",  color: "<blue>",      xp: 40}
+  journeyman: {name: "Journeyman", color: "<#cc6ce9>",   xp: 80}
+  expert:     {name: "Expert",     color: "<gold>",      xp: 128}
+
+setup:
+  picks: 2
+  picked-level: novice
+
+book:
+  gathering:
+    title: "<green>Gathering Skills:</green>"
+    skills: [animalhandling, farming, forestry, mining, mistgathering, woodprocessing]
+  crafting:
+    title: "<blue>Crafting Skills:</blue>"
+    skills: [alchemy, artificing, cooking, craftsman, metalworking, tailoring, witchcraft]
+  service:
+    title: "<gold>Service Skills:</gold>"
+    skills: [economical, entertainment, martial, medical, tande]
+
+skills:
+  animalhandling:
+    name: "Animal Handling"
+    color: "<#45c2ea>"
+    aliases: [ah]
+    setup:
+      icon: BONE
+      slot: 10
+      lore:
+        - "<gray>This skill has to do with your character's ability to interact with animals."
+        - "<gray>It's often seen on animal trainers, animal farmers, or horse breeders, for example."
+  farming:
+    name: "Farming"
+    color: "<#cdaf22>"
+    aliases: [farm]
+    setup:
+      icon: WHEAT
+      slot: 11
+      color: "<#f9f36d>"
+      lore:
+        - "<gray>This skill has to do with your character's ability to tend to crops and plants."
+        - "<gray>It's often seen on farmers, gardeners or orchard farmers, for example."
+  forestry:
+    name: "Forestry"
+    color: "<#54bf3e>"
+    aliases: [forest, for]
+    setup:
+      icon: FERN
+      slot: 12
+      lore:
+        - "<gray>This skill has to do with your character's ability to get resources from nature."
+        - "<gray>It's often seen on Hunters, Fishermen, Herbalists, etc."
+  mining:
+    name: "Mining"
+    color: "<#a0836f>"
+    aliases: [min]
+    setup:
+      icon: IRON_ORE
+      slot: 19
+      lore:
+        - "<gray>This skill has to do with your character's ability to extract minerals from the earth."
+        - "<gray>It's often seen on miners or quarry workers, for example."
+  mistgathering:
+    name: "Mist Gathering"
+    color: "<gold>"
+    aliases: [mist]
+    setup:
+      icon: GLOWSTONE_DUST
+      slot: 20
+      lore:
+        - "<gray>This skill has to do with gathering Architite from the Aurosphere."
+        - "<gray>It's often seen on Mist Gatherers."
+  woodprocessing:
+    name: "Wood Processing"
+    color: "<#ba7f3d>"
+    aliases: [wood]
+    setup:
+      icon: OAK_LOG
+      slot: 21
+      lore:
+        - "<gray>This skill has to do gathering wood and processing it into other resources."
+        - "<gray>It's often seen on loggers and charcoal makers."
+  alchemy:
+    name: "Alchemy"
+    color: "<#aaeb38>"
+    aliases: [alch]
+    setup:
+      icon: BREWING_STAND
+      slot: 37
+      lore:
+        - "<gray>This skill has to do with your character's ability to create potions and alchemicals."
+        - "<gray>It's often seen utilized by alchemists, potion sellers, etc."
+  artificing:
+    name: "Artificing"
+    color: "<#2cf0f1>"
+    aliases: [arti]
+    setup:
+      icon: HOST_ARMOR_TRIM_SMITHING_TEMPLATE
+      slot: 38
+      lore:
+        - "<gray>Artificers use Runes to create a variety of magical items."
+        - "<gray>It's often seen utilized by enchanters, artificers, etc."
+  cooking:
+    name: "Cooking"
+    color: "<#f77b3c>"
+    aliases: [cook]
+    setup:
+      icon: COOKED_BEEF
+      slot: 39
+      lore:
+        - "<gray>This skill has to do with your character's ability to prepare food."
+        - "<gray>It's often seen utilized by cooks, chefs, etc."
+  craftsman:
+    name: "Craftsman"
+    color: "<#eba751>"
+    aliases: [craft]
+    setup:
+      icon: ANVIL
+      slot: 40
+      lore:
+        - "<gray>This skill has to do with your character's ability to craft miscellaneous items."
+        - "<gray>It's often seen utilized by carpenters, engineers, candlemakers, etc."
+  metalworking:
+    name: "Metalworking"
+    color: "<#8d8d8d>"
+    aliases: [metal]
+    setup:
+      icon: IRON_INGOT
+      slot: 41
+      lore:
+        - "<gray>This skill has to do with your character's ability to work with metals."
+        - "<gray>It's often seen utilized by blacksmiths, armorers, etc."
+  tailoring:
+    name: "Tailoring"
+    color: "<#ea5be7>"
+    aliases: [tailor]
+    setup:
+      icon: FLOWER_BANNER_PATTERN
+      slot: 42
+      lore:
+        - "<gray>This skill has to do with your character's ability to work with fabrics and hides."
+        - "<gray>It's often seen utilized by tailors, seamstresses, leatherworkers, etc."
+  witchcraft:
+    name: "Witchcraft"
+    color: "<#8235b0>"
+    aliases: [witch]
+    setup:
+      icon: ENCHANTING_TABLE
+      slot: 43
+      lore:
+        - "<gray>The art of enchanting items or creating familiars through various rituals."
+        - "<gray>It's often seen utilized by witches, some kinds of priests, etc."
+  economical:
+    name: "Economical"
+    color: "<gold>"
+    aliases: [eco]
+    setup:
+      icon: GOLD_NUGGET
+      slot: 14
+      lore:
+        - "<gray>This skill has to do with your character's ability to manage money and resources."
+        - "<gray>It's often seen utilized by merchants, bankers, etc."
+  entertainment:
+    name: "Entertainment"
+    color: "<#f22a93>"
+    aliases: [ent]
+    setup:
+      icon: MUSIC_DISC_CAT
+      slot: 15
+      lore:
+        - "<gray>This skill has to do with your character's ability to entertain others."
+        - "<gray>It's often seen utilized by bards, jesters, etc."
+  martial:
+    name: "Martial"
+    color: "<#e18048>"
+    setup:
+      icon: IRON_SWORD
+      slot: 16
+      lore:
+        - "<gray>Knowledge related to military matters and fighting manuals."
+        - "<gray>It's often seen utilized by soldiers, mercenaries, etc."
+        - "<red>Note: This skill doesn't give you combat abilities inherently."
+  medical:
+    name: "Medical"
+    color: "<#f14f4f>"
+    aliases: [med, medic]
+    setup:
+      icon: PAPER
+      slot: 23
+      lore:
+        - "<gray>This skill has to do with your character's ability to heal others."
+        - "<gray>It's often seen utilized by healers, doctors, etc."
+  tande:
+    name: "Transportation and Exploration"
+    short-name: "T&E"
+    color: "<#7fe95b>"
+    aliases: [transportationandexploration, t&e]
+    setup:
+      icon: COMPASS
+      slot: 24
+      lore:
+        - "<gray>This skill has to do with your character's ability to explore, navigate and find their way."
+        - "<gray>It's often seen utilized by scouts, navigators, etc."

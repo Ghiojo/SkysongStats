@@ -5,13 +5,14 @@ import org.junit.jupiter.api.Test;
 
 import java.io.InputStream;
 
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
- * Checks plugin.yml as the server parses it. Soft dependencies are matched by
- * the exact plugin name, so a misspelt name is silently ignored and the plugin
- * can load before the one it needs.
+ * Checks plugin.yml as the server parses it. Dependencies are matched by the
+ * exact plugin name, so a misspelt soft dependency is silently ignored and the
+ * plugin can load before the one it needs.
  */
 class PluginDescriptionTest {
 
@@ -23,8 +24,10 @@ class PluginDescriptionTest {
     }
 
     @Test
-    void softDependsOnLuckPermsByItsExactName() throws Exception {
-        assertTrue(load().getSoftDepend().contains("LuckPerms"));
+    void dependsOnLuckPermsByItsExactName() throws Exception {
+        PluginDescriptionFile description = load();
+        assertTrue(description.getDepend().contains("LuckPerms"));
+        assertFalse(description.getSoftDepend().contains("LuckPerms"));
     }
 
     @Test
