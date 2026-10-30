@@ -18,40 +18,41 @@ import java.util.Map;
 import static org.junit.jupiter.api.Assertions.*;
 
 /**
- * Checks that the skills.yml shipped in the jar loads without errors and describes
- * the skills as the plugin has them hardcoded today (Utils.Skills, SkillManager,
- * SkillChoiceGUI, ViewSkills). MockBukkit is only needed for the Material check.
+ * Checks that the skills.yml shipped in the jar loads without errors and gives the
+ * default skills below. They were copied from the skills the plugin used to hardcode
+ * (Utils.Skills, SkillManager, SkillChoiceGUI, ViewSkills), so a server running the
+ * default file keeps the same skills. MockBukkit is only needed for the Material check.
  */
 class DefaultSkillsFileTest {
 
     private static SkillsConfig config;
 
-    // id -> name, book colour, setup icon, setup slot, as hardcoded today.
-    private static final Map<String, List<Object>> TODAY = new LinkedHashMap<>();
+    // id -> name, book colour, setup icon, setup slot the default skills.yml must give.
+    private static final Map<String, List<Object>> DEFAULT_SKILLS = new LinkedHashMap<>();
 
     static {
-        TODAY.put("animalhandling", List.of("Animal Handling", "<#45c2ea>", "BONE", 10));
-        TODAY.put("farming", List.of("Farming", "<#cdaf22>", "WHEAT", 11));
-        TODAY.put("forestry", List.of("Forestry", "<#54bf3e>", "FERN", 12));
-        TODAY.put("mining", List.of("Mining", "<#a0836f>", "IRON_ORE", 19));
-        TODAY.put("mistgathering", List.of("Mist Gathering", "<gold>", "GLOWSTONE_DUST", 20));
-        TODAY.put("woodprocessing", List.of("Wood Processing", "<#ba7f3d>", "OAK_LOG", 21));
-        TODAY.put("alchemy", List.of("Alchemy", "<#aaeb38>", "BREWING_STAND", 37));
-        TODAY.put("artificing", List.of("Artificing", "<#2cf0f1>", "HOST_ARMOR_TRIM_SMITHING_TEMPLATE", 38));
-        TODAY.put("cooking", List.of("Cooking", "<#f77b3c>", "COOKED_BEEF", 39));
-        TODAY.put("craftsman", List.of("Craftsman", "<#eba751>", "ANVIL", 40));
-        TODAY.put("metalworking", List.of("Metalworking", "<#8d8d8d>", "IRON_INGOT", 41));
-        TODAY.put("tailoring", List.of("Tailoring", "<#ea5be7>", "FLOWER_BANNER_PATTERN", 42));
-        TODAY.put("witchcraft", List.of("Witchcraft", "<#8235b0>", "ENCHANTING_TABLE", 43));
-        TODAY.put("economical", List.of("Economical", "<gold>", "GOLD_NUGGET", 14));
-        TODAY.put("entertainment", List.of("Entertainment", "<#f22a93>", "MUSIC_DISC_CAT", 15));
-        TODAY.put("martial", List.of("Martial", "<#e18048>", "IRON_SWORD", 16));
-        TODAY.put("medical", List.of("Medical", "<#f14f4f>", "PAPER", 23));
-        TODAY.put("tande", List.of("Transportation and Exploration", "<#7fe95b>", "COMPASS", 24));
+        DEFAULT_SKILLS.put("animalhandling", List.of("Animal Handling", "<#45c2ea>", "BONE", 10));
+        DEFAULT_SKILLS.put("farming", List.of("Farming", "<#cdaf22>", "WHEAT", 11));
+        DEFAULT_SKILLS.put("forestry", List.of("Forestry", "<#54bf3e>", "FERN", 12));
+        DEFAULT_SKILLS.put("mining", List.of("Mining", "<#a0836f>", "IRON_ORE", 19));
+        DEFAULT_SKILLS.put("mistgathering", List.of("Mist Gathering", "<gold>", "GLOWSTONE_DUST", 20));
+        DEFAULT_SKILLS.put("woodprocessing", List.of("Wood Processing", "<#ba7f3d>", "OAK_LOG", 21));
+        DEFAULT_SKILLS.put("alchemy", List.of("Alchemy", "<#aaeb38>", "BREWING_STAND", 37));
+        DEFAULT_SKILLS.put("artificing", List.of("Artificing", "<#2cf0f1>", "HOST_ARMOR_TRIM_SMITHING_TEMPLATE", 38));
+        DEFAULT_SKILLS.put("cooking", List.of("Cooking", "<#f77b3c>", "COOKED_BEEF", 39));
+        DEFAULT_SKILLS.put("craftsman", List.of("Craftsman", "<#eba751>", "ANVIL", 40));
+        DEFAULT_SKILLS.put("metalworking", List.of("Metalworking", "<#8d8d8d>", "IRON_INGOT", 41));
+        DEFAULT_SKILLS.put("tailoring", List.of("Tailoring", "<#ea5be7>", "FLOWER_BANNER_PATTERN", 42));
+        DEFAULT_SKILLS.put("witchcraft", List.of("Witchcraft", "<#8235b0>", "ENCHANTING_TABLE", 43));
+        DEFAULT_SKILLS.put("economical", List.of("Economical", "<gold>", "GOLD_NUGGET", 14));
+        DEFAULT_SKILLS.put("entertainment", List.of("Entertainment", "<#f22a93>", "MUSIC_DISC_CAT", 15));
+        DEFAULT_SKILLS.put("martial", List.of("Martial", "<#e18048>", "IRON_SWORD", 16));
+        DEFAULT_SKILLS.put("medical", List.of("Medical", "<#f14f4f>", "PAPER", 23));
+        DEFAULT_SKILLS.put("tande", List.of("Transportation and Exploration", "<#7fe95b>", "COMPASS", 24));
     }
 
-    // id -> every name today's /skills addxp and setxp accept for it, in any check.
-    private static final Map<String, List<String>> TODAYS_NAMES = Map.ofEntries(
+    // id -> every name and alias the default skills.yml must accept for it, in any case.
+    private static final Map<String, List<String>> DEFAULT_SKILL_NAMES = Map.ofEntries(
             Map.entry("animalhandling", List.of("animalhandling", "ah")),
             Map.entry("farming", List.of("farming", "farm")),
             Map.entry("forestry", List.of("forestry", "forest", "for")),
@@ -93,20 +94,20 @@ class DefaultSkillsFileTest {
     }
 
     @Test
-    void hasTodaysEighteenSkillsWithTheirIds() {
-        assertEquals(List.copyOf(TODAY.keySet()), config.skills().all().stream().map(SkillDefinition::id).toList());
+    void hasTheEighteenDefaultSkillsWithTheirIds() {
+        assertEquals(List.copyOf(DEFAULT_SKILLS.keySet()), config.skills().all().stream().map(SkillDefinition::id).toList());
     }
 
     @Test
-    void namesColoursIconsAndSlotsAreTodays() {
-        for (Map.Entry<String, List<Object>> today : TODAY.entrySet()) {
-            String id = today.getKey();
+    void namesColoursIconsAndSlotsMatchTheDefaults() {
+        for (Map.Entry<String, List<Object>> expected : DEFAULT_SKILLS.entrySet()) {
+            String id = expected.getKey();
             SkillDefinition skill = skill(id);
-            assertEquals(today.getValue().get(0), skill.name(), id);
-            assertEquals(today.getValue().get(1), skill.color(), id);
+            assertEquals(expected.getValue().get(0), skill.name(), id);
+            assertEquals(expected.getValue().get(1), skill.color(), id);
             SkillSetup setup = skill.setupOptions().orElseThrow();
-            assertEquals(today.getValue().get(2), setup.icon().material(), id);
-            assertEquals(today.getValue().get(3), setup.slot(), id);
+            assertEquals(expected.getValue().get(2), setup.icon().material(), id);
+            assertEquals(expected.getValue().get(3), setup.slot(), id);
             assertFalse(setup.lore().isEmpty(), id);
         }
     }
@@ -126,8 +127,8 @@ class DefaultSkillsFileTest {
     }
 
     @Test
-    void everyNameTodaysCommandsAcceptFindsItsSkill() {
-        for (Map.Entry<String, List<String>> skill : TODAYS_NAMES.entrySet()) {
+    void everyDefaultNameAndAliasFindsItsSkill() {
+        for (Map.Entry<String, List<String>> skill : DEFAULT_SKILL_NAMES.entrySet()) {
             for (String name : skill.getValue()) {
                 assertEquals(skill.getKey(), config.skills().find(name).map(SkillDefinition::id).orElse(null), name);
             }
@@ -135,7 +136,7 @@ class DefaultSkillsFileTest {
     }
 
     @Test
-    void levelsAreTodaysThresholdsNamesAndColours() {
+    void levelsHaveTheDefaultThresholdsNamesAndColours() {
         assertEquals(List.of(
                 new SkillLevel("unskilled", "Unskilled", "<dark_gray>", 0),
                 new SkillLevel("novice", "Novice", "<#6cda33>", 16),
@@ -161,7 +162,7 @@ class DefaultSkillsFileTest {
     }
 
     @Test
-    void theBookHasTodaysThreePages() {
+    void theBookHasTheThreeDefaultPages() {
         assertEquals(List.of("gathering", "crafting", "service"), config.book().stream().map(SkillBookPage::id).toList());
         assertEquals(List.of("animalhandling", "farming", "forestry", "mining", "mistgathering", "woodprocessing"),
                 config.book().get(0).skills());
