@@ -1,0 +1,58 @@
+# SkysongStats proficiency definitions.
+#
+# tiers          Lowest first. Every proficiency starts at the first tier, which
+#                is free. The second tier costs `cost` (below); every later tier
+#                costs the tier before it plus its `extra`. With cost 4 and two
+#                extras of 2: Proficient 4 points, Adept 6, Master 8.
+#                  name, color   how the tier shows in game
+#                  extra         only for the third tier onwards
+# cost           The points the second tier costs. A proficiency can override it.
+# proficiencies  Each entry is one proficiency; its key is the proficiency's id
+#                (lowercase letters, digits, '_' and '-'), used in commands,
+#                LuckPerms nodes and placeholders. Fields:
+#                  name, color   display name and MiniMessage colour
+#                  skill         the id of the skills.yml skill it belongs to
+#                                (required); training adds points by skill
+#                  aliases       other names the commands accept
+#                  cost          the second tier's cost for this one only
+
+tiers:
+  untrained:  {name: "Untrained",  color: "<dark_gray>"}
+  proficient: {name: "Proficient", color: "<green>"}
+  adept:      {name: "Adept",      color: "<blue>",  extra: 2}
+  master:     {name: "Master",     color: "<gold>",  extra: 2}
+
+cost: 4
+
+proficiencies:
+  unarmored:       {name: "Unarmored",       color: "<#e18048>", skill: martial}
+  light_armor:     {name: "Light Armor",     color: "<#e18048>", skill: martial}
+  medium_armor:    {name: "Medium Armor",    color: "<#e18048>", skill: martial}
+  heavy_armor:     {name: "Heavy Armor",     color: "<#e18048>", skill: martial}
+  arcane_arms:     {name: "Arcane Arms",     color: "<#e18048>", skill: martial}
+  axes:            {name: "Axes",            color: "<#e18048>", skill: martial}
+  bows:            {name: "Bows",            color: "<#e18048>", skill: martial}
+  crossbows:       {name: "Crossbows",       color: "<#e18048>", skill: martial}
+  firearms:        {name: "Firearms",        color: "<#e18048>", skill: martial}
+  picks:           {name: "Picks",           color: "<#e18048>", skill: martial}
+  polearms:        {name: "Polearms",        color: "<#e18048>", skill: martial}
+  spears:          {name: "Spears",          color: "<#e18048>", skill: martial}
+  whips:           {name: "Whips",           color: "<#e18048>", skill: martial}
+  projectile:      {name: "Projectile",      color: "<#e18048>", skill: martial}
+  blunt:           {name: "Blunt",           color: "<#e18048>", skill: martial}
+  long_blade:      {name: "Long Blade",      color: "<#e18048>", skill: martial}
+  short_blade:     {name: "Short Blade",     color: "<#e18048>", skill: martial}
+  exotic:          {name: "Exotic",          color: "<#e18048>", skill: martial}
+
+  perception:      {name: "Perception",      color: "<gold>", skill: economical}
+  surface_vehicle: {name: "Surface Vehicle", color: "<gold>", skill: economical}
+  air_vehicle:     {name: "Air Vehicle",     color: "<gold>", skill: economical}
+  surface_mount:   {name: "Surface Mount",   color: "<gold>", skill: economical}
+  air_mount:       {name: "Air Mount",       color: "<gold>", skill: economical}
+  survival:        {name: "Survival",        color: "<gold>", skill: economical}
+
+  medicine:        {name: "Medicine",        color: "<#f14f4f>", skill: medical}
+
+  sleight_of_hand: {name: "Sleight of Hand", color: "<#f22a93>", skill: entertainment}
+  stealth:         {name: "Stealth",         color: "<#f22a93>", skill: entertainment}
+  performance:     {name: "Performance",     color: "<#f22a93>", skill: entertainment}
