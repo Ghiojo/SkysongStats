@@ -9,6 +9,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockbukkit.mockbukkit.MockBukkit;
 import org.mockbukkit.mockbukkit.ServerMock;
+import org.mockbukkit.mockbukkit.command.ConsoleCommandSenderMock;
 import org.mockbukkit.mockbukkit.entity.PlayerMock;
 import org.skysongdev.skysongstats.SkysongStats;
 import org.skysongdev.skysongstats.Utils.ProfileManager;
@@ -79,6 +80,22 @@ class ProfileCommandTest {
     @Test
     void noSubcommandShowsTheUsage() {
         assertEquals("[SkysongStats] Too Little arguments! (Usage: /profile (subcommand))", run());
+    }
+
+    @Test
+    void consoleIsToldOnlyPlayersHaveProfiles() {
+        ConsoleCommandSenderMock console = MockBukkit.getMock().getConsoleSender();
+        for (String sub : List.of("view", "create", "switch", "delete")) {
+            profile.onCommand(console, command, "profile", new String[]{sub, "Mage"});
+            assertEquals("[SkysongStats] Only players can use this command!",
+                    PlainTextComponentSerializer.plainText().serialize(console.nextComponentMessage()));
+        }
+    }
+
+    @Test
+    void consoleGetsNoProfileSuggestions() {
+        ConsoleCommandSenderMock console = MockBukkit.getMock().getConsoleSender();
+        assertEquals(List.of(), profile.onTabComplete(console, command, "profile", new String[]{"switch", ""}));
     }
 
     @Test

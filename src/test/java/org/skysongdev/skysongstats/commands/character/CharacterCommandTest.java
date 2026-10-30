@@ -98,6 +98,30 @@ class CharacterCommandTest {
     }
 
     @Test
+    void consoleWithoutAPlayerIsAskedForOne() {
+        character.onCommand(server.getConsoleSender(), command, "char", new String[0]);
+        assertEquals("You must specify a player to view their character!", nextConsole());
+    }
+
+    @Test
+    void consoleCanViewAPlayersSheet() {
+        character.onCommand(server.getConsoleSender(), command, "char", new String[]{"view", "Alice"});
+        assertEquals(BORDER, nextConsole());
+        assertEquals("                Alice' s Character Sheet:", nextConsole());
+    }
+
+    @Test
+    void consoleCannotSetFields() {
+        character.onCommand(server.getConsoleSender(), command, "char", new String[]{"set", "name", "Aria"});
+        assertEquals("Only players can use this command!", nextConsole());
+    }
+
+    private String nextConsole() {
+        Component message = server.getConsoleSender().nextComponentMessage();
+        return message == null ? null : PlainTextComponentSerializer.plainText().serialize(message);
+    }
+
+    @Test
     void tooLongNameIsRefused() {
         character.onCommand(alice, command, "char", new String[]{"set", "name", "x".repeat(101)});
         assertEquals("[SkysongStats] Name is too long!", next());

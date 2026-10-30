@@ -37,13 +37,11 @@ public class ViewCharacter implements TabExecutor {
             }
         }
         CharacterProfile profile = getPlugin().getUtils().getCharacterManager().findActiveCharacter(target.getUniqueId().toString());
-        if(commandSender instanceof Player player){
-            showSheet(player, target.getName(), profile);
-        }
+        showSheet(commandSender, target.getName(), profile);
         return true;
     }
 
-    private static void showSheet(Player viewer, String playerName, CharacterProfile profile) {
+    private static void showSheet(CommandSender viewer, String playerName, CharacterProfile profile) {
         Messages messages = getPlugin().getMessages();
         messages.send(viewer, "character.view.header", Map.of("player", playerName), Map.of(
                 "name", Messages.playerStyledText(profile.getName()),

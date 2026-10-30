@@ -23,7 +23,10 @@ public class SetupCommand implements CommandExecutor {
 
     @Override
     public boolean onCommand(@NotNull CommandSender commandSender, @NotNull Command command, @NotNull String s, @NotNull String[] strings) {
-        Player target = (Player) commandSender;
+        if(!(commandSender instanceof Player target)){
+            getPlugin().getMessages().send(commandSender, "general.players-only");
+            return true;
+        }
         SetupProfile setup = getPlugin().getUtils().getProfileManager().findActiveSetupProfile(target.getUniqueId().toString());
         if(setup.isSetUp()){
             getPlugin().getMessages().send(target, "setup.already-set-up");
