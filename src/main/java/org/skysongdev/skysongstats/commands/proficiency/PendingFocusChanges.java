@@ -18,11 +18,11 @@ import java.util.function.LongSupplier;
 public final class PendingFocusChanges implements Listener {
     static final long TIMEOUT_MILLIS = 60_000;
 
-    private record Pending(ProfileKey character, String proficiencyId, long expiresAt) {
-    }
-
     private final LongSupplier clock;
     private final Map<UUID, Pending> pending = new HashMap<>();
+
+    private record Pending(ProfileKey character, String proficiencyId, long expiresAt) {
+    }
 
     // clock gives the current time in milliseconds.
     public PendingFocusChanges(LongSupplier clock) {

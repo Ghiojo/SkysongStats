@@ -164,9 +164,11 @@ class ProficiencyCommandTest {
         run(console, "view", "Alice");
         console.nextComponentMessage();
         assertEquals("                Alice' s Proficiencies:", plain(console.nextComponentMessage()));
+        int restOfTheSheet = 0;
         while (console.nextComponentMessage() != null) {
-            // The rest of the sheet.
+            restOfTheSheet++;
         }
+        assertTrue(restOfTheSheet > 0);
         assertEquals("[SkysongStats] You must specify a player if you are running this command on console!",
                 console("view"));
     }
