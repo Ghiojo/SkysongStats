@@ -83,13 +83,9 @@ public final class SkillsCommand implements TabExecutor {
             messages.send(sender, SKILLS + name + ".usage", Map.of());
             return;
         }
-        Optional<SkillDefinition> skill = skill(sender, args[1]);
-        OptionalInt xp = skill.isPresent() ? xp(sender, args[2]) : OptionalInt.empty();
-        if (xp.isEmpty()) {
-            return;
-        }
-        targets.resolve(sender, argument(args, 3), null, null)
-                .ifPresent(target -> apply(sender, target, skill.get(), xp.getAsInt(), set));
+        skill(sender, args[1]).ifPresent(skill -> xp(sender, args[2]).ifPresent(xp ->
+                targets.resolve(sender, argument(args, 3), null, null)
+                        .ifPresent(target -> apply(sender, target, skill, xp, set))));
     }
 
     private void apply(CommandSender sender, CommandTargets.Target target, SkillDefinition skill, int xp, boolean set) {

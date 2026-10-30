@@ -29,7 +29,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class SkillLevelSyncTest {
     private final List<Set<String>> granted = new ArrayList<>();
     private final Map<Player, ProfileKey> active = new HashMap<>();
-    private SkillService skills;
     private SkillLevelSync sync;
     private PlayerMock alice;
     private ProfileKey main;
@@ -44,7 +43,7 @@ class SkillLevelSyncTest {
         SkillsConfig config = SkillTestConfig.load();
         SkillLevelPermissions permissions = new SkillLevelPermissions(
                 (player, grant, revoke) -> granted.add(grant), () -> config, character -> false);
-        skills = new SkillService(config, new UnsavedSkillRepository(line -> { }), permissions);
+        SkillService skills = new SkillService(config, new UnsavedSkillRepository(line -> { }), permissions);
         skills.createCharacter(main);
         skills.createCharacter(alt);
         skills.setXp(alt, config.skills().get("farming").orElseThrow(), 40);
