@@ -202,6 +202,38 @@ class StatServiceTest {
     }
 
     @Test
+    void fillingBarsThatStartFullTakesHpToItsNewMax() {
+        apply("con", StatAction.SET, 3);
+        assertEquals(60, value("hp"));
+        service.fillBarsThatStartFull(ALICE);
+        assertEquals(90, value("hp"));
+    }
+
+    @Test
+    void fillingBarsThatStartFullCountsMaxModifiers() {
+        service.addModifier(ALICE, "max_hp", 15);
+        service.fillBarsThatStartFull(ALICE);
+        assertEquals(75, value("hp"));
+    }
+
+    @Test
+    void fillingBarsThatStartFullLeavesOtherBarsAlone() {
+        apply("potion", StatAction.SET, 4);
+        service.fillBarsThatStartFull(ALICE);
+        assertEquals(4, value("potion"));
+        assertEquals(0, value("arcrot"));
+    }
+
+    @Test
+    void fillingBarsThatStartFullIsSavedAndReported() {
+        apply("con", StatAction.SET, 2);
+        changes.clear();
+        service.fillBarsThatStartFull(ALICE);
+        assertEquals(80, repository.values.get(ALICE).get("hp"));
+        assertEquals(1, changes.size());
+    }
+
+    @Test
     void hpStopsAtItsMaxAndAtZero() {
         assertEquals(60, apply("hp", StatAction.ADD, 25).newValue());
         // Bug 15: /damage could take HP below 0.

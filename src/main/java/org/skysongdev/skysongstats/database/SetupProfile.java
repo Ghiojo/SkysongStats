@@ -84,12 +84,14 @@ public class SetupProfile {
         }
     }
 
-    // Sets the character's stats to the values picked on the point screen. A stat
-    // that left stats.yml since then is skipped.
+    // Sets the character's stats to the values picked on the point screen, then
+    // fills the bars that start full (HP) to their new max. A stat that left
+    // stats.yml since then is skipped.
     public void applyChosenStats(StatService stats){
         ProfileKey character = new ProfileKey(UUID.fromString(uuid), profile);
         chosenStats.forEach((id, value) -> stats.definitions().get(id)
                 .ifPresent(stat -> stats.apply(character, stat, StatAction.SET, value)));
+        stats.fillBarsThatStartFull(character);
     }
 
     public SkillChoiceGUI getSkillChoiceGUI() {
