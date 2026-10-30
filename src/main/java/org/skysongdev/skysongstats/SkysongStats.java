@@ -19,6 +19,9 @@ import org.skysongdev.skysongstats.commands.misc.ReloadCommand;
 import org.skysongdev.skysongstats.commands.profile.ProfileCommand;
 import org.skysongdev.skysongstats.commands.setup.SetupCommand;
 import org.skysongdev.skysongstats.commands.skills.SkillBook;
+import org.skysongdev.skysongstats.commands.proficiency.PendingFocusChanges;
+import org.skysongdev.skysongstats.commands.proficiency.ProficiencyCommand;
+import org.skysongdev.skysongstats.commands.proficiency.ProficiencySheet;
 import org.skysongdev.skysongstats.commands.skills.SkillsCommand;
 import org.skysongdev.skysongstats.commands.stat.CommandTargets;
 import org.skysongdev.skysongstats.commands.stat.StatActionRunner;
@@ -114,6 +117,7 @@ public class SkysongStats extends JavaPlugin {
 
     // messages.yml for the stat commands and the /setup screen.
     private final PluginTexts texts = new PluginTexts(this::getMessages);
+    private final PendingFocusChanges pendingFocusChanges = new PendingFocusChanges(System::currentTimeMillis);
     private StatCommandRegistry statCommands;
     private StatPermissionRegistry statPermissions;
 
@@ -206,6 +210,8 @@ public class SkysongStats extends JavaPlugin {
         getCommand("setup").setExecutor(setupCommand);
         getCommand("skills").setExecutor(new SkillsCommand(skillService, targets, texts, new SkillBook(this::getMessages),
                 onlinePlayers, getLogger()::info));
+        getCommand("proficiency").setExecutor(new ProficiencyCommand(proficiencyService, skillService, targets, texts,
+                new ProficiencySheet(this::getMessages), pendingFocusChanges, onlinePlayers, getLogger()::info));
         getCommand("ssreload").setExecutor(new ReloadCommand());
         getCommand("schar").setExecutor(characterCommand);
         getCommand("char").setExecutor(characterCommand);
@@ -218,6 +224,7 @@ public class SkysongStats extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new SetupScreenListener(), this);
         getServer().getPluginManager().registerEvents(skillLevelSync, this);
         getServer().getPluginManager().registerEvents(proficiencyTierSync, this);
+        getServer().getPluginManager().registerEvents(pendingFocusChanges, this);
         getServer().getPluginManager().registerEvents(new PlayerShiftRightClickListener(), this);
         getServer().getPluginManager().registerEvents(
                 new ItemTagListener(statService, utils.getProfileManager()::activeCharacter), this);

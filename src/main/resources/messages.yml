@@ -163,6 +163,84 @@ skills:
     # Confirming with picks left. {picks}
     pick-more: "{prefix}<red>Pick {picks} more skill(s) before confirming."
 
+# /proficiency (alias /prof). Proficiency, tier and skill names come from
+# proficiencies.yml and skills.yml.
+proficiency:
+  invalid-subcommand: "{prefix}<red>Incorrect Arguments! Usage: /proficiency (view/focus/points/tier)"
+  # {input}
+  unknown-proficiency: "{prefix}<red>There is no proficiency called {input}!"
+  unknown-tier: "{prefix}<red>There is no proficiency tier called {input}!"
+  unknown-skill: "{prefix}<red>There is no skill called {input}!"
+  # {input} {min}
+  invalid-amount: "{prefix}<red>\"{input}\" must be a whole number of at least {min}!"
+  # /proficiency view. {player}; {focus} is one of the sheet-focus lines below and
+  # {proficiencies} one sheet-skill line per skill that has proficiencies.
+  sheet:
+    - "<#864811>|====================<<<#63C934>₪<#864811>>>====================|"
+    - "                <#F6DA23>{player}' s <#864811>Proficiencies:"
+    - ""
+    - "{focus}"
+    - ""
+    - "{proficiencies}"
+    - "<#864811>|====================<<<#63C934>₪<#864811>>>====================|"
+  # {skill} is the skill's name in its colour, {proficiencies} its sheet-entry
+  # parts joined with sheet-separator.
+  sheet-skill: "{skill}<#864811>: {proficiencies}"
+  # {proficiency} and {tier}, each in its colour from proficiencies.yml.
+  sheet-entry: "{proficiency} <#864811>({tier}<#864811>)"
+  sheet-separator: "<#864811>, "
+  # {proficiency}, {next} (the tier it is training towards), {points}, {cost}
+  sheet-focus: "<#D0530C><bold>Focus:</bold> {proficiency} <#f8e886>{points}/{cost} <#864811>towards {next}"
+  sheet-no-focus: "<#D0530C><bold>Focus:</bold> <gray>none. Pick one with /proficiency focus (proficiency)"
+  focus:
+    usage: "{prefix}<red>Usage: /proficiency focus (proficiency)"
+    # {proficiency}
+    focused: "{prefix}<green>You are now training {proficiency}."
+    already-focused: "{prefix}<yellow>You are already training {proficiency}."
+    mastered: "{prefix}<yellow>You have already mastered {proficiency}, pick another proficiency to train."
+    # Switching would lose the current focus's points. {proficiency} {current} {points}
+    confirm:
+      - "{prefix}<yellow>Training {proficiency} instead of {current} loses your {points} points in {current}."
+      - "{prefix}<yellow>Are you sure? <click:run_command:'/proficiency focus confirm'><hover:show_text:'<green>Switch your focus'><green><bold>[Yes]</bold></green></hover></click> <gray>(within a minute)"
+    nothing-to-confirm: "{prefix}<red>There is no focus change to confirm, or it ran out."
+  points:
+    usage: "{prefix}<red>Usage: /proficiency points (add/remove/set) (player) (amount)"
+    # {player}
+    no-focus: "{prefix}<red>{player} isn't training any proficiency."
+    add:
+      usage: "{prefix}<red>Usage: /proficiency points add (player) (amount) (skill) (max-tier)"
+      # Each result has a message for whoever ran the command and one, ending in
+      # -target, for the player trained. Every one has {player} {amount} {skill}
+      # (the training's skill) {max-tier}; all but no-focus also {proficiency}
+      # {tier} {points} {cost}.
+      added: "{prefix}<green>Added {amount} points to {player}'s {proficiency} ({points}/{cost})."
+      added-target: "{prefix}<green>You gained <gold>{amount} points <green>in {proficiency} ({points}/{cost})."
+      tier-up: "{prefix}<green>{player}'s {proficiency} is now {tier}!"
+      tier-up-target: "{prefix}<gold>Your {proficiency} is now {tier}!"
+      # Sent after tier-up-target when the proficiency reached the top tier.
+      mastered: "{prefix}<gold>You have mastered {proficiency}! Pick a new proficiency with /proficiency focus (proficiency)."
+      no-focus: "{prefix}<red>{player} isn't training any proficiency, no points were added."
+      no-focus-target: "{prefix}<red>Your {skill} training was lost: you aren't training any proficiency. Pick one with /proficiency focus (proficiency)."
+      other-skill: "{prefix}<red>{player} is training {proficiency}, which isn't a {skill} proficiency. No points were added."
+      other-skill-target: "{prefix}<red>Your {skill} training was lost: {proficiency} isn't a {skill} proficiency."
+      at-max-tier: "{prefix}<red>{player}'s {proficiency} is already {tier}, this training only goes up to {max-tier}. No points were added."
+      at-max-tier-target: "{prefix}<red>This training only goes up to {max-tier} and your {proficiency} is already {tier}. No points were added."
+    remove:
+      usage: "{prefix}<red>Usage: /proficiency points remove (player) (amount)"
+      # {player} {proficiency} {points} {cost}
+      removed: "{prefix}<green>{player}'s {proficiency} now has {points}/{cost} points."
+    set:
+      usage: "{prefix}<red>Usage: /proficiency points set (player) (amount)"
+      # {player} {proficiency} {points} {cost}
+      set: "{prefix}<green>{player}'s {proficiency} now has {points}/{cost} points."
+      # {proficiency} {max}. Tiers change with /proficiency tier set.
+      too-high: "{prefix}<red>{proficiency} can have at most {max} points, use /proficiency tier set to change its tier."
+  tier:
+    usage: "{prefix}<red>Usage: /proficiency tier set (player) (proficiency) (tier)"
+    # {player} {proficiency} {tier}
+    set: "{prefix}<green>Set {player}'s {proficiency} to {tier}."
+    set-target: "{prefix}<gold>Your {proficiency} is now {tier}."
+
 setup:
   already-set-up: "{prefix}<red>You have already set up your profile!"
   started: "{prefix}<red>You are now setting up your profile!"

@@ -52,6 +52,11 @@ commands:
     description: "View your stats"
     usage: "/stats [player]"
     permission: "skysongstats.stats"
+  proficiency:
+    description: "View and train your proficiencies"
+    usage: "/proficiency [view|focus|points|tier]"
+    aliases:
+      - prof
   downtime:
     description: "Set your downtime"
     usage: "/downtime [player] [amount]"
@@ -87,6 +92,18 @@ permissions:
   skysongstats.downtime.view.others:
     description: "Allows you to view other players' downtime"
     default: op
+  skysongstats.proficiencies.view:
+    description: "Allows you to view your proficiencies"
+    default: true
+  skysongstats.proficiencies.view.other:
+    description: "Allows you to view other players' proficiencies"
+    default: op
+  skysongstats.proficiencies.focus:
+    description: "Allows you to choose the proficiency you train"
+    default: true
+  skysongstats.proficiencies.manage:
+    description: "Allows you to add, remove and set proficiency points and tiers"
+    default: op
   skysongstats.*:
     description: "Wildcard permission"
     default: op
@@ -98,3 +115,7 @@ permissions:
         skysongstats.modifier.view.other: true
         skysongstats.addxp: true
         skysongstats.setxp: true
+        skysongstats.proficiencies.view: true
+        skysongstats.proficiencies.view.other: true
+        skysongstats.proficiencies.focus: true
+        skysongstats.proficiencies.manage: true
