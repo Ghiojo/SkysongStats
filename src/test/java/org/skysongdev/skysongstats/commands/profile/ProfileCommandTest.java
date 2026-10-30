@@ -77,6 +77,11 @@ class ProfileCommandTest {
     }
 
     @Test
+    void noSubcommandShowsTheUsage() {
+        assertEquals("[SkysongStats] Too Little arguments! (Usage: /profile (subcommand))", run());
+    }
+
+    @Test
     void usageMessagesNameTheRightSubcommand() {
         assertEquals("[SkysongStats] Too Little arguments! (Usage: /profile switch (name))", run("switch"));
         assertEquals("[SkysongStats] Too Little arguments! (Usage: /profile delete (name))", run("delete"));
