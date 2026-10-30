@@ -6,6 +6,10 @@ import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.skysongdev.skysongstats.Utils.ProfileManager;
 import org.skysongdev.skysongstats.Utils.Utils;
+import org.skysongdev.skysongstats.character.ProficiencyChangeListener;
+import org.skysongdev.skysongstats.character.ProficiencyFocusChange;
+import org.skysongdev.skysongstats.character.ProficiencyService;
+import org.skysongdev.skysongstats.character.ProficiencyTierChange;
 import org.skysongdev.skysongstats.character.SkillChange;
 import org.skysongdev.skysongstats.character.SkillService;
 import org.skysongdev.skysongstats.character.StatService;
@@ -28,6 +32,9 @@ import org.skysongdev.skysongstats.database.Database;
 import org.skysongdev.skysongstats.database.Pinger;
 import org.skysongdev.skysongstats.database.SetupProfile;
 import org.skysongdev.skysongstats.definition.DefinitionException;
+import org.skysongdev.skysongstats.definition.ProficienciesConfig;
+import org.skysongdev.skysongstats.definition.ProficienciesConfigFile;
+import org.skysongdev.skysongstats.definition.SkillDefinitions;
 import org.skysongdev.skysongstats.definition.SkillsConfig;
 import org.skysongdev.skysongstats.definition.SkillsConfigFile;
 import org.skysongdev.skysongstats.definition.StatsConfig;
@@ -38,6 +45,8 @@ import org.skysongdev.skysongstats.messages.Messages;
 import org.skysongdev.skysongstats.messages.MessagesFile;
 import org.skysongdev.skysongstats.messages.PluginTexts;
 import org.skysongdev.skysongstats.events.DowntimeChangeEvent;
+import org.skysongdev.skysongstats.events.ProficiencyFocusChangeEvent;
+import org.skysongdev.skysongstats.events.ProficiencyTierChangeEvent;
 import org.skysongdev.skysongstats.events.SkillChangeEvent;
 import org.skysongdev.skysongstats.events.StatChangeEvent;
 import org.skysongdev.skysongstats.placeholders.StatsExpansion;
@@ -45,6 +54,9 @@ import org.skysongdev.skysongstats.service.downtime.DowntimeService;
 import org.skysongdev.skysongstats.service.downtime.DowntimeSettings;
 import org.skysongdev.skysongstats.service.downtime.DowntimeStorageException;
 import org.skysongdev.skysongstats.service.downtime.SqlDowntimeRepository;
+import org.skysongdev.skysongstats.proficiency.ProficiencyPermissionRegistry;
+import org.skysongdev.skysongstats.proficiency.ProficiencyTierPermissions;
+import org.skysongdev.skysongstats.proficiency.ProficiencyTierSync;
 import org.skysongdev.skysongstats.setup.SetupScreenListener;
 import org.skysongdev.skysongstats.skill.LuckPermsNodes;
 import org.skysongdev.skysongstats.skill.PlayerNodes;
@@ -54,6 +66,7 @@ import org.skysongdev.skysongstats.skill.SkillPermissionRegistry;
 import org.skysongdev.skysongstats.storage.CharacterStorage;
 import org.skysongdev.skysongstats.storage.DatabaseSettings;
 import org.skysongdev.skysongstats.storage.ProfileKey;
+import org.skysongdev.skysongstats.storage.ProficiencyRepository;
 import org.skysongdev.skysongstats.storage.SkillRepository;
 import org.skysongdev.skysongstats.storage.StatRepository;
 import org.skysongdev.skysongstats.storage.StatStorage;
@@ -92,6 +105,12 @@ public class SkysongStats extends JavaPlugin {
     private SkillLevelPermissions skillLevels;
     private SkillLevelSync skillLevelSync;
     private SkillPermissionRegistry skillPermissions;
+    private ProficiencyService proficiencyService;
+    private ProficiencyTierPermissions proficiencyTiers;
+    private ProficiencyTierSync proficiencyTierSync;
+    private ProficiencyPermissionRegistry proficiencyPermissions;
+    // Skill level and proficiency tier nodes, in LuckPerms.
+    private PlayerNodes playerNodes;
 
     // messages.yml for the stat commands and the /setup screen.
     private final PluginTexts texts = new PluginTexts(this::getMessages);
@@ -110,6 +129,7 @@ public class SkysongStats extends JavaPlugin {
     public StatsConfig getStatsConfig() { return statsConfig; }
     public StatService getStatService() { return statService; }
     public SkillService getSkillService() { return skillService; }
+    public ProficiencyService getProficiencyService() { return proficiencyService; }
 
     @Override
     public void onEnable() {
@@ -133,6 +153,14 @@ public class SkysongStats extends JavaPlugin {
             getServer().getPluginManager().disablePlugin(this);
             return;
         }
+        ProficienciesConfig proficienciesConfig;
+        try {
+            proficienciesConfig = loadProficienciesConfig(skillsConfig.skills());
+        } catch (DefinitionException e) {
+            getLogger().log(Level.SEVERE, "Fix proficiencies.yml and restart the server. SkysongStats is disabled.", e);
+            getServer().getPluginManager().disablePlugin(this);
+            return;
+        }
         if (!InitializeDatabase()) {
             getServer().getPluginManager().disablePlugin(this);
             return;
@@ -140,7 +168,9 @@ public class SkysongStats extends JavaPlugin {
         InitializeDowntime();
         // The stats come before the commands, listeners and placeholders that use them.
         InitializeStats();
+        playerNodes = luckPermsNodes();
         InitializeSkills(skillsConfig);
+        InitializeProficiencies(proficienciesConfig);
 
         InitializeCommands();
         AssignListeners();
@@ -187,6 +217,7 @@ public class SkysongStats extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new PlayerRegisterListener(), this);
         getServer().getPluginManager().registerEvents(new SetupScreenListener(), this);
         getServer().getPluginManager().registerEvents(skillLevelSync, this);
+        getServer().getPluginManager().registerEvents(proficiencyTierSync, this);
         getServer().getPluginManager().registerEvents(new PlayerShiftRightClickListener(), this);
         getServer().getPluginManager().registerEvents(
                 new ItemTagListener(statService, utils.getProfileManager()::activeCharacter), this);
@@ -223,6 +254,9 @@ public class SkysongStats extends JavaPlugin {
         }
         if (skillPermissions != null) {
             skillPermissions.unregisterAll();
+        }
+        if (proficiencyPermissions != null) {
+            proficiencyPermissions.unregisterAll();
         }
         if (storage != null) {
             storage.close();
@@ -262,7 +296,7 @@ public class SkysongStats extends JavaPlugin {
     public void InitializeSkills(SkillsConfig config){
         SkillRepository repository = storage.skillRepository();
         skillService = new SkillService(config, repository, this::onSkillChange);
-        skillLevels = new SkillLevelPermissions(playerNodes(), skillService::config, utils.getProfileManager()::isActive);
+        skillLevels = new SkillLevelPermissions(playerNodes, skillService::config, utils.getProfileManager()::isActive);
         skillLevelSync = new SkillLevelSync(skillLevels, skillService, utils.getProfileManager()::activeCharacter);
         skillPermissions = new SkillPermissionRegistry(getServer().getPluginManager());
         skillPermissions.register(config);
@@ -282,15 +316,48 @@ public class SkysongStats extends JavaPlugin {
         Bukkit.getPluginManager().callEvent(new SkillChangeEvent(change));
     }
 
+    // Loads every character's proficiencies from the stat database, and keeps
+    // the LuckPerms tier nodes of active characters up to date.
+    public void InitializeProficiencies(ProficienciesConfig config){
+        ProficiencyRepository repository = storage.proficiencyRepository();
+        proficiencyService = new ProficiencyService(config, repository, new ProficiencyChangeListener() {
+            @Override
+            public void onTierChange(ProficiencyTierChange change) {
+                proficiencyTiers.onTierChange(change);
+                Bukkit.getPluginManager().callEvent(new ProficiencyTierChangeEvent(change));
+            }
+
+            @Override
+            public void onFocusChange(ProficiencyFocusChange change) {
+                Bukkit.getPluginManager().callEvent(new ProficiencyFocusChangeEvent(change));
+            }
+        }, getLogger()::warning);
+        proficiencyTiers = new ProficiencyTierPermissions(playerNodes, proficiencyService::config,
+                utils.getProfileManager()::isActive);
+        proficiencyTierSync = new ProficiencyTierSync(proficiencyTiers, proficiencyService,
+                utils.getProfileManager()::activeCharacter);
+        proficiencyPermissions = new ProficiencyPermissionRegistry(getServer().getPluginManager());
+        proficiencyPermissions.register(config);
+        try {
+            repository.createTables();
+            proficiencyService.load();
+        } catch (StorageException e) {
+            // Creating characters now could overwrite the saved tiers once MySQL is back.
+            getLogger().log(Level.SEVERE, "Unable to load the proficiencies from the database", e);
+            return;
+        }
+        addProficienciesToOlderProfiles();
+    }
+
     // LuckPerms is a hard dependency, so it is only missing on a test server.
-    private PlayerNodes playerNodes(){
+    private PlayerNodes luckPermsNodes(){
         LuckPerms luckPerms = Bukkit.getServicesManager().load(LuckPerms.class);
         if (luckPerms == null) {
-            getLogger().severe("LuckPerms is not running, skill level nodes will not be given");
+            getLogger().severe("LuckPerms is not running, skill level and proficiency tier nodes will not be given");
             return (player, grant, revoke) -> { };
         }
         return new LuckPermsNodes(luckPerms, failure -> getLogger().log(Level.WARNING,
-                "Unable to update a player's skill level nodes in LuckPerms", failure));
+                "Unable to update a player's skill level or proficiency tier nodes in LuckPerms", failure));
     }
 
     private void addSkillsToOlderProfiles(){
@@ -299,6 +366,15 @@ public class SkysongStats extends JavaPlugin {
         }
         for (SetupProfile profile : ProfileManager.setupProfiles) {
             skillService.ensureCharacter(new ProfileKey(UUID.fromString(profile.getUuid()), profile.getProfile()));
+        }
+    }
+
+    private void addProficienciesToOlderProfiles(){
+        if (ProfileManager.setupProfiles == null) {
+            return;
+        }
+        for (SetupProfile profile : ProfileManager.setupProfiles) {
+            proficiencyService.ensureCharacter(new ProfileKey(UUID.fromString(profile.getUuid()), profile.getProfile()));
         }
     }
 
@@ -318,6 +394,9 @@ public class SkysongStats extends JavaPlugin {
         }
         if (!reloadSkillsConfig()) {
             notReloaded.add(SkillsConfigFile.FILE_NAME);
+        }
+        if (!reloadProficienciesConfig()) {
+            notReloaded.add(ProficienciesConfigFile.FILE_NAME);
         }
         return notReloaded;
     }
@@ -353,6 +432,31 @@ public class SkysongStats extends JavaPlugin {
             Bukkit.getOnlinePlayers().forEach(skillLevelSync::sync);
         }
         return true;
+    }
+
+    // A proficiencies.yml with mistakes, or naming a skill the skills now loaded
+    // don't have, is reported and the proficiencies already loaded are kept.
+    // Otherwise everyone online gets the tier nodes of the new file.
+    private boolean reloadProficienciesConfig(){
+        if (proficiencyService == null) {
+            return true;
+        }
+        ProficienciesConfig config;
+        try {
+            config = loadProficienciesConfig(skillService.config().skills());
+        } catch (DefinitionException e) {
+            getLogger().log(Level.WARNING, "proficiencies.yml was not reloaded, keeping the proficiencies from before", e);
+            return false;
+        }
+        proficiencyService.setConfig(config);
+        proficiencyPermissions.register(config);
+        Bukkit.getOnlinePlayers().forEach(proficiencyTierSync::sync);
+        return true;
+    }
+
+    private ProficienciesConfig loadProficienciesConfig(SkillDefinitions skills){
+        return ProficienciesConfigFile.load(new File(getDataFolder(), ProficienciesConfigFile.FILE_NAME),
+                bundled(ProficienciesConfigFile.FILE_NAME), skills);
     }
 
     private SkillsConfig loadSkillsConfig(){

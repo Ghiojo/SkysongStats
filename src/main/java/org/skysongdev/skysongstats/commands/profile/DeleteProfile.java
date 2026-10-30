@@ -43,6 +43,7 @@ public class DeleteProfile implements TabExecutor {
         getPlugin().getDowntimeService().deleteCharacter(player.getUniqueId(), targetProfile);
         getPlugin().getStatService().deleteCharacter(new ProfileKey(player.getUniqueId(), targetProfile));
         getPlugin().getSkillService().deleteCharacter(new ProfileKey(player.getUniqueId(), targetProfile));
+        getPlugin().getProficiencyService().deleteCharacter(new ProfileKey(player.getUniqueId(), targetProfile));
 
         getPlugin().getUtils().getProfileManager().findAllProfiles(player.getUniqueId().toString()).remove(strings[0]);
 
