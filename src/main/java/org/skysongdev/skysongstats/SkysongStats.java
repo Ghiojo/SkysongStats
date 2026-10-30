@@ -51,14 +51,13 @@ import org.skysongdev.skysongstats.skill.PlayerNodes;
 import org.skysongdev.skysongstats.skill.SkillLevelPermissions;
 import org.skysongdev.skysongstats.skill.SkillLevelSync;
 import org.skysongdev.skysongstats.skill.SkillPermissionRegistry;
+import org.skysongdev.skysongstats.storage.CharacterStorage;
 import org.skysongdev.skysongstats.storage.DatabaseSettings;
 import org.skysongdev.skysongstats.storage.ProfileKey;
 import org.skysongdev.skysongstats.storage.SkillRepository;
 import org.skysongdev.skysongstats.storage.StatRepository;
 import org.skysongdev.skysongstats.storage.StatStorage;
 import org.skysongdev.skysongstats.storage.StorageException;
-import org.skysongdev.skysongstats.storage.UnsavedSkillRepository;
-import org.skysongdev.skysongstats.storage.UnsavedStatRepository;
 
 import java.io.File;
 import java.io.IOException;
@@ -87,7 +86,7 @@ public class SkysongStats extends JavaPlugin {
     private DowntimeService downtimeService;
     private Messages messages;
     private StatsConfig statsConfig;
-    private StatStorage statStorage;
+    private CharacterStorage storage;
     private StatService statService;
     private SkillService skillService;
     private SkillLevelPermissions skillLevels;
@@ -134,11 +133,9 @@ public class SkysongStats extends JavaPlugin {
             getServer().getPluginManager().disablePlugin(this);
             return;
         }
-        InitializeDatabase();
-        try {
-            database.dumpDatabaseData();
-        }catch (SQLException e){
-            getLogger().log(Level.WARNING, "Unable to load the profiles, skills and characters from the database", e);
+        if (!InitializeDatabase()) {
+            getServer().getPluginManager().disablePlugin(this);
+            return;
         }
         InitializeDowntime();
         // The stats come before the commands, listeners and placeholders that use them.
@@ -227,15 +224,15 @@ public class SkysongStats extends JavaPlugin {
         if (skillPermissions != null) {
             skillPermissions.unregisterAll();
         }
-        if (statStorage != null) {
-            statStorage.close();
+        if (storage != null) {
+            storage.close();
         }
     }
 
     // Opens the stat tables and loads every character's stats. Profiles made
     // before the stat tables existed get their stats at the stats.yml start values.
     public void InitializeStats(){
-        StatRepository repository = openStatStorage();
+        StatRepository repository = storage.repository();
         statService = new StatService(statsConfig.stats(), repository,
                 change -> Bukkit.getPluginManager().callEvent(new StatChangeEvent(change)));
         try {
@@ -260,12 +257,10 @@ public class SkysongStats extends JavaPlugin {
         }
     }
 
-    // Loads every character's skill XP from the stat database (or keeps it in
-    // memory only when that database could not be opened), and keeps the
+    // Loads every character's skill XP from the stat database, and keeps the
     // LuckPerms skill level nodes of active characters up to date.
     public void InitializeSkills(SkillsConfig config){
-        SkillRepository repository = statStorage != null ? statStorage.skillRepository()
-                : new UnsavedSkillRepository(getLogger()::warning);
+        SkillRepository repository = storage.skillRepository();
         skillService = new SkillService(config, repository, this::onSkillChange);
         skillLevels = new SkillLevelPermissions(playerNodes(), skillService::config, utils.getProfileManager()::isActive);
         skillLevelSync = new SkillLevelSync(skillLevels, skillService, utils.getProfileManager()::activeCharacter);
@@ -304,17 +299,6 @@ public class SkysongStats extends JavaPlugin {
         }
         for (SetupProfile profile : ProfileManager.setupProfiles) {
             skillService.ensureCharacter(new ProfileKey(UUID.fromString(profile.getUuid()), profile.getProfile()));
-        }
-    }
-
-    private StatRepository openStatStorage(){
-        try {
-            statStorage = StatStorage.open(DatabaseSettings.fromConfig(getConfig().getConfigurationSection("database")),
-                    getLogger()::warning);
-            return statStorage.repository();
-        } catch (RuntimeException e) {
-            getLogger().log(Level.SEVERE, "Unable to open the stat tables, stat changes will not be saved", e);
-            return new UnsavedStatRepository(getLogger()::warning);
         }
     }
 
@@ -394,19 +378,39 @@ public class SkysongStats extends JavaPlugin {
         }
     }
 
-    public void InitializeDatabase(){
-        try{
-            this.database = new Database(
-                    getConfig().getString("database.host"),
-                    getConfig().getString("database.port"),
-                    getConfig().getString("database.user"),
-                    getConfig().getString("database.password"),
-                    getConfig().getString("database.database_name"));
+    // The plugin can't work without MySQL, so this returns false, with one error
+    // that says what to fix, when it can't be reached or read.
+    public boolean InitializeDatabase(){
+        DatabaseSettings settings = DatabaseSettings.fromConfig(getConfig().getConfigurationSection("database"));
+        this.database = new Database(
+                getConfig().getString("database.host"),
+                getConfig().getString("database.port"),
+                getConfig().getString("database.user"),
+                getConfig().getString("database.password"),
+                getConfig().getString("database.database_name"));
+        try {
+            storage = openDatabase(settings);
+            return true;
+        } catch (SQLException | RuntimeException e) {
+            getLogger().log(Level.SEVERE, "Unable to use the database " + settings
+                    + ". SkysongStats needs it, so it is disabled. Check that MySQL is running and the"
+                    + " database: section of config.yml, then restart the server.", e);
+            return false;
+        }
+    }
+
+    // Opens the stat and skill tables, and loads the profiles and characters of
+    // the older tables. Tests replace it, since they have no MySQL.
+    protected CharacterStorage openDatabase(DatabaseSettings settings) throws SQLException {
+        CharacterStorage opened = StatStorage.open(settings, getLogger()::warning);
+        try {
             database.initializeDatabase();
             database.dumpActiveStatsDatabase();
-        }catch(SQLException e){
-            Bukkit.getLogger().warning("[SkysongStats] Unable to connect to database and create tables!");
-            e.printStackTrace();
+            database.dumpDatabaseData();
+        } catch (SQLException e) {
+            opened.close();
+            throw e;
         }
+        return opened;
     }
 }

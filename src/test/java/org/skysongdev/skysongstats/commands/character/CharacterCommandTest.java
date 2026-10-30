@@ -11,6 +11,7 @@ import org.junit.jupiter.api.Test;
 import org.mockbukkit.mockbukkit.MockBukkit;
 import org.mockbukkit.mockbukkit.ServerMock;
 import org.mockbukkit.mockbukkit.entity.PlayerMock;
+import org.skysongdev.skysongstats.OfflineSkysongStats;
 import org.skysongdev.skysongstats.SkysongStats;
 import org.skysongdev.skysongstats.Utils.CharacterManager;
 import org.skysongdev.skysongstats.Utils.ProfileManager;
@@ -35,7 +36,7 @@ class CharacterCommandTest {
     @BeforeEach
     void setUp() {
         server = MockBukkit.mock();
-        SkysongStats plugin = MockBukkit.load(SkysongStats.class);
+        SkysongStats plugin = OfflineSkysongStats.load();
         HandlerList.unregisterAll(plugin);
         character = new CharacterCommand();
         command = plugin.getCommand("char");

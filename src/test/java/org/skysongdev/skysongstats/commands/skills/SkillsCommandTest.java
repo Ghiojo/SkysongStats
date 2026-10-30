@@ -14,6 +14,7 @@ import org.mockbukkit.mockbukkit.MockBukkit;
 import org.mockbukkit.mockbukkit.ServerMock;
 import org.mockbukkit.mockbukkit.command.ConsoleCommandSenderMock;
 import org.mockbukkit.mockbukkit.entity.PlayerMock;
+import org.skysongdev.skysongstats.OfflineSkysongStats;
 import org.skysongdev.skysongstats.SkysongStats;
 import org.skysongdev.skysongstats.Utils.ProfileManager;
 import org.skysongdev.skysongstats.character.SkillService;
@@ -44,7 +45,7 @@ class SkillsCommandTest {
     @BeforeEach
     void setUp() {
         server = MockBukkit.mock();
-        plugin = MockBukkit.load(SkysongStats.class);
+        plugin = OfflineSkysongStats.load();
         // The join listeners need the old tables, which tests don't have.
         HandlerList.unregisterAll(plugin);
         skills = plugin.getSkillService();

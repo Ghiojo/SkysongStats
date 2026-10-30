@@ -10,6 +10,7 @@ import org.junit.jupiter.api.Test;
 import org.mockbukkit.mockbukkit.MockBukkit;
 import org.mockbukkit.mockbukkit.ServerMock;
 import org.mockbukkit.mockbukkit.entity.PlayerMock;
+import org.skysongdev.skysongstats.OfflineSkysongStats;
 import org.skysongdev.skysongstats.SkysongStats;
 import org.skysongdev.skysongstats.service.downtime.DowntimeSettings;
 
@@ -31,7 +32,7 @@ class ReloadCommandTest {
     @BeforeEach
     void setUp() {
         server = MockBukkit.mock();
-        plugin = MockBukkit.load(SkysongStats.class);
+        plugin = OfflineSkysongStats.load();
         HandlerList.unregisterAll(plugin);
         command = plugin.getCommand("ssreload");
     }
