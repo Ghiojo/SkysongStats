@@ -1,18 +1,13 @@
 package org.skysongdev.skysongstats.setup;
 
 import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.minimessage.MiniMessage;
-import net.kyori.adventure.text.minimessage.tag.resolver.Placeholder;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
-import org.bukkit.NamespacedKey;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.ClickType;
 import org.bukkit.inventory.Inventory;
-import org.bukkit.inventory.InventoryHolder;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
-import org.skysongdev.skysongstats.definition.Icon;
 import org.skysongdev.skysongstats.definition.SetupRules;
 import org.skysongdev.skysongstats.definition.StatDefinition;
 import org.skysongdev.skysongstats.definition.StatSetup;
@@ -22,7 +17,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.function.BiConsumer;
 
 // The /setup point allocation screen, built from the stats with a setup: section
@@ -31,10 +25,9 @@ import java.util.function.BiConsumer;
 // PointAllocation). Confirming with every point spent passes the chosen values,
 // by stat id, to onConfirm. Closing the screen without confirming starts over.
 // Its text is the setup.* keys of messages.yml.
-public final class StatSetupMenu implements InventoryHolder {
+public final class StatSetupMenu implements SetupScreen {
     public static final int SIZE = 27;
     private static final String SETUP = "setup.";
-    private static final MiniMessage MINI_MESSAGE = MiniMessage.miniMessage();
 
     private final Inventory inventory;
     private final PointAllocation allocation;
@@ -57,7 +50,12 @@ public final class StatSetupMenu implements InventoryHolder {
         player.openInventory(inventory);
     }
 
-    // A click on a slot of this screen.
+    @Override
+    public int size() {
+        return SIZE;
+    }
+
+    @Override
     public void click(Player player, int slot, ClickType click) {
         if (slot == StatSetup.CONFIRM_SLOT) {
             confirm(player);
@@ -74,7 +72,8 @@ public final class StatSetupMenu implements InventoryHolder {
         }
     }
 
-    // The player closed the screen: the next /setup starts from the baselines.
+    // The next /setup starts from the baselines.
+    @Override
     public void closed() {
         allocation.reset();
         drawAll();
@@ -130,28 +129,14 @@ public final class StatSetupMenu implements InventoryHolder {
                 "value", Integer.toString(allocation.value(stat)),
                 "min", Integer.toString(stat.baseline() + stat.setup().min()),
                 "max", Integer.toString(stat.baseline() + stat.setup().max()));
-        ItemStack item = icon(stat.setup().icon());
+        ItemStack item = MenuItems.icon(stat.setup().icon());
         item.editMeta(meta -> {
-            meta.displayName(inStatColor(stat, texts.line(SETUP + "stat.name", values)));
+            meta.displayName(MenuItems.colored(stat.display().color(), texts.line(SETUP + "stat.name", values)));
             List<Component> lore = new ArrayList<>(texts.lines(SETUP + "stat.lore", values));
-            stat.setup().lore().forEach(line -> lore.add(MINI_MESSAGE.deserialize(line)));
+            stat.setup().lore().forEach(line -> lore.add(MenuItems.MINI_MESSAGE.deserialize(line)));
             meta.lore(lore);
         });
         inventory.setItem(stat.setup().slot(), item);
-    }
-
-    // The stat's colour from stats.yml, for the parts of the text that set none.
-    private static Component inStatColor(StatDefinition stat, Component text) {
-        return MINI_MESSAGE.deserialize(stat.display().color() + "<text>", Placeholder.component("text", text));
-    }
-
-    private static ItemStack icon(Icon icon) {
-        if (!icon.isModel()) {
-            return new ItemStack(Optional.ofNullable(Material.matchMaterial(icon.material())).orElse(Material.BARRIER));
-        }
-        ItemStack item = new ItemStack(Material.PAPER);
-        item.editMeta(meta -> meta.setItemModel(NamespacedKey.fromString(icon.model())));
-        return item;
     }
 
     private Component text(String key) {
