@@ -80,7 +80,7 @@ public final class ProficiencyCommand implements TabExecutor {
                 sheet.send(sender, target.player().getName(), proficiencies, skills.config(), target.character()));
     }
 
-    private void focus(CommandSender sender, String[] args) {
+    private void focus(CommandSender sender, String... args) {
         if (args.length < 2) {
             messages.send(sender, FOCUS_KEYS + "usage", Map.of());
             return;

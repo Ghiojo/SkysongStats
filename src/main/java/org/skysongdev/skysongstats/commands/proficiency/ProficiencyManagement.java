@@ -47,7 +47,7 @@ final class ProficiencyManagement {
     }
 
     // args: "points", then the action and its arguments.
-    void points(CommandSender sender, String[] args) {
+    void points(CommandSender sender, String... args) {
         if (!allowed(sender)) {
             return;
         }
@@ -61,7 +61,7 @@ final class ProficiencyManagement {
     }
 
     // args: "tier", "set", player, proficiency, tier.
-    void tier(CommandSender sender, String[] args) {
+    void tier(CommandSender sender, String... args) {
         if (!allowed(sender)) {
             return;
         }
@@ -73,7 +73,7 @@ final class ProficiencyManagement {
                 arguments.tier(sender, args[4]).ifPresent(tier -> setTier(sender, target, proficiency, tier))));
     }
 
-    private void add(CommandSender sender, String[] args) {
+    private void add(CommandSender sender, String... args) {
         if (args.length < 6) {
             messages.send(sender, POINTS + "add.usage", Map.of());
             return;
@@ -116,7 +116,7 @@ final class ProficiencyManagement {
         return placeholders;
     }
 
-    private void remove(CommandSender sender, String[] args) {
+    private void remove(CommandSender sender, String... args) {
         if (args.length < 4) {
             messages.send(sender, POINTS + "remove.usage", Map.of());
             return;
@@ -127,7 +127,7 @@ final class ProficiencyManagement {
                                 () -> noFocus(sender, target))));
     }
 
-    private void set(CommandSender sender, String[] args) {
+    private void set(CommandSender sender, String... args) {
         if (args.length < 4) {
             messages.send(sender, POINTS + "set.usage", Map.of());
             return;
