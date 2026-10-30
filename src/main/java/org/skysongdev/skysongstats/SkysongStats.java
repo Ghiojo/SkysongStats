@@ -156,8 +156,6 @@ public class SkysongStats extends JavaPlugin {
         getCommand("char").setExecutor(characterCommand);
         downtimeCommand = new DowntimeCommand(downtimeService);
         getCommand("downtime").setExecutor(downtimeCommand);
-        //getCommand("fictis").setExecutor(new Fictis());
-        //getCommand("arcrot").setExecutor(new Arcrot());
     }
 
     public void AssignListeners() {
