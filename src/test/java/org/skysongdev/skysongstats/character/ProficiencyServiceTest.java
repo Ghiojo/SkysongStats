@@ -115,7 +115,8 @@ class ProficiencyServiceTest {
             skills.loadFromString(SKILLS);
             YamlConfiguration file = new YamlConfiguration();
             file.loadFromString(yaml);
-            return ProficienciesConfigLoader.load(file, SkillsConfigLoader.load(skills, name -> true).skills());
+            return ProficienciesConfigLoader.load(file, SkillsConfigLoader.load(skills, name -> true).skills(),
+                    name -> true);
         } catch (InvalidConfigurationException e) {
             throw new AssertionError(e);
         }

@@ -4,7 +4,9 @@ import org.junit.jupiter.api.Test;
 import org.skysongdev.skysongstats.character.ProficiencyFocus;
 import org.skysongdev.skysongstats.character.ProficiencyFocusChange;
 import org.skysongdev.skysongstats.character.ProficiencyTierChange;
+import org.skysongdev.skysongstats.definition.Icon;
 import org.skysongdev.skysongstats.definition.ProficiencyDefinition;
+import org.skysongdev.skysongstats.definition.ProficiencySetup;
 import org.skysongdev.skysongstats.definition.ProficiencyTier;
 import org.skysongdev.skysongstats.storage.ProfileKey;
 
@@ -22,7 +24,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class ProficiencyEventsTest {
 
     private static final ProfileKey ALICE = new ProfileKey(UUID.randomUUID(), "main");
-    private static final ProficiencyDefinition AXES = new ProficiencyDefinition("axes", "Axes", "", "martial", List.of(), 4);
+    private static final ProficiencyDefinition AXES = new ProficiencyDefinition("axes", "Axes", "", "martial",
+            List.of(), 4, new ProficiencySetup(Icon.parse("BOOK"), List.of()));
 
     @Test
     void theTierChangeEventCarriesTheChange() {

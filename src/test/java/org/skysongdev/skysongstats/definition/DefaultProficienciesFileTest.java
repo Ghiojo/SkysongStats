@@ -66,7 +66,7 @@ class DefaultProficienciesFileTest {
     static void loadDefaultFiles() throws Exception {
         // The skill icons are not what this test is about, so any Material is accepted.
         SkillsConfig skills = SkillsConfigLoader.load(bundled("skills.yml"), name -> true);
-        config = ProficienciesConfigLoader.load(bundled("proficiencies.yml"), skills.skills());
+        config = ProficienciesConfigLoader.load(bundled("proficiencies.yml"), skills.skills(), name -> true);
     }
 
     private static YamlConfiguration bundled(String name) throws Exception {
@@ -101,6 +101,15 @@ class DefaultProficienciesFileTest {
         for (ProficiencyDefinition proficiency : config.proficiencies().all()) {
             assertEquals(List.of(0, 4, 6, 8),
                     config.tiers().all().stream().map(tier -> config.cost(proficiency, tier)).toList(), proficiency.id());
+        }
+    }
+
+    @Test
+    void eachPickedSkillGivesOneExtraPickOfItsProficiencies() {
+        assertEquals(new ProficiencySetupRules(List.of(), Map.of(),
+                Map.of("martial", 1, "economical", 1, "medical", 1, "entertainment", 1)), config.setup());
+        for (ProficiencyDefinition proficiency : config.proficiencies().all()) {
+            assertEquals(Icon.parse(ProficiencySetup.DEFAULT_ICON), proficiency.setup().icon(), proficiency.id());
         }
     }
 }

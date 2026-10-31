@@ -7,6 +7,18 @@
 #                  name, color   how the tier shows in game
 #                  extra         only for the third tier onwards
 # cost           The points the second tier costs. A proficiency can override it.
+# setup          What a new character gets on the /setup proficiency screen, which
+#                comes after the skill screen. A pick raises one proficiency from
+#                the first tier to the second (Proficient), never higher, and only
+#                spends picks of the proficiency's own skill.
+#                  trained       proficiency ids every new character starts at
+#                                the second tier in; they can't be picked
+#                  picks         free picks per skill id for every new character
+#                  skill-picks   extra picks per skill id when the player picked
+#                                that skill on the /setup skill screen
+#                The screen shows the trained proficiencies and those of skills
+#                with picks, at most 36. With nothing trained and no picks, the
+#                screen is skipped.
 # proficiencies  Each entry is one proficiency; its key is the proficiency's id
 #                (lowercase letters, digits, '_' and '-'), used in commands,
 #                LuckPerms nodes and placeholders. Fields:
@@ -15,6 +27,10 @@
 #                                (required); training adds points by skill
 #                  aliases       other names the commands accept
 #                  cost          the second tier's cost for this one only
+#                  icon          how it shows on the /setup screen: a Material
+#                                (IRON_SWORD) or model:<namespace:id>; a book
+#                                when left out
+#                  lore          lines under its name on the /setup screen
 
 tiers:
   untrained:  {name: "Untrained",  color: "<dark_gray>"}
@@ -23,6 +39,15 @@ tiers:
   master:     {name: "Master",     color: "<gold>",  extra: 2}
 
 cost: 4
+
+setup:
+  trained: []
+  picks: {}
+  skill-picks:
+    martial: 1
+    economical: 1
+    medical: 1
+    entertainment: 1
 
 proficiencies:
   unarmored:       {name: "Unarmored",       color: "<#e18048>", skill: martial}

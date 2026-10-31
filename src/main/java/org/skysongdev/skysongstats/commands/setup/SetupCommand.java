@@ -6,12 +6,16 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 import org.skysongdev.skysongstats.database.SetupProfile;
+import org.skysongdev.skysongstats.definition.ProficiencyDefinition;
+import org.skysongdev.skysongstats.definition.SkillDefinition;
 import org.skysongdev.skysongstats.definition.SkillsConfig;
 import org.skysongdev.skysongstats.definition.StatsConfig;
 import org.skysongdev.skysongstats.setup.MenuTexts;
+import org.skysongdev.skysongstats.setup.ProficiencySetupMenu;
 import org.skysongdev.skysongstats.setup.SkillSetupMenu;
 import org.skysongdev.skysongstats.setup.StatSetupMenu;
 
+import java.util.List;
 import java.util.Objects;
 
 import static org.skysongdev.skysongstats.SkysongStats.getPlugin;
@@ -36,7 +40,8 @@ public class SetupCommand implements CommandExecutor {
         }
         getPlugin().getMessages().send(target, "setup.started");
         // The stat point screen comes from stats.yml; confirming it moves on to
-        // the skill screen from skills.yml, and confirming that finishes the setup.
+        // the skill screen from skills.yml, then the proficiency screen from
+        // proficiencies.yml, and confirming that finishes the setup.
         StatsConfig config = getPlugin().getStatsConfig();
         new StatSetupMenu(config.stats().setupStats(), config.setupRules(), texts, (player, values) -> {
             setup.setChosenStats(values);
@@ -47,9 +52,23 @@ public class SetupCommand implements CommandExecutor {
 
     private void openSkillScreen(Player player, SetupProfile setup) {
         SkillsConfig skills = getPlugin().getSkillService().config();
-        new SkillSetupMenu(skills.skills().setupSkills(), skills.setup(), texts, (confirmer, picked) -> {
-            setup.finishProfileSetup(getPlugin().getStatService(), getPlugin().getSkillService(), picked);
-            getPlugin().getMessages().send(confirmer, "setup.completed");
-        }).open(player);
+        new SkillSetupMenu(skills.skills().setupSkills(), skills.setup(), texts,
+                (confirmer, picked) -> openProficiencyScreen(confirmer, setup, picked)).open(player);
+    }
+
+    // Skipped when nothing is trained and the player has no picks.
+    private void openProficiencyScreen(Player player, SetupProfile setup, List<SkillDefinition> pickedSkills) {
+        List<String> pickedIds = pickedSkills.stream().map(SkillDefinition::id).toList();
+        ProficiencySetupMenu.forPickedSkills(getPlugin().getProficiencyService().config(),
+                        getPlugin().getSkillService().config().skills().all(), pickedIds, texts,
+                        (confirmer, proficiencies) -> finish(confirmer, setup, pickedSkills, proficiencies))
+                .ifPresentOrElse(menu -> menu.open(player), () -> finish(player, setup, pickedSkills, List.of()));
+    }
+
+    private void finish(Player player, SetupProfile setup, List<SkillDefinition> pickedSkills,
+                        List<ProficiencyDefinition> proficiencies) {
+        setup.finishProfileSetup(getPlugin().getStatService(), getPlugin().getSkillService(), pickedSkills,
+                getPlugin().getProficiencyService(), proficiencies);
+        getPlugin().getMessages().send(player, "setup.completed");
     }
 }

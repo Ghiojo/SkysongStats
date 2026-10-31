@@ -5,6 +5,9 @@ import org.bukkit.configuration.file.YamlConfiguration;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -34,7 +37,7 @@ class ProficienciesConfigLoaderTest {
         } catch (InvalidConfigurationException e) {
             throw new AssertionError(e);
         }
-        return ProficienciesConfigLoader.load(config, SKILLS);
+        return ProficienciesConfigLoader.load(config, SKILLS, name -> true);
     }
 
     private static List<String> errors(String yaml) {
@@ -57,7 +60,8 @@ class ProficienciesConfigLoaderTest {
                 proficiencies:
                   axes: {name: Axes, color: "<red>", skill: Martial, aliases: [Axe, hatchet], cost: 6}
                 """).proficiencies().get("axes").orElseThrow();
-        assertEquals(new ProficiencyDefinition("axes", "Axes", "<red>", "martial", List.of("axe", "hatchet"), 6), axes);
+        assertEquals(new ProficiencyDefinition("axes", "Axes", "<red>", "martial", List.of("axe", "hatchet"), 6,
+                new ProficiencySetup(Icon.parse("BOOK"), List.of())), axes);
     }
 
     @Test
@@ -220,5 +224,93 @@ class ProficienciesConfigLoaderTest {
                   view: {skill: martial}
                 """);
         assertEquals(4, errors.size(), errors.toString());
+    }
+
+    @Test
+    void readsTheSetupSection() {
+        ProficienciesConfig config = load(TIERS + """
+                setup:
+                  trained: [Axes]
+                  picks: {medical: 1}
+                  skill-picks: {Martial: 2, medical: 0}
+                proficiencies:
+                  axes: {skill: martial}
+                  medicine: {skill: medical}
+                """);
+        assertEquals(new ProficiencySetupRules(List.of("axes"), Map.of("medical", 1),
+                Map.of("martial", 2, "medical", 0)), config.setup());
+    }
+
+    @Test
+    void withoutASetupSectionNewCharactersGetNothing() {
+        assertEquals(ProficiencySetupRules.none(), load(TIERS + "proficiencies:\n  axes: {skill: martial}\n").setup());
+    }
+
+    @Test
+    void picksAddUpForTheSkillsPickedOnTheSkillScreen() {
+        ProficiencySetupRules setup = new ProficiencySetupRules(List.of(), Map.of("medical", 1),
+                Map.of("martial", 2, "medical", 1, "crafting", 0));
+        assertEquals(Map.of("medical", 1), setup.picksFor(List.of()));
+        assertEquals(Map.of("medical", 2, "martial", 2), setup.picksFor(List.of("martial", "medical")));
+        assertEquals(Map.of("medical", 1), setup.picksFor(List.of("crafting")));
+    }
+
+    @Test
+    void theSetupSectionNamesKnownSkillsAndProficiencies() {
+        List<String> errors = errors(TIERS + """
+                setup:
+                  trained: [axes, juggling]
+                  picks: {crafting: 1}
+                  skill-picks: {med: 1, martial: -1}
+                proficiencies:
+                  axes: {skill: martial}
+                """);
+        assertTrue(errors.contains("setup.trained: 'juggling' is not a proficiency id"), errors.toString());
+        assertTrue(errors.contains("setup.picks.crafting: 'crafting' is not a skill id in skills.yml"),
+                errors.toString());
+        assertTrue(errors.contains("setup.skill-picks.med: 'med' is not a skill id in skills.yml"), errors.toString());
+        assertTrue(errors.contains("setup.skill-picks.martial: can't be negative"), errors.toString());
+    }
+
+    @Test
+    void setupPartsMustBeSections() {
+        assertError(TIERS + "setup: 3\nproficiencies:\n  axes: {skill: martial}\n",
+                "setup: must be a section");
+        assertError(TIERS + "setup:\n  picks: 2\nproficiencies:\n  axes: {skill: martial}\n",
+                "setup.picks: must be a section of skill id: number of picks");
+    }
+
+    @Test
+    void theSetupScreenMustFitEveryProficiencyItCanShow() {
+        String martial = IntStream.range(0, ProficiencySetupRules.SCREEN_SLOTS)
+                .mapToObj(i -> "  p" + i + ": {skill: martial}\n")
+                .collect(Collectors.joining());
+        String yaml = TIERS + "setup:\n  skill-picks: {martial: 1}\n  trained: [m0]\nproficiencies:\n" + martial
+                + "  m0: {skill: medical}\n";
+        assertError(yaml, "setup: the /setup screen can show 36 proficiencies, but the trained ones and "
+                + "the skills with picks have 37");
+    }
+
+    @Test
+    void readsTheSetupIconAndLore() {
+        ProficiencySetup setup = load(TIERS + """
+                proficiencies:
+                  axes: {skill: martial, icon: iron_axe, lore: ["<gray>Chop"]}
+                  bows: {skill: martial, icon: "model:skysong:bow"}
+                """).proficiencies().get("axes").orElseThrow().setup();
+        assertEquals(new ProficiencySetup(Icon.parse("IRON_AXE"), List.of("<gray>Chop")), setup);
+    }
+
+    @Test
+    void setupIconsMustBeItems() {
+        YamlConfiguration config = new YamlConfiguration();
+        try {
+            config.loadFromString(TIERS + "proficiencies:\n  axes: {skill: martial, icon: NOT_AN_ITEM}\n");
+        } catch (InvalidConfigurationException e) {
+            throw new AssertionError(e);
+        }
+        List<String> errors = assertThrows(DefinitionException.class,
+                () -> ProficienciesConfigLoader.load(config, SKILLS, "BOOK"::equals)).getErrors();
+        assertEquals(List.of("proficiencies.axes.icon: 'NOT_AN_ITEM' is not an item Material"), errors);
     }
 }
