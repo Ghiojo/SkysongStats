@@ -1,5 +1,7 @@
 # SkysongStats: how the plugin works today
 
+> **Historical document.** This describes the plugin *before* the stats, skills, messages, downtime and proficiencies refactors. Much of it (data model, database tables, commands, permissions, downtime) no longer matches the code. For how the plugin works now, read the [owner's manual](owners-manual.md).
+
 This document describes SkysongStats as it is on `master` after the downtime commit (`81c6629`, "Comitting Downtime changes", merged in `2e69b4b`). That commit also reworked `/setup`; both are covered below. It is a map of the existing code, written before any refactor, so that every later change can be checked against what the plugin did before it.
 
 Nothing here proposes changes. Behaviour that looks wrong is recorded in [Observed issues](#observed-issues) at the end, with the file and line it comes from, so it can be discussed before anything is touched.
