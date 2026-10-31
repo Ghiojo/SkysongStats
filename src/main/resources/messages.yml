@@ -240,6 +240,24 @@ proficiency:
     # {player} {proficiency} {tier}
     set: "{prefix}<green>Set {player}'s {proficiency} to {tier}."
     set-target: "{prefix}<gold>Your {proficiency} is now {tier}."
+  # The proficiency picker shown during /setup, after the skill picker.
+  choice:
+    title: "<gold><bold>Proficiency Selection"
+    # The header's lines, then one skill-picks line per skill with picks, in the
+    # skill's colour from skills.yml. {skill} {picks}
+    lore:
+      - "<gray>Pick the proficiencies your character starts Proficient in."
+      - "<gray>Each pick goes to a proficiency of its own skill."
+      - "<gray>Picks left:"
+    skill-picks: "{skill}: {picks}"
+    confirm: "<green>Confirm"
+    # The name of each proficiency on the screen, in its colour from proficiencies.yml. {name}
+    proficiency-name: "<bold>{name}</bold>"
+    # Added under the trained proficiencies, which every new character gets.
+    trained:
+      - "<green>Already trained"
+    # Confirming with picks left that could still be used. {picks} {skill}
+    pick-more: "{prefix}<red>Pick {picks} more {skill} proficiency(s) before confirming."
 
 setup:
   already-set-up: "{prefix}<red>You have already set up your profile!"

@@ -1,8 +1,12 @@
 package org.skysongdev.skysongstats.database;
 
 import org.bukkit.Bukkit;
+import org.skysongdev.skysongstats.character.ProficiencyService;
 import org.skysongdev.skysongstats.character.SkillService;
 import org.skysongdev.skysongstats.character.StatService;
+import org.skysongdev.skysongstats.definition.ProficiencyDefinition;
+import org.skysongdev.skysongstats.definition.ProficiencyTier;
+import org.skysongdev.skysongstats.definition.ProficiencyTiers;
 import org.skysongdev.skysongstats.definition.SkillDefinition;
 import org.skysongdev.skysongstats.definition.StatAction;
 import org.skysongdev.skysongstats.storage.ProfileKey;
@@ -55,11 +59,14 @@ public class SetupProfile {
         this.isSetUp = isSetUp;
     }
 
-    // Gives the character the stats picked on the point screen and the skills
-    // picked on the skill screen, and marks the profile as set up.
-    public void finishProfileSetup(StatService stats, SkillService skills, List<SkillDefinition> pickedSkills){
+    // Gives the character the stats picked on the point screen, the skills picked
+    // on the skill screen and the proficiencies from the proficiency screen, and
+    // marks the profile as set up.
+    public void finishProfileSetup(StatService stats, SkillService skills, List<SkillDefinition> pickedSkills,
+                                   ProficiencyService proficiencies, List<ProficiencyDefinition> startingProficiencies){
         applyChosenStats(stats);
         applyPickedSkills(skills, pickedSkills);
+        applyStartingProficiencies(proficiencies, startingProficiencies);
 
         this.isSetUp = true;
         try{
@@ -77,6 +84,16 @@ public class SetupProfile {
         chosenStats.forEach((id, value) -> stats.definitions().get(id)
                 .ifPresent(stat -> stats.apply(character, stat, StatAction.SET, value)));
         stats.fillBarsThatStartFull(character);
+    }
+
+    // The trained and picked proficiencies start at the tier after the first
+    // (Proficient), never higher. The tier events and LuckPerms nodes follow, as
+    // for any tier change.
+    public void applyStartingProficiencies(ProficiencyService proficiencies, List<ProficiencyDefinition> starting){
+        ProfileKey character = new ProfileKey(UUID.fromString(uuid), profile);
+        ProficiencyTiers tiers = proficiencies.config().tiers();
+        ProficiencyTier tier = tiers.next(tiers.first()).orElseThrow();
+        starting.forEach(proficiency -> proficiencies.setTier(character, proficiency, tier));
     }
 
     // Each picked skill starts at the XP of the setup: picked-level of skills.yml.

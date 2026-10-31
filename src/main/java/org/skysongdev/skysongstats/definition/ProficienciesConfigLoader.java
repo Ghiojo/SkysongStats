@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.function.Predicate;
 
 // Reads proficiencies.yml into a ProficienciesConfig. Like skills.yml, every
 // mistake is collected with its path ("proficiencies.axes.skill: ...") and
@@ -17,27 +18,61 @@ public final class ProficienciesConfigLoader {
     private static final String FILE_NAME = "proficiencies.yml";
 
     private final List<String> errors = new ArrayList<>();
-    // Proficiencies have no icons yet, so no Material is ever looked up.
-    private final ConfigReader reader = new ConfigReader(errors, name -> false);
+    private final ConfigReader reader;
 
-    private ProficienciesConfigLoader() {
+    private ProficienciesConfigLoader(Predicate<String> isItemMaterial) {
+        this.reader = new ConfigReader(errors, isItemMaterial);
     }
 
-    public static ProficienciesConfig load(ConfigurationSection root, SkillDefinitions skills) {
+    // isItemMaterial tells whether a /setup icon names an item Material; the
+    // plugin asks the server, tests can accept any name.
+    public static ProficienciesConfig load(ConfigurationSection root, SkillDefinitions skills,
+                                           Predicate<String> isItemMaterial) {
         Objects.requireNonNull(root, "root");
         Objects.requireNonNull(skills, "skills");
-        return new ProficienciesConfigLoader().read(root, skills);
+        Objects.requireNonNull(isItemMaterial, "isItemMaterial");
+        return new ProficienciesConfigLoader(isItemMaterial).read(root, skills);
     }
 
     private ProficienciesConfig read(ConfigurationSection root, SkillDefinitions skills) {
         ProficiencyTiers tiers = readTiers(root);
         int cost = readCost(root, "cost");
         Map<String, ProficiencyDefinition> proficiencies = readProficiencies(root, cost);
-        new ProficienciesValidator(proficiencies, skills, errors).validate();
+        ProficiencySetupRules setup = readSetupRules(root);
+        new ProficienciesValidator(proficiencies, skills, errors).validate(setup);
         if (!errors.isEmpty()) {
             throw new DefinitionException(FILE_NAME, errors);
         }
-        return new ProficienciesConfig(tiers, new ProficiencyDefinitions(proficiencies.values()));
+        return new ProficienciesConfig(tiers, new ProficiencyDefinitions(proficiencies.values()), setup);
+    }
+
+    // No setup: section gives new characters nothing, and /setup skips the screen.
+    private ProficiencySetupRules readSetupRules(ConfigurationSection root) {
+        ConfigurationSection setup = root.getConfigurationSection("setup");
+        if (setup == null) {
+            if (root.contains("setup")) {
+                errors.add("setup: must be a section with trained, picks and skill-picks");
+            }
+            return ProficiencySetupRules.none();
+        }
+        return new ProficiencySetupRules(ConfigReader.lowercase(setup.getStringList("trained")),
+                readPicks(setup, "picks"), readPicks(setup, "skill-picks"));
+    }
+
+    // A section of skill id: number of picks.
+    private Map<String, Integer> readPicks(ConfigurationSection setup, String key) {
+        Map<String, Integer> picks = new LinkedHashMap<>();
+        ConfigurationSection section = setup.getConfigurationSection(key);
+        if (section == null) {
+            if (setup.contains(key)) {
+                errors.add(setup.getCurrentPath() + "." + key + ": must be a section of skill id: number of picks");
+            }
+            return picks;
+        }
+        for (String skill : section.getKeys(false)) {
+            picks.put(ConfigReader.lowercase(List.of(skill)).getFirst(), reader.readNonNegative(section, skill));
+        }
+        return picks;
     }
 
     private ProficiencyTiers readTiers(ConfigurationSection root) {
@@ -105,7 +140,13 @@ public final class ProficienciesConfigLoader {
         int cost = proficiency.contains("cost") ? readCost(proficiency, "cost") : globalCost;
         return new ProficiencyDefinition(id, proficiency.getString("name", id), proficiency.getString("color", ""),
                 ConfigReader.lowercase(List.of(skill)).getFirst(),
-                ConfigReader.lowercase(proficiency.getStringList("aliases")), cost);
+                ConfigReader.lowercase(proficiency.getStringList("aliases")), cost, readSetup(proficiency));
+    }
+
+    private ProficiencySetup readSetup(ConfigurationSection proficiency) {
+        Icon icon = proficiency.contains("icon") ? reader.readIcon(proficiency)
+                : Icon.parse(ProficiencySetup.DEFAULT_ICON);
+        return new ProficiencySetup(icon, proficiency.getStringList("lore"));
     }
 
     // The settings section of one entry (a tier or a proficiency), checking its id.

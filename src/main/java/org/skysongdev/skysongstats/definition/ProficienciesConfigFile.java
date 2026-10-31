@@ -1,6 +1,7 @@
 package org.skysongdev.skysongstats.definition;
 
 import java.io.File;
+import java.util.function.Predicate;
 
 // Reads plugins/SkysongStats/proficiencies.yml. The first start writes the
 // plugin's default file. A file with mistakes throws a DefinitionException listing
@@ -13,6 +14,12 @@ public final class ProficienciesConfigFile {
     }
 
     public static ProficienciesConfig load(File file, String bundledText, SkillDefinitions skills) {
-        return ProficienciesConfigLoader.load(DefinitionFile.read(file, bundledText, FILE_NAME), skills);
+        return load(file, bundledText, skills, DefinitionFile::isItem);
+    }
+
+    static ProficienciesConfig load(File file, String bundledText, SkillDefinitions skills,
+                                    Predicate<String> isItemMaterial) {
+        return ProficienciesConfigLoader.load(DefinitionFile.read(file, bundledText, FILE_NAME), skills,
+                isItemMaterial);
     }
 }

@@ -55,7 +55,8 @@ class ProficiencyPlaceholdersTest {
         YamlConfiguration file = new YamlConfiguration();
         file.loadFromString(PROFICIENCIES);
         service = new ProficiencyService(
-                ProficienciesConfigLoader.load(file, SkillsConfigLoader.load(skills, name -> true).skills()),
+                ProficienciesConfigLoader.load(file, SkillsConfigLoader.load(skills, name -> true).skills(),
+                        name -> true),
                 new UnsavedProficiencyRepository(line -> { }), new ProficiencyChangeListener() {
                     @Override
                     public void onTierChange(ProficiencyTierChange change) {
