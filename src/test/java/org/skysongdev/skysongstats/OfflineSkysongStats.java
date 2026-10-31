@@ -1,7 +1,5 @@
 package org.skysongdev.skysongstats;
 
-import org.bukkit.configuration.InvalidConfigurationException;
-import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.plugin.InvalidDescriptionException;
 import org.bukkit.plugin.PluginDescriptionFile;
 import org.mockbukkit.mockbukkit.MockBukkit;
@@ -16,7 +14,6 @@ import org.skysongdev.skysongstats.storage.UnsavedStatRepository;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.io.StringReader;
 import java.io.UncheckedIOException;
 import java.nio.charset.StandardCharsets;
@@ -32,16 +29,17 @@ public class OfflineSkysongStats extends SkysongStats {
         return MockBukkit.loadWith(OfflineSkysongStats.class, description());
     }
 
+    // Only the main line changes. Going through YamlConfiguration would split the
+    // dotted permission names into nested sections and lose them.
     private static PluginDescriptionFile description() {
         try (InputStream in = Objects.requireNonNull(
                 SkysongStats.class.getClassLoader().getResourceAsStream("plugin.yml"), "plugin.yml")) {
-            YamlConfiguration yaml = new YamlConfiguration();
-            yaml.load(new InputStreamReader(in, StandardCharsets.UTF_8));
-            yaml.set("main", OfflineSkysongStats.class.getName());
-            return new PluginDescriptionFile(new StringReader(yaml.saveToString()));
+            String yaml = new String(in.readAllBytes(), StandardCharsets.UTF_8)
+                    .replaceFirst("(?m)^main: .*$", "main: " + OfflineSkysongStats.class.getName());
+            return new PluginDescriptionFile(new StringReader(yaml));
         } catch (IOException e) {
             throw new UncheckedIOException(e);
-        } catch (InvalidConfigurationException | InvalidDescriptionException e) {
+        } catch (InvalidDescriptionException e) {
             throw new IllegalStateException("plugin.yml is broken", e);
         }
     }
