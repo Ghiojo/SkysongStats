@@ -41,4 +41,9 @@ class StatsExpansionTest {
     void characterPlaceholderWithoutAPlayerStaysUnresolved() {
         assertNull(expansion.onPlaceholderRequest(null, "character_name"));
     }
+
+    @Test
+    void proficiencyPlaceholderWithoutAPlayerStaysUnresolved() {
+        assertNull(expansion.onPlaceholderRequest(null, "proficiency_axes"));
+    }
 }
