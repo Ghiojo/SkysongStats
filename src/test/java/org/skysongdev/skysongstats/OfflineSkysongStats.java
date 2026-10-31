@@ -7,8 +7,10 @@ import org.bukkit.plugin.PluginDescriptionFile;
 import org.mockbukkit.mockbukkit.MockBukkit;
 import org.skysongdev.skysongstats.storage.CharacterStorage;
 import org.skysongdev.skysongstats.storage.DatabaseSettings;
+import org.skysongdev.skysongstats.storage.ProficiencyRepository;
 import org.skysongdev.skysongstats.storage.SkillRepository;
 import org.skysongdev.skysongstats.storage.StatRepository;
+import org.skysongdev.skysongstats.storage.UnsavedProficiencyRepository;
 import org.skysongdev.skysongstats.storage.UnsavedSkillRepository;
 import org.skysongdev.skysongstats.storage.UnsavedStatRepository;
 
@@ -20,7 +22,7 @@ import java.io.UncheckedIOException;
 import java.nio.charset.StandardCharsets;
 import java.util.Objects;
 
-// The plugin with its stats and skill XP kept in memory, for tests that have no
+// The plugin with its stats, skill XP and proficiencies kept in memory, for tests that have no
 // MySQL. The older profile tables still fail and are logged, as they do without
 // a database.
 public class OfflineSkysongStats extends SkysongStats {
@@ -48,6 +50,7 @@ public class OfflineSkysongStats extends SkysongStats {
     protected CharacterStorage openDatabase(DatabaseSettings settings) {
         StatRepository stats = new UnsavedStatRepository(line -> { });
         SkillRepository skills = new UnsavedSkillRepository(line -> { });
+        ProficiencyRepository proficiencies = new UnsavedProficiencyRepository(line -> { });
         return new CharacterStorage() {
             @Override
             public StatRepository repository() {
@@ -57,6 +60,11 @@ public class OfflineSkysongStats extends SkysongStats {
             @Override
             public SkillRepository skillRepository() {
                 return skills;
+            }
+
+            @Override
+            public ProficiencyRepository proficiencyRepository() {
+                return proficiencies;
             }
 
             @Override

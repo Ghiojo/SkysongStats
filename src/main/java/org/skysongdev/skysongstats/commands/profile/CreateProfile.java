@@ -43,9 +43,10 @@ public class CreateProfile implements TabExecutor {
         CharacterProfile characterProfile = new CharacterProfile(player.getUniqueId().toString(), strings[0]);
         getPlugin().getUtils().getCharacterManager().addCharacter(characterProfile);
 
-        //We create the profile's stats and skills, at the stats.yml and skills.yml start values
+        //We create the profile's stats, skills and proficiencies, at the stats.yml, skills.yml and proficiencies.yml start values
         getPlugin().getStatService().createCharacter(new ProfileKey(player.getUniqueId(), strings[0]));
         getPlugin().getSkillService().createCharacter(new ProfileKey(player.getUniqueId(), strings[0]));
+        getPlugin().getProficiencyService().createCharacter(new ProfileKey(player.getUniqueId(), strings[0]));
 
         //We create the profile's character downtime
         getPlugin().getDowntimeService().getCharacter(player.getUniqueId(), strings[0]);

@@ -69,4 +69,24 @@ class StatStorageTest {
             assertEquals(16, new SqlSkillRepository(again).loadAll().get(alice).get("farming"));
         }
     }
+
+    @Test
+    void proficienciesAreSavedThroughTheSamePool() {
+        HikariDataSource pool = h2Pool();
+        String url = pool.getJdbcUrl();
+        ProfileKey alice = new ProfileKey(UUID.randomUUID(), "Default");
+        StatStorage storage = new StatStorage(pool, line -> { });
+        storage.proficiencyRepository().createTables();
+        storage.proficiencyRepository().saveTier(alice, "axes", "adept");
+        storage.proficiencyRepository().saveFocus(alice, new StoredFocus("axes", 2));
+        storage.close();
+
+        HikariConfig config = new HikariConfig();
+        config.setJdbcUrl(url);
+        try (HikariDataSource again = new HikariDataSource(config)) {
+            StoredProficiencies saved = new SqlProficiencyRepository(again).loadAll().get(alice);
+            assertEquals("adept", saved.tiers().get("axes"));
+            assertEquals(new StoredFocus("axes", 2), saved.focus());
+        }
+    }
 }

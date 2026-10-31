@@ -35,6 +35,7 @@ public class PlayerRegisterListener implements Listener {
             downtime.setPreference(event.getPlayer().getUniqueId(), false);
             getPlugin().getStatService().createCharacter(new ProfileKey(event.getPlayer().getUniqueId(), character.getProfile()));
             getPlugin().getSkillService().createCharacter(new ProfileKey(event.getPlayer().getUniqueId(), character.getProfile()));
+            getPlugin().getProficiencyService().createCharacter(new ProfileKey(event.getPlayer().getUniqueId(), character.getProfile()));
         }
         if(!getPlugin().getUtils().getProfileManager().findActiveSetupProfile(event.getPlayer().getUniqueId().toString()).isSetUp()){
             getPlugin().getMessages().send(event.getPlayer(), "profile.setup-reminder");
