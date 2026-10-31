@@ -22,7 +22,7 @@ repositories {
 }
 
 dependencies {
-    compileOnly "io.papermc.paper:paper-api:1.21.5-R0.1-SNAPSHOT"
+    compileOnly "io.papermc.paper:paper-api:1.21.11-R0.1-SNAPSHOT"
     // LuckPerms is a hard dependency (plugin.yml depend:), so the server provides it.
     compileOnly 'net.luckperms:api:5.3'
     compileOnly 'me.clip:placeholderapi:2.11.6'
