@@ -50,7 +50,7 @@ Everything the plugin shows to players comes from `messages.yml`, so the whole p
 
 | Needs | Why |
 |---|---|
-| Paper 1.21 | The plugin is built against the Paper API (`api-version: '1.20'`, compiled on 1.21.5). |
+| Paper 1.21 | The plugin is built against the Paper API. The exact version is `paper-api` in `build.gradle`, and the oldest server version it declares is `api-version` in `plugin.yml`. |
 | **MySQL** | Required. Every character is stored there. If the database can't be reached at startup, the plugin logs one error saying what to check and **disables itself**. There is no in-memory fallback. |
 | **LuckPerms** | Hard dependency (`depend:` in `plugin.yml`). Skill level and proficiency tier nodes are written into LuckPerms. |
 | PlaceholderAPI | Optional. When it is present, the `%skysongstats_...%` placeholders are registered. |
