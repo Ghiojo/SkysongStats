@@ -35,7 +35,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  * active "Default" character; neither is an op. Costs are 4, 6 and 8.
  */
 class ProficiencyCommandTest {
-    private ServerMock server;
     private ProficiencyService proficiencies;
     private PluginCommand command;
     private ConsoleCommandSenderMock console;
@@ -44,7 +43,7 @@ class ProficiencyCommandTest {
 
     @BeforeEach
     void setUp() {
-        server = MockBukkit.mock();
+        ServerMock server = MockBukkit.mock();
         SkysongStats plugin = OfflineSkysongStats.load();
         // The join listeners need the old tables, which tests don't have.
         HandlerList.unregisterAll(plugin);

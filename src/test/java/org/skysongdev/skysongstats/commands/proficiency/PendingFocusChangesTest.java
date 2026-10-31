@@ -21,13 +21,12 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 class PendingFocusChangesTest {
     private final AtomicLong now = new AtomicLong(1_000);
     private final PendingFocusChanges pending = new PendingFocusChanges(now::get);
-    private ServerMock server;
     private PlayerMock alice;
     private ProfileKey main;
 
     @BeforeEach
     void setUp() {
-        server = MockBukkit.mock();
+        ServerMock server = MockBukkit.mock();
         alice = server.addPlayer("Alice");
         main = new ProfileKey(alice.getUniqueId(), "main");
     }
