@@ -14,6 +14,7 @@ import java.util.Set;
 //   base   saved value, else the baseline (bars: the start value)
 //   total  base + modifiers on the stat + Skysong item counts (for a bar: its current value)
 //   max    the bar's max formula, read with stat totals, + modifiers on max_<bar>
+//   max base  the bar's max formula alone, before the modifiers on max_<bar>
 // A calculator is cheap and is made for one question, so it can guard against a
 // formula reading a value that is being computed (a full-at-start bar whose max
 // reads its own current value): that value counts as 0 instead of looping.
@@ -75,6 +76,14 @@ public final class StatCalculator {
     }
 
     public int max(StatDefinition bar) {
+        if (bar.isBar() && computingMax.contains(bar.id())) {
+            return 0;
+        }
+        return maxBase(bar) + modifiers(bar.maxId().orElseThrow());
+    }
+
+    // The bar's max before the modifiers on max_<bar>: what its max formula gives.
+    public int maxBase(StatDefinition bar) {
         if (!bar.isBar()) {
             throw new IllegalArgumentException(bar.id() + " is not a bar");
         }
@@ -82,8 +91,7 @@ public final class StatCalculator {
             return 0;
         }
         try {
-            int formula = bar.bar().max().evaluate(this::formulaValue);
-            return formula + modifiers(bar.maxId().orElseThrow());
+            return bar.bar().max().evaluate(this::formulaValue);
         } finally {
             computingMax.remove(bar.id());
         }

@@ -13,7 +13,8 @@ import java.util.OptionalInt;
 //   X                total: base + modifiers (+ item counts); a bar's current value
 //   X_base           saved base value, without modifiers
 //   X_modifiers      sum of the modifiers on X
-//   max_X            a bar's max
+//   max_X            a bar's max (with the modifiers on max_X)
+//   max_X_base       a bar's max before its modifiers: the max formula alone
 //   max_X_modifiers  sum of the modifiers on a bar's max
 // Kept apart from PlaceholderAPI so it can be tested without it; the expansion
 // passes the text after "skysongstats_".
@@ -44,6 +45,12 @@ public final class StatPlaceholders {
         }
         if (name.endsWith(BASE)) {
             String id = strip(name, BASE);
+            OptionalInt maxBase = stats.definitions().findBarByMaxId(id)
+                    .map(bar -> OptionalInt.of(calculator.maxBase(bar)))
+                    .orElse(OptionalInt.empty());
+            if (maxBase.isPresent()) {
+                return maxBase;
+            }
             return stats.definitions().get(id)
                     .map(stat -> OptionalInt.of(calculator.base(stat)))
                     .orElse(OptionalInt.empty());

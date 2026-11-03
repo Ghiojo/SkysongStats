@@ -9,6 +9,7 @@ import org.junit.jupiter.params.provider.ValueSource;
 import org.skysongdev.skysongstats.character.StatService;
 import org.skysongdev.skysongstats.definition.ItemTagSource;
 import org.skysongdev.skysongstats.definition.StatAction;
+import org.skysongdev.skysongstats.definition.StatDefinition;
 import org.skysongdev.skysongstats.definition.StatDefinitions;
 import org.skysongdev.skysongstats.definition.StatsConfigLoader;
 import org.skysongdev.skysongstats.storage.ProfileKey;
@@ -62,6 +63,7 @@ class StatPlaceholdersTest {
         }
     };
 
+    private StatService service;
     private StatPlaceholders placeholders;
 
     private static StatDefinitions defaultStats() throws Exception {
@@ -73,7 +75,7 @@ class StatPlaceholdersTest {
 
     @BeforeEach
     void setUp() throws Exception {
-        StatService service = new StatService(defaultStats(), NO_STORAGE, change -> { });
+        service = new StatService(defaultStats(), NO_STORAGE, change -> { });
         service.createCharacter(ALICE);
         placeholders = new StatPlaceholders(service);
         service.apply(ALICE, service.definitions().get("con").orElseThrow(), StatAction.SET, 2);
@@ -93,6 +95,7 @@ class StatPlaceholdersTest {
             "con_base, 2",
             "con_modifiers, 1",
             "max_hp, 95",
+            "max_hp_base, 90",
             "max_hp_modifiers, 5",
             "hp, 40",
             "hp_base, 40",
@@ -101,6 +104,8 @@ class StatPlaceholdersTest {
             "arcrot, 4",
             "arcrot_base, 0",
             "max_arcrot, 35",
+            "max_arcrot_base, 35",
+            "str_base, 0",
             "MAX_HP, 95"
     })
     void resolvesEveryGeneratedPlaceholder(String placeholder, String expected) {
@@ -108,10 +113,38 @@ class StatPlaceholdersTest {
     }
 
     @ParameterizedTest
-    @ValueSource(strings = {"luck", "luck_base", "luck_modifiers", "max_str", "max_str_modifiers", "max_hp_base",
+    @ValueSource(strings = {"luck", "luck_base", "luck_modifiers", "max_str", "max_str_modifiers", "max_str_base",
             "strength", "character_name", ""})
     void otherNamesAreNotStatPlaceholders(String placeholder) {
         assertEquals(Optional.empty(), placeholders.resolve(ALICE, placeholder), placeholder);
+    }
+
+    // Every stat can be read before and after its modifiers.
+    @Test
+    void everyStatHasAValueBeforeAndAfterModifiers() {
+        StatPlaceholders all = new StatPlaceholders(service);
+        for (StatDefinition stat : service.definitions().all()) {
+            assertTrue(all.resolve(ALICE, stat.id()).isPresent(), stat.id());
+            assertTrue(all.resolve(ALICE, stat.id() + "_base").isPresent(), stat.id() + "_base");
+            stat.maxId().ifPresent(max -> {
+                assertTrue(all.resolve(ALICE, max).isPresent(), max);
+                assertTrue(all.resolve(ALICE, max + "_base").isPresent(), max + "_base");
+            });
+        }
+    }
+
+    // A modifier on a bar's max changes max_X but not max_X_base; a modifier on a
+    // stat its formula reads changes both (the formula reads totals).
+    @Test
+    void maxBeforeModifiersLeavesOutOnlyTheModifiersOnTheMax() {
+        assertEquals("95", resolve("max_hp"));
+        assertEquals("90", resolve("max_hp_base"));
+        service.addModifier(ALICE, "max_hp", 3);
+        assertEquals("98", resolve("max_hp"));
+        assertEquals("90", resolve("max_hp_base"));
+        service.addModifier(ALICE, "con", 1);
+        assertEquals("108", resolve("max_hp"));
+        assertEquals("100", resolve("max_hp_base"));
     }
 
     @Test
