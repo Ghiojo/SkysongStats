@@ -53,7 +53,7 @@ Everything the plugin shows to players comes from `messages.yml`, so the whole p
 | Paper 1.21 | The plugin is built against the Paper API. The exact version is `paper-api` in `build.gradle`, and the oldest server version it declares is `api-version` in `plugin.yml`. |
 | **MySQL** | Required. Every character is stored there. If the database can't be reached at startup, the plugin logs one error saying what to check and **disables itself**. There is no in-memory fallback. |
 | **LuckPerms** | Hard dependency (`depend:` in `plugin.yml`). Skill level and proficiency tier nodes are written into LuckPerms. |
-| PlaceholderAPI | Optional. When it is present, the `%skysongstats_...%` placeholders are registered. |
+| PlaceholderAPI | Optional. When it is present, the `%skysongstats_...%` placeholders are registered, and the sheets fill in other plugins' placeholders (see [Sheet layouts](#sheet-layouts)). |
 | Skysong_Items | Optional. When its items are in a player's inventory, their item tags (Arcrot, Fictis) add to stats. See [compatibility](#skysong-special-items-compatibility). |
 
 Paper downloads HikariCP (the database connection pool) by itself on the first start, through `libraries:` in `plugin.yml`.
@@ -462,6 +462,15 @@ So to give `/heal` its own text you edit `stats.hp.add.player`; a new stat `mana
 | Character sheet (`/char`) | `character.view.header`, `description-line`, `footer` | `{player} {name} {age} {gender} {pronouns} {ancestry}`; the description is wrapped into lines of about 60 characters, one `description-line` each. |
 | Proficiency sheet (`/proficiency view`) | `proficiency.sheet` | `{player}`, `{focus}` (a `sheet-focus` or `sheet-no-focus` line), `{proficiencies}` (one `sheet-skill` line per skill, each a list of `sheet-entry` parts joined by `sheet-separator`). |
 | Skills book (`/skills`) | `skills.view.page`, `skill-line` | One page per `book:` page of skills.yml. |
+
+#### Other plugins' placeholders on the sheets
+
+The stat, character and proficiency sheets above (every key listed for them, `sheet-auto`, `sheet-footer`, `sheet-focus`... included) also accept PlaceholderAPI placeholders from any plugin, such as `%vault_eco_balance%` or `%luckperms_prefix%`. They are filled in for the player whose sheet is shown, not for whoever runs the command. This needs PlaceholderAPI installed (and the other plugin's expansion); without it, or for a placeholder nobody knows, the text stays as written.
+
+- A placeholder's value may use MiniMessage, or legacy colour codes (`&a`, `§a`, `&#ff8800`); legacy codes are turned into MiniMessage colours, so both show correctly.
+- Placeholders are filled in only in the text you wrote in messages.yml. Text a player typed (a character name, a description) is never read as a placeholder, so a player can't make the sheet show someone else's data.
+- The `stats.sheet-auto` rule only looks at the plugin's own `{...}` placeholders: writing `%skysongstats_str%` in `stats.sheet` instead of `{str}` still gets Str an automatic line. Use `{str}` there.
+- The skills book (`/skills`) does not fill in other plugins' placeholders.
 
 ### Names that are *not* in messages.yml
 

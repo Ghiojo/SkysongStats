@@ -115,4 +115,13 @@ class StatSheetTest {
         assertEquals(stats + 2, fixture.messages.sent.size());
         assertEquals("Alice", fixture.messages.sent.get(stats + 1).placeholders().get("player"));
     }
+
+    // So other plugins' %placeholders% are filled in for the sheet's owner, not the viewer.
+    @Test
+    void everyLineIsAboutTheSheetsPlayer() {
+        fixture.messages.texts.put(StatSheet.SHEET, List.of("{str}"));
+        fixture.sheet.show(fixture.bob, alice());
+        assertEquals(fixture.messages.sent.size(), fixture.messages.about.size());
+        fixture.messages.about.forEach(player -> assertEquals("Alice", player));
+    }
 }

@@ -44,6 +44,7 @@ import org.skysongdev.skysongstats.definition.StatsConfig;
 import org.skysongdev.skysongstats.definition.StatsConfigFile;
 import org.skysongdev.skysongstats.items.ItemTagListener;
 import org.skysongdev.skysongstats.listeners.*;
+import org.skysongdev.skysongstats.messages.ExternalPlaceholders;
 import org.skysongdev.skysongstats.messages.Messages;
 import org.skysongdev.skysongstats.messages.MessagesFile;
 import org.skysongdev.skysongstats.messages.PluginTexts;
@@ -52,6 +53,7 @@ import org.skysongdev.skysongstats.events.ProficiencyFocusChangeEvent;
 import org.skysongdev.skysongstats.events.ProficiencyTierChangeEvent;
 import org.skysongdev.skysongstats.events.SkillChangeEvent;
 import org.skysongdev.skysongstats.events.StatChangeEvent;
+import org.skysongdev.skysongstats.placeholders.PlaceholderApiPlaceholders;
 import org.skysongdev.skysongstats.placeholders.StatsExpansion;
 import org.skysongdev.skysongstats.service.downtime.DowntimeService;
 import org.skysongdev.skysongstats.service.downtime.DowntimeSettings;
@@ -475,7 +477,15 @@ public class SkysongStats extends JavaPlugin {
     }
 
     private void loadMessages(){
-        messages = MessagesFile.load(new File(getDataFolder(), MessagesFile.FILE_NAME), bundled(MessagesFile.FILE_NAME), getLogger()::warning);
+        messages = MessagesFile.load(new File(getDataFolder(), MessagesFile.FILE_NAME), bundled(MessagesFile.FILE_NAME), getLogger()::warning,
+                externalPlaceholders());
+    }
+
+    // Other plugins' %placeholders% on the sheets, when PlaceholderAPI is installed.
+    private static ExternalPlaceholders externalPlaceholders(){
+        return Bukkit.getPluginManager().isPluginEnabled("PlaceholderAPI")
+                ? PlaceholderApiPlaceholders.create()
+                : ExternalPlaceholders.NONE;
     }
 
     private String bundled(String fileName){

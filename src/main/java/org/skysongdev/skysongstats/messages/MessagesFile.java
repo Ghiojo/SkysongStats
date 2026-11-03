@@ -23,12 +23,18 @@ public final class MessagesFile {
     private MessagesFile() {
     }
 
+    /** {@link #load(File, String, Consumer, ExternalPlaceholders)} without other plugins' placeholders. */
+    public static Messages load(File file, String bundledText, Consumer<String> log) {
+        return load(file, bundledText, log, ExternalPlaceholders.NONE);
+    }
+
     /**
      * @param file        the server's messages.yml
      * @param bundledText the contents of the messages.yml inside the plugin jar
      * @param log         gets one line per added message, and any problem with the file
+     * @param external    fills in other plugins' %placeholders% on the sheets
      */
-    public static Messages load(File file, String bundledText, Consumer<String> log) {
+    public static Messages load(File file, String bundledText, Consumer<String> log, ExternalPlaceholders external) {
         YamlConfiguration bundled = parse(bundledText);
         if (!file.exists()) {
             write(file, bundledText, log);
@@ -39,7 +45,7 @@ public final class MessagesFile {
             save(server, file, log);
             added.forEach(key -> log.accept("messages.yml: added the new message '" + key + "'"));
         }
-        return new Messages(server, bundled, log);
+        return new Messages(server, bundled, log, external);
     }
 
     private static YamlConfiguration parse(String bundledText) {

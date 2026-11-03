@@ -98,6 +98,8 @@ character:
     player-not-online: "That player is not online!"
     # The character sheet: header, then the description wrapped into lines of about
     # 60 characters (one description-line each), then footer.
+    # These lines also fill in other plugins' PlaceholderAPI placeholders
+    # (%vault_eco_balance%...) for the sheet's player.
     # {player}, {name}, {age}, {gender}, {pronouns}, {ancestry}
     header:
       - "<#864811>|====================<<<#63C934>₪<#864811>>>====================|"
@@ -175,6 +177,8 @@ proficiency:
   invalid-amount: "{prefix}<red>\"{input}\" must be a whole number of at least {min}!"
   # /proficiency view. {player}; {focus} is one of the sheet-focus lines below and
   # {proficiencies} one sheet-skill line per skill that has proficiencies.
+  # The sheet's lines also fill in other plugins' PlaceholderAPI placeholders
+  # (%vault_eco_balance%...) for the sheet's player.
   sheet:
     - "<#864811>|====================<<<#63C934>₪<#864811>>>====================|"
     - "                <#F6DA23>{player}' s <#864811>Proficiencies:"

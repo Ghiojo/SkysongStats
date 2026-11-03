@@ -4,6 +4,7 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import net.kyori.adventure.text.minimessage.tag.resolver.Placeholder;
 import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver;
+import org.bukkit.OfflinePlayer;
 import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.ConfigurationSection;
 
@@ -25,6 +26,10 @@ import java.util.regex.Pattern;
  * <p>
  * A key the server's file lacks, or holds as a section, falls back to the bundled
  * text and is reported once through {@code warn}. Reloading builds a new Messages.
+ * <p>
+ * The methods that take the player a message is {@code about} (a sheet's owner)
+ * also fill in other plugins' {@code %placeholders%} for that player, through
+ * {@link ExternalPlaceholders}.
  */
 public final class Messages {
     public static final String PREFIX_KEY = "prefix";
@@ -34,12 +39,19 @@ public final class Messages {
     private final ConfigurationSection texts;
     private final ConfigurationSection defaults;
     private final Consumer<String> warn;
+    private final ExternalPlaceholders external;
     private final Set<String> warnedKeys = new HashSet<>();
 
     public Messages(ConfigurationSection texts, ConfigurationSection defaults, Consumer<String> warn) {
+        this(texts, defaults, warn, ExternalPlaceholders.NONE);
+    }
+
+    public Messages(ConfigurationSection texts, ConfigurationSection defaults, Consumer<String> warn,
+                    ExternalPlaceholders external) {
         this.texts = Objects.requireNonNull(texts, "texts");
         this.defaults = Objects.requireNonNull(defaults, "defaults");
         this.warn = Objects.requireNonNull(warn, "warn");
+        this.external = Objects.requireNonNull(external, "external");
     }
 
     /** Whether the server's file or the bundled file has text for this key. */
@@ -73,6 +85,12 @@ public final class Messages {
         return render(String.join("\n", rawLines(key)), placeholders, components);
     }
 
+    /** {@link #get(String, Map, Map)} with other plugins' %placeholders% filled in for {@code about}. */
+    public Component get(String key, Map<String, String> placeholders, Map<String, Component> components,
+                         OfflinePlayer about) {
+        return render(external.fill(about, String.join("\n", rawLines(key))), placeholders, components);
+    }
+
     public List<Component> getLines(String key) {
         return getLines(key, Map.of());
     }
@@ -86,6 +104,14 @@ public final class Messages {
         return rawLines(key).stream().map(line -> render(line, placeholders, components)).toList();
     }
 
+    /** {@link #getLines(String, Map, Map)} with other plugins' %placeholders% filled in for {@code about}. */
+    public List<Component> getLines(String key, Map<String, String> placeholders, Map<String, Component> components,
+                                    OfflinePlayer about) {
+        return rawLines(key).stream()
+                .map(line -> render(external.fill(about, line), placeholders, components))
+                .toList();
+    }
+
     public void send(CommandSender sender, String key) {
         send(sender, key, Map.of());
     }
@@ -97,6 +123,12 @@ public final class Messages {
     /** Sends each line of the message as its own chat line. */
     public void send(CommandSender sender, String key, Map<String, String> placeholders, Map<String, Component> components) {
         getLines(key, placeholders, components).forEach(sender::sendMessage);
+    }
+
+    /** {@link #send(CommandSender, String, Map, Map)} with other plugins' %placeholders% filled in for {@code about}. */
+    public void send(CommandSender sender, String key, Map<String, String> placeholders,
+                     Map<String, Component> components, OfflinePlayer about) {
+        getLines(key, placeholders, components, about).forEach(sender::sendMessage);
     }
 
     /**
