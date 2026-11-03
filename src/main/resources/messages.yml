@@ -347,6 +347,8 @@ stats:
   # {str_base}, {str_modifiers}, {hp}, {max_hp}, {max_hp_base}, {max_hp_modifiers}... (the same
   # names as the PlaceholderAPI ones). A stat these lines never mention gets a
   # sheet-auto line under them, so new stats always show; sheet-footer comes last.
+  # All of these lines also fill in other plugins' PlaceholderAPI placeholders
+  # (%vault_eco_balance%...) for the sheet's player.
   sheet:
     - "<#864811>|====================<<<#63C934>₪<#864811>>>====================|"
     - "                <#F6DA23>{player}' s <#864811>Stat Sheet:"
