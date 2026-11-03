@@ -1,6 +1,7 @@
 package org.skysongdev.skysongstats.commands.stat;
 
 import org.bukkit.Bukkit;
+import org.bukkit.OfflinePlayer;
 import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
@@ -45,10 +46,19 @@ final class StatCommandFixture {
         final List<Sent> sent = new ArrayList<>();
         final Set<String> known = new HashSet<>();
         final Map<String, List<String>> texts = new HashMap<>();
+        // For each sent message, in order, the player it was about, or null.
+        final List<String> about = new ArrayList<>();
 
         @Override
         public void send(CommandSender to, String key, Map<String, String> placeholders) {
             sent.add(new Sent(to.getName(), key, placeholders));
+            about.add(null);
+        }
+
+        @Override
+        public void send(CommandSender to, String key, Map<String, String> placeholders, OfflinePlayer player) {
+            sent.add(new Sent(to.getName(), key, placeholders));
+            about.add(player.getName());
         }
 
         @Override

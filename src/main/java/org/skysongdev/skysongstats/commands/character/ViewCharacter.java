@@ -37,22 +37,23 @@ public class ViewCharacter implements TabExecutor {
             }
         }
         CharacterProfile profile = getPlugin().getUtils().getCharacterManager().findActiveCharacter(target.getUniqueId().toString());
-        showSheet(commandSender, target.getName(), profile);
+        showSheet(commandSender, target, profile);
         return true;
     }
 
-    private static void showSheet(CommandSender viewer, String playerName, CharacterProfile profile) {
+    // Other plugins' %placeholders% in the sheet's lines are filled in for its player.
+    private static void showSheet(CommandSender viewer, Player player, CharacterProfile profile) {
         Messages messages = getPlugin().getMessages();
-        messages.send(viewer, "character.view.header", Map.of("player", playerName), Map.of(
+        messages.send(viewer, "character.view.header", Map.of("player", player.getName()), Map.of(
                 "name", Messages.playerStyledText(profile.getName()),
                 "age", Messages.playerStyledText(profile.getAge()),
                 "gender", Messages.playerStyledText(profile.getGender()),
                 "pronouns", Messages.playerStyledText(profile.getPronouns()),
-                "ancestry", Messages.playerStyledText(profile.getAncestry())));
+                "ancestry", Messages.playerStyledText(profile.getAncestry())), player);
         for(String line : wrapDescription(profile.getDescription())){
-            messages.send(viewer, "character.view.description-line", Map.of(), Map.of("line", Messages.playerStyledText(line)));
+            messages.send(viewer, "character.view.description-line", Map.of(), Map.of("line", Messages.playerStyledText(line)), player);
         }
-        messages.send(viewer, "character.view.footer");
+        messages.send(viewer, "character.view.footer", Map.of(), Map.of(), player);
     }
 
     /** Splits the description into lines of about 60 characters, between words. */

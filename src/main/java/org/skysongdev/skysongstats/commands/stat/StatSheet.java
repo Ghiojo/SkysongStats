@@ -19,7 +19,8 @@ import java.util.stream.Stream;
 // where {player} and the stat placeholders ({str}, {str_base}, {str_modifiers},
 // {hp}, {max_hp}, {max_hp_base}...) are filled in. A stat the lines never mention, such as one
 // just added to stats.yml, still shows: it gets a stats.sheet-auto line after
-// them. stats.sheet-footer closes the sheet.
+// them. stats.sheet-footer closes the sheet. Other plugins' %placeholders%
+// (PlaceholderAPI) in any of these lines are filled in for the sheet's player.
 public final class StatSheet {
     static final String SHEET = "stats.sheet";
     static final String AUTO_VALUE = "stats.sheet-auto.value";
@@ -40,14 +41,14 @@ public final class StatSheet {
 
     public void show(CommandSender to, CommandTargets.Target target) {
         Map<String, String> values = values(target);
-        messages.send(to, SHEET, values);
+        messages.send(to, SHEET, values, target.player());
         Set<String> shown = mentioned(messages.lines(SHEET));
         for (StatDefinition stat : stats.definitions().all()) {
             if (names(stat).noneMatch(shown::contains)) {
-                messages.send(to, stat.isBar() ? AUTO_BAR : AUTO_VALUE, autoLine(stat, values));
+                messages.send(to, stat.isBar() ? AUTO_BAR : AUTO_VALUE, autoLine(stat, values), target.player());
             }
         }
-        messages.send(to, FOOTER, values);
+        messages.send(to, FOOTER, values, target.player());
     }
 
     // {player} and every stat placeholder of the character.

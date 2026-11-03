@@ -1,6 +1,7 @@
 package org.skysongdev.skysongstats.messages;
 
 import net.kyori.adventure.text.Component;
+import org.bukkit.OfflinePlayer;
 import org.bukkit.command.CommandSender;
 import org.skysongdev.skysongstats.commands.stat.MessageSink;
 import org.skysongdev.skysongstats.setup.MenuTexts;
@@ -22,6 +23,11 @@ public final class PluginTexts implements MessageSink, MenuTexts {
     @Override
     public void send(CommandSender to, String key, Map<String, String> placeholders) {
         messages.get().send(to, key, placeholders);
+    }
+
+    @Override
+    public void send(CommandSender to, String key, Map<String, String> placeholders, OfflinePlayer about) {
+        messages.get().send(to, key, placeholders, Map.of(), about);
     }
 
     @Override

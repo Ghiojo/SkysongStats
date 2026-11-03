@@ -3,6 +3,7 @@ package org.skysongdev.skysongstats.messages;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
+import org.bukkit.OfflinePlayer;
 import org.bukkit.configuration.InvalidConfigurationException;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.junit.jupiter.api.Test;
@@ -127,5 +128,43 @@ class MessagesTest {
         String text = "<bold><red>Hi</red></bold> <click:run_command:/char view>x</click><hover:show_text:y>z</hover>";
         assertEquals(MiniMessage.miniMessage().deserialize(text), Messages.playerStyledText(text));
         assertEquals("Hi xz", plain(Messages.playerStyledText(text)));
+    }
+
+    // A stand-in for PlaceholderAPI that answers %player_name% for the player asked about.
+    private Messages withExternalPlaceholders(String serverFile) {
+        ExternalPlaceholders external = new ExternalPlaceholders((player, token) ->
+                "%player_name%".equals(token) ? player.getName() : token);
+        return new Messages(yaml(serverFile), yaml(DEFAULTS), warnings::add, external);
+    }
+
+    @Test
+    void messagesAboutAPlayerGetOtherPluginsPlaceholders() {
+        Messages messages = withExternalPlaceholders("general:\n  hello: \"<green>Hi %player_name%, {player}\"");
+        OfflinePlayer steve = TestPlayers.offline("Steve");
+        Component expected = MiniMessage.miniMessage().deserialize("<green>Hi Steve, Alex");
+        assertEquals(expected, messages.get("general.hello", Map.of("player", "Alex"), Map.of(), steve));
+        assertEquals(List.of(expected), messages.getLines("general.hello", Map.of("player", "Alex"), Map.of(), steve));
+    }
+
+    @Test
+    void textAPlayerTypedIsNeverReadAsAPlaceholder() {
+        Messages messages = withExternalPlaceholders(DEFAULTS);
+        Component hello = messages.get("general.hello", Map.of("player", "%player_name%"), Map.of(),
+                TestPlayers.offline("Steve"));
+        assertEquals("Hello %player_name%", plain(hello));
+    }
+
+    @Test
+    void messagesNotAboutAPlayerKeepPlaceholdersAsWritten() {
+        Messages messages = withExternalPlaceholders("general:\n  hello: \"Hi %player_name%\"");
+        assertEquals("Hi %player_name%", plain(messages.get("general.hello")));
+    }
+
+    @Test
+    void eachLineOfASheetGetsOtherPluginsPlaceholders() {
+        Messages messages = withExternalPlaceholders("general:\n  sheet:\n    - \"%player_name%\"\n    - \"HP {hp}\"");
+        List<Component> lines = messages.getLines("general.sheet", Map.of("hp", "10"), Map.of(),
+                TestPlayers.offline("Steve"));
+        assertEquals(List.of("Steve", "HP 10"), lines.stream().map(MessagesTest::plain).toList());
     }
 }

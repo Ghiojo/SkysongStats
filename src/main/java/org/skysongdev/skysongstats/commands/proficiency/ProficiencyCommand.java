@@ -77,7 +77,7 @@ public final class ProficiencyCommand implements TabExecutor {
 
     private void view(CommandSender sender, String targetName) {
         arguments.target(sender, targetName, VIEW, VIEW_OTHER).ifPresent(target ->
-                sheet.send(sender, target.player().getName(), proficiencies, skills.config(), target.character()));
+                sheet.send(sender, target.player(), proficiencies, skills.config(), target.character()));
     }
 
     private void focus(CommandSender sender, String... args) {

@@ -4,6 +4,7 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.JoinConfiguration;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import net.kyori.adventure.text.minimessage.tag.resolver.Placeholder;
+import org.bukkit.OfflinePlayer;
 import org.bukkit.command.CommandSender;
 import org.skysongdev.skysongstats.character.ProficiencyFocus;
 import org.skysongdev.skysongstats.character.ProficiencyService;
@@ -22,7 +23,9 @@ import java.util.function.Supplier;
 // What /proficiency view shows: proficiency.sheet of messages.yml, with {focus}
 // and {proficiencies} filled in. {proficiencies} has one sheet-skill line per
 // skill that has proficiencies, in skills.yml order, each listing that skill's
-// proficiencies with their tiers in proficiencies.yml order.
+// proficiencies with their tiers in proficiencies.yml order. Other plugins'
+// %placeholders% (PlaceholderAPI) in any of these lines are filled in for the
+// sheet's player.
 public final class ProficiencySheet {
     private static final String SHEET = "proficiency.sheet";
     private static final MiniMessage MINI_MESSAGE = MiniMessage.miniMessage();
@@ -33,51 +36,54 @@ public final class ProficiencySheet {
         this.messages = Objects.requireNonNull(messages, "messages");
     }
 
-    public void send(CommandSender to, String player, ProficiencyService proficiencies, SkillsConfig skills,
+    public void send(CommandSender to, OfflinePlayer player, ProficiencyService proficiencies, SkillsConfig skills,
                      ProfileKey character) {
         lines(player, proficiencies, skills, character).forEach(to::sendMessage);
     }
 
-    List<Component> lines(String player, ProficiencyService proficiencies, SkillsConfig skills, ProfileKey character) {
+    List<Component> lines(OfflinePlayer player, ProficiencyService proficiencies, SkillsConfig skills,
+                          ProfileKey character) {
         List<Component> skillLines = skills.skills().all().stream()
                 .filter(skill -> !proficiencies.config().proficiencies().ofSkill(skill.id()).isEmpty())
-                .map(skill -> skillLine(skill, proficiencies, character))
+                .map(skill -> skillLine(player, skill, proficiencies, character))
                 .toList();
-        return messages.get().getLines(SHEET, Map.of("player", player), Map.of(
-                "focus", focus(proficiencies, character),
-                "proficiencies", Component.join(JoinConfiguration.newlines(), skillLines)));
+        return messages.get().getLines(SHEET, Map.of("player", String.valueOf(player.getName())), Map.of(
+                "focus", focus(player, proficiencies, character),
+                "proficiencies", Component.join(JoinConfiguration.newlines(), skillLines)), player);
     }
 
-    private Component skillLine(SkillDefinition skill, ProficiencyService proficiencies, ProfileKey character) {
+    private Component skillLine(OfflinePlayer player, SkillDefinition skill, ProficiencyService proficiencies,
+                                ProfileKey character) {
         List<Component> entries = proficiencies.config().proficiencies().ofSkill(skill.id()).stream()
-                .map(proficiency -> entry(proficiency, proficiencies.tier(character, proficiency)))
+                .map(proficiency -> entry(player, proficiency, proficiencies.tier(character, proficiency)))
                 .toList();
-        Component separator = messages.get().get(SHEET + "-separator");
+        Component separator = messages.get().get(SHEET + "-separator", Map.of(), Map.of(), player);
         return messages.get().get(SHEET + "-skill", Map.of(), Map.of(
                 "skill", colored(skill.color(), skill.name()),
-                "proficiencies", Component.join(JoinConfiguration.separator(separator), entries)));
+                "proficiencies", Component.join(JoinConfiguration.separator(separator), entries)), player);
     }
 
-    private Component entry(ProficiencyDefinition proficiency, ProficiencyTier tier) {
+    private Component entry(OfflinePlayer player, ProficiencyDefinition proficiency, ProficiencyTier tier) {
         return messages.get().get(SHEET + "-entry", Map.of(), Map.of(
                 "proficiency", colored(proficiency.color(), proficiency.name()),
-                "tier", colored(tier.color(), tier.name())));
+                "tier", colored(tier.color(), tier.name())), player);
     }
 
-    private Component focus(ProficiencyService proficiencies, ProfileKey character) {
+    private Component focus(OfflinePlayer player, ProficiencyService proficiencies, ProfileKey character) {
         return proficiencies.focus(character)
-                .map(focus -> focusLine(proficiencies, character, focus))
-                .orElseGet(() -> messages.get().get(SHEET + "-no-focus"));
+                .map(focus -> focusLine(player, proficiencies, character, focus))
+                .orElseGet(() -> messages.get().get(SHEET + "-no-focus", Map.of(), Map.of(), player));
     }
 
-    private Component focusLine(ProficiencyService proficiencies, ProfileKey character, ProficiencyFocus focus) {
+    private Component focusLine(OfflinePlayer player, ProficiencyService proficiencies, ProfileKey character,
+                                ProficiencyFocus focus) {
         ProficiencyTier tier = proficiencies.tier(character, focus.proficiency());
         ProficiencyTier next = proficiencies.config().tiers().next(tier).orElse(tier);
         return messages.get().get(SHEET + "-focus", Map.of(
                 "points", Integer.toString(focus.points()),
                 "cost", Integer.toString(proficiencies.pointsNeeded(character, focus))), Map.of(
                 "proficiency", colored(focus.proficiency().color(), focus.proficiency().name()),
-                "next", colored(next.color(), next.name())));
+                "next", colored(next.color(), next.name())), player);
     }
 
     private static Component colored(String color, String text) {
