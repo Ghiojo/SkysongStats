@@ -15,7 +15,7 @@ import java.util.OptionalInt;
 import java.util.function.Function;
 
 // %skysongstats_<name>%. Stat placeholders come from stats.yml (see
-// StatPlaceholders): <stat>, <stat>_base, <stat>_modifiers, max_<bar>... Then the
+// StatPlaceholders): <stat>, <stat>_base, <stat>_modifiers, max_<bar>, max_<bar>_base... Then the
 // skill XP (<skill id> from skills.yml), the proficiencies (proficiency_..., see
 // ProficiencyPlaceholders), the character sheet fields
 // (character_<field>) and downtime (global_downtime, character_downtime).

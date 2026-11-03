@@ -456,7 +456,7 @@ So to give `/heal` its own text you edit `stats.hp.add.player`; a new stat `mana
 
 | Sheet | Key | Filled in |
 |---|---|---|
-| Stat sheet (`/stats`) | `stats.sheet` | `{player}` and every stat placeholder: `{str}`, `{str_base}`, `{str_modifiers}`, `{hp}`, `{max_hp}`, `{max_hp_modifiers}`... (the same names as the PlaceholderAPI ones). |
+| Stat sheet (`/stats`) | `stats.sheet` | `{player}` and every stat placeholder: `{str}`, `{str_base}`, `{str_modifiers}`, `{hp}`, `{max_hp}`, `{max_hp_base}`, `{max_hp_modifiers}`... (the same names as the PlaceholderAPI ones). |
 | | `stats.sheet-auto` | A stat that `stats.sheet` never mentions (one you just added) gets an automatic line, `value` or `bar`, under the sheet, so new stats always show. Mention the stat in `stats.sheet` to place it yourself. |
 | | `stats.sheet-footer` | Last lines. |
 | Character sheet (`/char`) | `character.view.header`, `description-line`, `footer` | `{player} {name} {age} {gender} {pronouns} {ancestry}`; the description is wrapped into lines of about 60 characters, one `description-line` each. |
@@ -608,10 +608,13 @@ With PlaceholderAPI installed: `%skysongstats_<name>%`, always for the player's 
 | Placeholder | Value |
 |---|---|
 | `<stat>` | Total (base + modifiers + items); a bar's current value. E.g. `%skysongstats_str%`, `%skysongstats_hp%`. |
-| `<stat>_base` | Saved base value. |
+| `<stat>_base` | The stat **before modifiers**: its saved base value, without modifiers or item counts. For a bar, its current value before modifiers. |
 | `<stat>_modifiers` | Sum of the modifiers on the stat. |
-| `max_<bar>` | A bar's max. |
+| `max_<bar>` | A bar's max **after modifiers** (its formula + the modifiers on `max_<bar>`). |
+| `max_<bar>_base` | A bar's max **before modifiers**: what its `max` formula gives, without the modifiers on `max_<bar>`. E.g. `%skysongstats_max_hp_base%`. |
 | `max_<bar>_modifiers` | Sum of the modifiers on the bar's max. |
+
+So every stat can be checked both ways: `<stat>_base` / `<stat>` for a value, and `max_<bar>_base` / `max_<bar>` for a bar's max. The max formula itself reads other stats' totals (after modifiers), so a Con modifier still changes `max_hp_base`; only the modifiers placed on `max_hp` are left out.
 | `<skill>` | XP in that skill, e.g. `%skysongstats_mining%`. |
 | `proficiency_<id>` | Tier name in its colour ("Adept"). |
 | `proficiency_<id>_tier` | Tier id ("adept"), for conditions in other plugins. |

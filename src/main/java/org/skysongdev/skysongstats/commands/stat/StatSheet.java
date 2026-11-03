@@ -17,7 +17,7 @@ import java.util.stream.Stream;
 
 // The stat sheet /stats view shows. Its lines are stats.sheet in messages.yml,
 // where {player} and the stat placeholders ({str}, {str_base}, {str_modifiers},
-// {hp}, {max_hp}...) are filled in. A stat the lines never mention, such as one
+// {hp}, {max_hp}, {max_hp_base}...) are filled in. A stat the lines never mention, such as one
 // just added to stats.yml, still shows: it gets a stats.sheet-auto line after
 // them. stats.sheet-footer closes the sheet.
 public final class StatSheet {
@@ -69,6 +69,7 @@ public final class StatSheet {
         line.put("modifiers", values.get(stat.id() + MODIFIERS));
         stat.maxId().ifPresent(max -> {
             line.put("max", values.get(max));
+            line.put("max_base", values.get(max + BASE));
             line.put("max_modifiers", values.get(max + MODIFIERS));
         });
         return line;
@@ -77,7 +78,7 @@ public final class StatSheet {
     // The placeholder names a stat has.
     private static Stream<String> names(StatDefinition stat) {
         Stream<String> own = Stream.of(stat.id(), stat.id() + BASE, stat.id() + MODIFIERS);
-        return Stream.concat(own, stat.maxId().stream().flatMap(max -> Stream.of(max, max + MODIFIERS)));
+        return Stream.concat(own, stat.maxId().stream().flatMap(max -> Stream.of(max, max + BASE, max + MODIFIERS)));
     }
 
     private static Set<String> mentioned(List<String> lines) {

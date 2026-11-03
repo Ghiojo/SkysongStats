@@ -340,7 +340,7 @@ stats:
     # {player}
     no-character: "{prefix}<red>{player} has no character with stats."
   # /stats view. The lines get {player} and every stat placeholder: {str},
-  # {str_base}, {str_modifiers}, {hp}, {max_hp}, {max_hp_modifiers}... (the same
+  # {str_base}, {str_modifiers}, {hp}, {max_hp}, {max_hp_base}, {max_hp_modifiers}... (the same
   # names as the PlaceholderAPI ones). A stat these lines never mention gets a
   # sheet-auto line under them, so new stats always show; sheet-footer comes last.
   sheet:
@@ -359,7 +359,7 @@ stats:
     - "<#21ABA5><bold>Arcrot:</bold> <#21ABA5>{arcrot}<#0D5653>/<#21ABA5>{max_arcrot}<#2d6765> ({arcrot_modifiers}/{max_arcrot_modifiers}) <#864811>| <#2EB12C><bold>Potion Sickness:</bold> <#2EB12C>{potion}<#094C08>/<#2EB12C>{max_potion}<#3c733b> ({max_potion_modifiers})"
     - "<#710E86><bold>Fictis Apotheosis:</bold> <#710E86>{fictis}<#410F4C>/<#710E86>{max_fictis}<#422947> ({fictis_modifiers}/{max_fictis_modifiers})"
   sheet-auto:
-    # {name} {stat} {value} {base} {modifiers}, and for bars {max} {max_modifiers}
+    # {name} {stat} {value} {base} {modifiers}, and for bars {max} {max_base} {max_modifiers}
     value: "<#864811><bold>{name}:</bold> <#F6DA23>{value}<#864811> ({modifiers})"
     bar: "<#864811><bold>{name}:</bold> <#F6DA23>{value}<#864811>/<#F6DA23>{max}<#864811> ({modifiers}/{max_modifiers})"
   sheet-footer:

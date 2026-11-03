@@ -54,6 +54,7 @@ class StatSheetTest {
         assertEquals("1", values.get("str_modifiers"));
         assertEquals("5", values.get("max_hp_modifiers"));
         assertEquals(Integer.toString(fixture.value(fixture.alice, "max_hp")), values.get("max_hp"));
+        assertEquals(Integer.toString(fixture.value(fixture.alice, "max_hp") - 5), values.get("max_hp_base"));
     }
 
     @Test
@@ -83,6 +84,7 @@ class StatSheetTest {
         assertEquals("hp", hp.get("stat"));
         assertEquals(Integer.toString(fixture.value(fixture.alice, "max_hp")), hp.get("max"));
         assertEquals("5", hp.get("max_modifiers"));
+        assertEquals(Integer.toString(fixture.value(fixture.alice, "max_hp") - 5), hp.get("max_base"));
     }
 
     @Test
@@ -90,6 +92,16 @@ class StatSheetTest {
         List<String> lines = everyStat().stream()
                 .map(line -> "{str}".equals(line) ? "Str mods: {str_modifiers}" : line)
                 .map(line -> "{hp}".equals(line) ? "<red>Max: {max_hp}" : line)
+                .toList();
+        fixture.messages.texts.put(StatSheet.SHEET, lines);
+        fixture.sheet.show(fixture.alice, alice());
+        assertEquals(List.of(StatSheet.SHEET, StatSheet.FOOTER), fixture.messages.keys());
+    }
+
+    @Test
+    void aBarsMaxBeforeModifiersCountsAsShowingIt() {
+        List<String> lines = everyStat().stream()
+                .map(line -> "{hp}".equals(line) ? "Max HP before modifiers: {max_hp_base}" : line)
                 .toList();
         fixture.messages.texts.put(StatSheet.SHEET, lines);
         fixture.sheet.show(fixture.alice, alice());
