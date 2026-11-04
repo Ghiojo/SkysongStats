@@ -7,6 +7,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 import org.skysongdev.skysongstats.Utils.ProfileManager;
 import org.skysongdev.skysongstats.Utils.Utils;
 import org.skysongdev.skysongstats.api.event.ChangeCause;
+import org.skysongdev.skysongstats.api.event.DowntimeChangeEvent;
 import org.skysongdev.skysongstats.api.event.ProficiencyFocusChangeEvent;
 import org.skysongdev.skysongstats.api.event.ProficiencyTierChangeEvent;
 import org.skysongdev.skysongstats.api.event.SkillChangeEvent;
@@ -59,7 +60,6 @@ import org.skysongdev.skysongstats.messages.ExternalPlaceholders;
 import org.skysongdev.skysongstats.messages.Messages;
 import org.skysongdev.skysongstats.messages.MessagesFile;
 import org.skysongdev.skysongstats.messages.PluginTexts;
-import org.skysongdev.skysongstats.events.DowntimeChangeEvent;
 import org.skysongdev.skysongstats.placeholders.PlaceholderApiPlaceholders;
 import org.skysongdev.skysongstats.placeholders.StatsExpansion;
 import org.skysongdev.skysongstats.service.downtime.DowntimeService;
@@ -265,7 +265,8 @@ public class SkysongStats extends JavaPlugin {
         downtimeService = new DowntimeService(
                 new SqlDowntimeRepository(() -> database.getConnection()),
                 DowntimeSettings.fromConfig(getConfig().getConfigurationSection("downtime")),
-                change -> Bukkit.getPluginManager().callEvent(new DowntimeChangeEvent(change)));
+                change -> Bukkit.getPluginManager().callEvent(
+                        new DowntimeChangeEvent(ApiTypes.downtimeChange(change), changeCauses.current())));
         try {
             downtimeService.load();
         } catch (DowntimeStorageException e) {

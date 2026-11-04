@@ -6,6 +6,7 @@ import org.bukkit.plugin.ServicePriority;
 import org.bukkit.plugin.ServicesManager;
 import org.jetbrains.annotations.NotNull;
 import org.skysongdev.skysongstats.SkysongStats;
+import org.skysongdev.skysongstats.api.Downtime;
 import org.skysongdev.skysongstats.api.Modifiers;
 import org.skysongdev.skysongstats.api.Proficiencies;
 import org.skysongdev.skysongstats.api.Profiles;
@@ -26,6 +27,7 @@ public final class SkysongStatsApiImpl implements SkysongStatsApi {
     private final Stats stats;
     private final Modifiers modifiers;
     private final Proficiencies proficiencies;
+    private final Downtime downtime;
 
     /** An API reading through the plugin's services, guarded to the server's main thread. */
     public SkysongStatsApiImpl(SkysongStats plugin) {
@@ -37,6 +39,8 @@ public final class SkysongStatsApiImpl implements SkysongStatsApi {
         this.modifiers = new ModifiersImpl(plugin.getStatService(), mainThread, plugin.getChangeCauses());
         this.proficiencies = new ProficienciesImpl(plugin.getProficiencyService(), plugin.getSkillService(),
                 mainThread, plugin.getChangeCauses());
+        this.downtime = new DowntimeImpl(plugin.getDowntimeService(), () -> plugin.getStatService().characters(),
+                plugin.getUtils().getProfileManager()::activeProfile, mainThread, plugin.getChangeCauses());
     }
 
     @Override
@@ -67,6 +71,11 @@ public final class SkysongStatsApiImpl implements SkysongStatsApi {
     @Override
     public @NotNull Proficiencies proficiencies() {
         return proficiencies;
+    }
+
+    @Override
+    public @NotNull Downtime downtime() {
+        return downtime;
     }
 
     /** Offers this API to other plugins, owned by {@code owner}. */

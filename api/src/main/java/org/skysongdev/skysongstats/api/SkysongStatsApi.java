@@ -71,4 +71,7 @@ public interface SkysongStatsApi {
 
     /** The proficiencies and tiers of proficiencies.yml, and each character's training. */
     @NotNull Proficiencies proficiencies();
+
+    /** Global and character downtime. */
+    @NotNull Downtime downtime();
 }
