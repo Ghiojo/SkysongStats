@@ -65,4 +65,7 @@ public interface SkysongStatsApi {
 
     /** The stats of stats.yml and each character's values, bars included. */
     @NotNull Stats stats();
+
+    /** The modifiers saved on each character, the same ones {@code /modifier} manages. */
+    @NotNull Modifiers modifiers();
 }

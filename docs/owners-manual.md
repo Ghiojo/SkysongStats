@@ -667,6 +667,7 @@ SkysongStats offers the API at the very end of its startup and removes it when i
 | `profiles()` | `active(uuid)`: the character the player is playing now. `all(uuid)`: every character of the player, sorted by name. `exists(character)`. `isSetUp(character)`: finished /setup. Read only: profiles are created, switched and deleted by players with `/profile`. |
 | `skills()` | `all()`, `find(name)`: a skill by its skills.yml id or alias, ignoring case, nothing else. `levels()`, `levelFor(xp)`. `xp(character, skill)`, `level(character, skill)`. `setXp` and `addXp` work like `/skills setxp` and `addxp`: saved, LuckPerms nodes and `SkillChangeEvent` follow. A `Skill` carries its `name`, `short-name`, `color` and `aliases` exactly as skills.yml has them. |
 | `stats()` | `all()`, `find(name)`: a stat by its stats.yml id or alias, ignoring case. `get(character, stat)`: the same numbers as the placeholders: `base()`, `modifiers()`, `items()`, `total()`, and for bars `max()` and `maxBase()` (before max modifiers). `apply(character, stat, action, amount)` with `SET`, `ADD`, `REDUCE` or `DAMAGE` works like the stat commands: same limits, saved, `StatChangeEvent` follows (a damage the shield absorbs fires one for the shield too). |
+| `modifiers()` | `list(character)`, `add(character, target, amount)` (target: a stat id or alias, or `max_<bar>`), `remove(character, modifierId)`. The same saved modifiers as `/modifier`: one added by a plugin shows in `/modifier view` and can be removed there. |
 
 ---
 
