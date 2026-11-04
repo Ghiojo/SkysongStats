@@ -656,6 +656,8 @@ SkysongStats offers the API at the very end of its startup and removes it when i
 - Nothing returns null: a missing answer is an empty `Optional`. Null arguments are refused.
 - Methods that read or change a character must be called on the server's main thread, otherwise they throw an error.
 - Every profile is kept in memory, so the API works for offline players too.
+- The config lookups (`all()`, `find(...)`, levels) are safe from any thread. They always read the current files, so after `/ssreload` a removed skill simply answers empty.
+- Writes don't check permissions: the other plugin checks its player's permission itself.
 - `apiVersion()` says which API version is installed (`major.minor.patch`). Adding methods raises the minor number; removing or changing one raises the major.
 
 **What is in the API so far.**
@@ -663,6 +665,7 @@ SkysongStats offers the API at the very end of its startup and removes it when i
 | Part | Methods |
 |---|---|
 | `profiles()` | `active(uuid)`: the character the player is playing now. `all(uuid)`: every character of the player, sorted by name. `exists(character)`. `isSetUp(character)`: finished /setup. Read only: profiles are created, switched and deleted by players with `/profile`. |
+| `skills()` | `all()`, `find(name)`: a skill by its skills.yml id or alias, ignoring case, nothing else. `levels()`, `levelFor(xp)`. `xp(character, skill)`, `level(character, skill)`. `setXp` and `addXp` work like `/skills setxp` and `addxp`: saved, LuckPerms nodes and `SkillChangeEvent` follow. A `Skill` carries its `name`, `short-name`, `color` and `aliases` exactly as skills.yml has them. |
 
 ---
 
