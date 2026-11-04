@@ -6,7 +6,7 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.skysongdev.skysongstats.character.SkillService;
-import org.skysongdev.skysongstats.events.ProfileUpdateEvent;
+import org.skysongdev.skysongstats.api.event.ProfileUpdateEvent;
 import org.skysongdev.skysongstats.storage.ProfileKey;
 
 import java.util.Objects;

@@ -10,7 +10,8 @@ import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.skysongdev.skysongstats.SkysongStats;
-import org.skysongdev.skysongstats.events.ProfileUpdateEvent;
+import org.skysongdev.skysongstats.api.CharacterId;
+import org.skysongdev.skysongstats.api.event.ProfileUpdateEvent;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -30,6 +31,8 @@ public class SwitchProfile implements TabExecutor {
             getPlugin().getMessages().send(commandSender, "profile.switch.not-found");
             return true;
         }
+        CharacterId previous = getPlugin().getUtils().getProfileManager().activeProfile(player.getUniqueId())
+                .map(profile -> new CharacterId(player.getUniqueId(), profile)).orElse(null);
         getPlugin().getUtils().getProfileManager().setProfile(player.getUniqueId().toString(), strings[0]);
         try{
             getPlugin().getDatabase().updateActiveProfileData(getPlugin().getUtils().getProfileManager().findActiveProfile(player.getUniqueId().toString()));
@@ -37,7 +40,7 @@ public class SwitchProfile implements TabExecutor {
             e.printStackTrace();
         }
 
-        ProfileUpdateEvent event = new ProfileUpdateEvent(player, player.getUniqueId().toString(), strings[0]);
+        ProfileUpdateEvent event = new ProfileUpdateEvent(player, previous, new CharacterId(player.getUniqueId(), strings[0]));
         Bukkit.getPluginManager().callEvent(event);
 
         getPlugin().getMessages().send(commandSender, "profile.switch.switched", Map.of("profile", strings[0]));

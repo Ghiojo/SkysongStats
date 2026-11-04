@@ -26,7 +26,7 @@ public final class SkysongStatsApiImpl implements SkysongStatsApi {
         MainThread mainThread = new MainThread(Bukkit::isPrimaryThread);
         this.profiles = new ProfilesImpl(plugin.getUtils().getProfileManager(),
                 () -> plugin.getStatService().characters(), mainThread);
-        this.skills = new SkillsImpl(plugin.getSkillService(), mainThread);
+        this.skills = new SkillsImpl(plugin.getSkillService(), mainThread, plugin.getChangeCauses());
     }
 
     @Override
