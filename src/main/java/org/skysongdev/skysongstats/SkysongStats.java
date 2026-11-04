@@ -234,14 +234,16 @@ public class SkysongStats extends JavaPlugin {
                 new ItemTagListener(statService, utils.getProfileManager()::activeCharacter, itemTagReader()), this);
     }
 
-    // Item tags are read through the SkysongItems API. Without SkysongItems (it is a
-    // softdepend) they add 0 and the rest of the plugin works as usual.
-    private ItemTagReader itemTagReader() {
-        if (!getServer().getPluginManager().isPluginEnabled(SkysongItemsTagReader.PLUGIN_NAME)) {
-            getLogger().info("Skysong_Items is not enabled, so item tags in stats.yml add nothing to stats.");
-            return ItemTagReader.NONE;
+    // Skysong_Items is a hard depend, so its API is there unless Skysong_Items failed
+    // to start. Then, as with LuckPerms, the rest of the plugin keeps working and item
+    // tags add 0.
+    private ItemTagReader itemTagReader(){
+        try {
+            return SkysongItemsTagReader.fromServer();
+        } catch (IllegalStateException e) {
+            getLogger().severe("Skysong_Items is not running, item tags in stats.yml will add nothing to stats");
+            return (items, source) -> 0;
         }
-        return SkysongItemsTagReader.fromServer();
     }
 
     public void InitializeDowntime(){

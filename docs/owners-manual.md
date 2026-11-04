@@ -54,7 +54,7 @@ Everything the plugin shows to players comes from `messages.yml`, so the whole p
 | **MySQL** | Required. Every character is stored there. If the database can't be reached at startup, the plugin logs one error saying what to check and **disables itself**. There is no in-memory fallback. |
 | **LuckPerms** | Hard dependency (`depend:` in `plugin.yml`). Skill level and proficiency tier nodes are written into LuckPerms. |
 | PlaceholderAPI | Optional. When it is present, the `%skysongstats_...%` placeholders are registered, and the sheets fill in other plugins' placeholders (see [Sheet layouts](#sheet-layouts)). |
-| Skysong_Items | Optional. When its items are in a player's inventory, their item tags (Arcrot, Fictis) add to stats, read through the SkysongItems API. See [compatibility](#skysong-special-items-compatibility). |
+| **Skysong_Items** | Hard dependency (`depend:` in `plugin.yml`). When its items are in a player's inventory, their item tags (Arcrot, Fictis) add to stats, read through the SkysongItems API. See [compatibility](#skysong-special-items-compatibility). |
 
 Paper downloads HikariCP (the database connection pool) by itself on the first start, through `libraries:` in `plugin.yml`.
 
@@ -695,7 +695,7 @@ SkysongStats reads the item tags of Skysong_Items through the **SkysongItems API
 - A tag id Skysong_Items doesn't know, or a tag that isn't an int, adds 0.
 - Counts are recalculated whenever the inventory changes, on join, and on profile switch. They are never saved; they add on top of the saved base (so `/stats add arcrot 2` still stacks with Arcrot items).
 - The tags must exist in Skysong_Items' `config.yml` under `tags:` with `type: "int"`. The defaults there are `arcrot`, `charged_arcrot` and `fictis`, which is what the default `stats.yml` uses.
-- Skysong_Items is optional (`softdepend:`). Without it, the plugin logs that item tags add nothing and every `item-tags:` entry counts 0; everything else works as usual.
+- Skysong_Items is required (`depend:` in `plugin.yml`): the server won't enable SkysongStats without it.
 
 To make a new item tag count towards a stat: add the tag in Skysong_Items' config (type int) and run `/si reload`, put it on items there, then add `- tag: <tag id>` under that stat's `item-tags:` in `stats.yml` and run `/ssreload`.
 

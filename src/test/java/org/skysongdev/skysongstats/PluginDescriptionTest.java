@@ -41,9 +41,14 @@ class PluginDescriptionTest {
     }
 
     @Test
-    void softDependsOnPlaceholderApiAndSkysongItems() throws Exception {
+    void dependsOnSkysongItemsByItsExactName() throws Exception {
         PluginDescriptionFile description = load();
-        assertTrue(description.getSoftDepend().contains("PlaceholderAPI"));
-        assertTrue(description.getSoftDepend().contains("Skysong_Items"));
+        assertTrue(description.getDepend().contains("Skysong_Items"));
+        assertFalse(description.getSoftDepend().contains("Skysong_Items"));
+    }
+
+    @Test
+    void softDependsOnPlaceholderApi() throws Exception {
+        assertTrue(load().getSoftDepend().contains("PlaceholderAPI"));
     }
 }

@@ -64,12 +64,6 @@ class ItemTagCounterTest {
     }
 
     @Test
-    void withoutSkysongItemsEveryTagIsZero() {
-        assertEquals(Map.of(ARCROT, 0, CHARGED_ARCROT, 0, FICTIS, 0),
-                ItemTagCounter.count(ItemTagReader.NONE, new ItemStack[]{new ItemStack(Material.STONE)}, DEFAULT_SOURCES));
-    }
-
-    @Test
     void noSourcesCountNothing() {
         assertEquals(Map.of(), ItemTagCounter.count((items, source) -> 1, new ItemStack[0], List.of()));
     }

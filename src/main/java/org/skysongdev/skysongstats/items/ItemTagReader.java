@@ -6,13 +6,10 @@ import org.skysongdev.skysongstats.definition.ItemTagSource;
 import java.util.List;
 
 // Reads the Skysong item tags that stats.yml lists under item-tags. SkysongItems owns
-// the tags, so the real reader asks its API (SkysongItemsTagReader); NONE is used when
-// SkysongItems is not installed.
+// the tags, so the plugin's reader asks its API (SkysongItemsTagReader); tests pass
+// their own.
 @FunctionalInterface
 public interface ItemTagReader {
-
-    // Nothing to read without SkysongItems: every tag adds 0.
-    ItemTagReader NONE = (items, source) -> 0;
 
     // The tag's value on each item times the stack size, added up. With requiresCharges,
     // only items with charges left count. Empty slots and air count as 0.
