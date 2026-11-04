@@ -59,4 +59,7 @@ public interface SkysongStatsApi {
 
     /** Which profiles players have, and which one each player is playing. */
     @NotNull Profiles profiles();
+
+    /** The skills of skills.yml, their levels, and each character's XP. */
+    @NotNull Skills skills();
 }

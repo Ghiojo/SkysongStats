@@ -65,6 +65,7 @@ class SkysongStatsApiImplTest {
         SkysongStatsApi api = SkysongStatsApi.get();
 
         assertSame(api.profiles(), api.profiles());
+        assertSame(api.skills(), api.skills());
     }
 
     @Test

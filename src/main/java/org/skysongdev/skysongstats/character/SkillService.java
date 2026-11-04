@@ -22,7 +22,8 @@ public class SkillService {
     private final SkillRepository repository;
     private final SkillChangeListener listener;
     private final Map<ProfileKey, Map<String, Integer>> characters = new HashMap<>();
-    private SkillsConfig config;
+    // volatile: the API reads it from any thread, and /ssreload swaps it on the main thread.
+    private volatile SkillsConfig config;
 
     public SkillService(SkillsConfig config, SkillRepository repository, SkillChangeListener listener) {
         this.config = Objects.requireNonNull(config, "config");
