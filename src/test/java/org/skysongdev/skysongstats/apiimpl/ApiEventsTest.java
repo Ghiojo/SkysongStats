@@ -14,9 +14,12 @@ import org.skysongdev.skysongstats.SkysongStats;
 import org.skysongdev.skysongstats.api.CharacterId;
 import org.skysongdev.skysongstats.api.SkillChange;
 import org.skysongdev.skysongstats.api.SkysongStatsApi;
+import org.skysongdev.skysongstats.api.StatAction;
+import org.skysongdev.skysongstats.api.StatChange;
 import org.skysongdev.skysongstats.api.event.ChangeCause;
 import org.skysongdev.skysongstats.api.event.ProfileUpdateEvent;
 import org.skysongdev.skysongstats.api.event.SkillChangeEvent;
+import org.skysongdev.skysongstats.api.event.StatChangeEvent;
 import org.skysongdev.skysongstats.api.event.SkysongStatsReloadEvent;
 import org.skysongdev.skysongstats.storage.ProfileKey;
 
@@ -36,11 +39,17 @@ class ApiEventsTest {
 
     public static final class Fired implements Listener {
         final List<SkillChangeEvent> skills = new ArrayList<>();
+        final List<StatChangeEvent> stats = new ArrayList<>();
         int reloads;
 
         @EventHandler
         public void onSkillChange(SkillChangeEvent event) {
             skills.add(event);
+        }
+
+        @EventHandler
+        public void onStatChange(StatChangeEvent event) {
+            stats.add(event);
         }
 
         @EventHandler
@@ -58,6 +67,7 @@ class ApiEventsTest {
         PlayerMock player = server.addPlayer("Alice");
         alice = new CharacterId(player.getUniqueId(), "Default");
         plugin.getSkillService().createCharacter(new ProfileKey(alice.player(), alice.profile()));
+        plugin.getStatService().createCharacter(new ProfileKey(alice.player(), alice.profile()));
         fired = new Fired();
         server.getPluginManager().registerEvents(fired, plugin);
     }
@@ -92,6 +102,15 @@ class ApiEventsTest {
         assertEquals(alice, change.character());
         assertEquals(SkysongStatsApi.get().skills().find("mining").orElseThrow(), change.skill());
         assertEquals(40, change.after());
+    }
+
+    @Test
+    void anApiStatWriteFiresTheStatEventWithCauseApi() {
+        StatChange change = SkysongStatsApi.get().stats().apply(alice, "str", StatAction.ADD, 2).orElseThrow();
+
+        assertEquals(1, fired.stats.size());
+        assertEquals(change, fired.stats.getFirst().getChange());
+        assertEquals(ChangeCause.API, fired.stats.getFirst().getCause());
     }
 
     @Test

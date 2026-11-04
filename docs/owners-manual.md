@@ -666,6 +666,7 @@ SkysongStats offers the API at the very end of its startup and removes it when i
 |---|---|
 | `profiles()` | `active(uuid)`: the character the player is playing now. `all(uuid)`: every character of the player, sorted by name. `exists(character)`. `isSetUp(character)`: finished /setup. Read only: profiles are created, switched and deleted by players with `/profile`. |
 | `skills()` | `all()`, `find(name)`: a skill by its skills.yml id or alias, ignoring case, nothing else. `levels()`, `levelFor(xp)`. `xp(character, skill)`, `level(character, skill)`. `setXp` and `addXp` work like `/skills setxp` and `addxp`: saved, LuckPerms nodes and `SkillChangeEvent` follow. A `Skill` carries its `name`, `short-name`, `color` and `aliases` exactly as skills.yml has them. |
+| `stats()` | `all()`, `find(name)`: a stat by its stats.yml id or alias, ignoring case. `get(character, stat)`: the same numbers as the placeholders: `base()`, `modifiers()`, `items()`, `total()`, and for bars `max()` and `maxBase()` (before max modifiers). `apply(character, stat, action, amount)` with `SET`, `ADD`, `REDUCE` or `DAMAGE` works like the stat commands: same limits, saved, `StatChangeEvent` follows (a damage the shield absorbs fires one for the shield too). |
 
 ---
 
@@ -676,9 +677,9 @@ Other plugins can listen to these Bukkit events. All fire on the main thread, **
 | Event | Package | Fired when | Carries |
 |---|---|---|---|
 | `SkillChangeEvent` | `api.event` | Skill XP changed: addxp, setxp, /setup, the API. Only when the XP is different afterwards. | `getChange()`: `SkillChange(character, skill, before, after)`; `getCause()` |
+| `StatChangeEvent` | `api.event` | A stat's total changed: a command, a modifier, /setup, a reload that brought a bar down, the API. A damage the shield absorbs fires one for the shield and one for the bar. Item recounts don't fire it. | `getChange()`: `StatChange(character, stat, before, after)`; `getCause()` |
 | `ProfileUpdateEvent` | `api.event` | A player's active profile changed (`/profile switch`). | `getPlayer()`, `getPrevious()` (empty when they had none), `getCharacter()` |
 | `SkysongStatsReloadEvent` | `api.event` | `/ssreload` finished and the new files are in use (also when some files had mistakes and kept their old content). | nothing: look things up again |
-| `StatChangeEvent` | `events` | A stat's total changed: a command, a modifier, /setup, a reload that brought a bar down. | `StatChange(character, stat, oldValue, newValue)`. Item recounts don't fire it. |
 | `ProficiencyTierChangeEvent` | `events` | A tier changed: training tier-up, /setup, `tier set` (up **or down**). | `ProficiencyTierChange(character, proficiency, before, after, tierUp)` |
 | `ProficiencyFocusChangeEvent` | `events` | The focus changed: new focus, points added/removed/set, cleared at the top tier. | `ProficiencyFocusChange(character, before, after)`; null = no focus. |
 | `DowntimeChangeEvent` | `events` | Downtime changed: add, remove, resetall. | `getPlayerUUID()`, `getPool()` (GLOBAL/CHARACTER), `getProfile()`, `getOldValue()`, `getNewValue()`, `getCause()` (ADD/REMOVE/RESET) |

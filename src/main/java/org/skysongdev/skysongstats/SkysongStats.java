@@ -8,6 +8,7 @@ import org.skysongdev.skysongstats.Utils.ProfileManager;
 import org.skysongdev.skysongstats.Utils.Utils;
 import org.skysongdev.skysongstats.api.event.ChangeCause;
 import org.skysongdev.skysongstats.api.event.SkillChangeEvent;
+import org.skysongdev.skysongstats.api.event.StatChangeEvent;
 import org.skysongdev.skysongstats.api.event.SkysongStatsReloadEvent;
 import org.skysongdev.skysongstats.apiimpl.ApiTypes;
 import org.skysongdev.skysongstats.apiimpl.SkysongStatsApiImpl;
@@ -59,7 +60,6 @@ import org.skysongdev.skysongstats.messages.PluginTexts;
 import org.skysongdev.skysongstats.events.DowntimeChangeEvent;
 import org.skysongdev.skysongstats.events.ProficiencyFocusChangeEvent;
 import org.skysongdev.skysongstats.events.ProficiencyTierChangeEvent;
-import org.skysongdev.skysongstats.events.StatChangeEvent;
 import org.skysongdev.skysongstats.placeholders.PlaceholderApiPlaceholders;
 import org.skysongdev.skysongstats.placeholders.StatsExpansion;
 import org.skysongdev.skysongstats.service.downtime.DowntimeService;
@@ -310,7 +310,8 @@ public class SkysongStats extends JavaPlugin {
     public void InitializeStats(){
         StatRepository repository = storage.repository();
         statService = new StatService(statsConfig.stats(), repository,
-                change -> Bukkit.getPluginManager().callEvent(new StatChangeEvent(change)));
+                change -> Bukkit.getPluginManager().callEvent(
+                        new StatChangeEvent(ApiTypes.statChange(change), changeCauses.current())));
         try {
             repository.createTables();
             statService.load();
