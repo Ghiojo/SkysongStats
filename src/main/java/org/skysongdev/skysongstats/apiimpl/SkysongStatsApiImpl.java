@@ -6,6 +6,7 @@ import org.bukkit.plugin.ServicePriority;
 import org.bukkit.plugin.ServicesManager;
 import org.jetbrains.annotations.NotNull;
 import org.skysongdev.skysongstats.SkysongStats;
+import org.skysongdev.skysongstats.api.CharacterSheets;
 import org.skysongdev.skysongstats.api.Downtime;
 import org.skysongdev.skysongstats.api.Modifiers;
 import org.skysongdev.skysongstats.api.Proficiencies;
@@ -28,6 +29,7 @@ public final class SkysongStatsApiImpl implements SkysongStatsApi {
     private final Modifiers modifiers;
     private final Proficiencies proficiencies;
     private final Downtime downtime;
+    private final CharacterSheets sheets;
 
     /** An API reading through the plugin's services, guarded to the server's main thread. */
     public SkysongStatsApiImpl(SkysongStats plugin) {
@@ -41,6 +43,8 @@ public final class SkysongStatsApiImpl implements SkysongStatsApi {
                 mainThread, plugin.getChangeCauses());
         this.downtime = new DowntimeImpl(plugin.getDowntimeService(), () -> plugin.getStatService().characters(),
                 plugin.getUtils().getProfileManager()::activeProfile, mainThread, plugin.getChangeCauses());
+        this.sheets = new CharacterSheetsImpl(plugin.getUtils().getCharacterManager()::findCharacterProfile,
+                profile -> plugin.getDatabase().updateCharacterData(profile), mainThread);
     }
 
     @Override
@@ -76,6 +80,11 @@ public final class SkysongStatsApiImpl implements SkysongStatsApi {
     @Override
     public @NotNull Downtime downtime() {
         return downtime;
+    }
+
+    @Override
+    public @NotNull CharacterSheets sheets() {
+        return sheets;
     }
 
     /** Offers this API to other plugins, owned by {@code owner}. */

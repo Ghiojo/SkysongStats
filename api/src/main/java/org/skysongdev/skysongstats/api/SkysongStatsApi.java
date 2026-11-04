@@ -74,4 +74,7 @@ public interface SkysongStatsApi {
 
     /** Global and character downtime. */
     @NotNull Downtime downtime();
+
+    /** The character sheet fields: name, age, gender, ancestry, pronouns and description. */
+    @NotNull CharacterSheets sheets();
 }

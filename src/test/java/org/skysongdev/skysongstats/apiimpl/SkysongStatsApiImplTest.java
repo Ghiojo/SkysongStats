@@ -70,6 +70,7 @@ class SkysongStatsApiImplTest {
         assertSame(api.modifiers(), api.modifiers());
         assertSame(api.proficiencies(), api.proficiencies());
         assertSame(api.downtime(), api.downtime());
+        assertSame(api.sheets(), api.sheets());
     }
 
     @Test
