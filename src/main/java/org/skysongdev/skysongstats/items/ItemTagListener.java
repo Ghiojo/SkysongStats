@@ -19,9 +19,12 @@ import java.util.function.Function;
 public final class ItemTagListener implements Listener {
     private final StatService stats;
     private final Function<Player, Optional<ProfileKey>> activeCharacter;
+    private final ItemTagReader reader;
 
-    public ItemTagListener(StatService stats, Function<Player, Optional<ProfileKey>> activeCharacter) {
+    public ItemTagListener(StatService stats, Function<Player, Optional<ProfileKey>> activeCharacter,
+                           ItemTagReader reader) {
         this.stats = Objects.requireNonNull(stats, "stats");
+        this.reader = Objects.requireNonNull(reader, "reader");
         this.activeCharacter = Objects.requireNonNull(activeCharacter, "activeCharacter");
     }
 
@@ -47,7 +50,7 @@ public final class ItemTagListener implements Listener {
     public void recount(Player player) {
         activeCharacter.apply(player)
                 .filter(character -> stats.sheet(character).isPresent())
-                .ifPresent(character -> stats.setItemCounts(character, ItemTagCounter.count(
+                .ifPresent(character -> stats.setItemCounts(character, ItemTagCounter.count(reader,
                         player.getInventory().getContents(), ItemTagCounter.sources(stats.definitions()))));
     }
 }

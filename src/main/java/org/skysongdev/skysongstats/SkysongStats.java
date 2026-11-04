@@ -43,6 +43,8 @@ import org.skysongdev.skysongstats.definition.SkillsConfigFile;
 import org.skysongdev.skysongstats.definition.StatsConfig;
 import org.skysongdev.skysongstats.definition.StatsConfigFile;
 import org.skysongdev.skysongstats.items.ItemTagListener;
+import org.skysongdev.skysongstats.items.ItemTagReader;
+import org.skysongdev.skysongstats.items.SkysongItemsTagReader;
 import org.skysongdev.skysongstats.listeners.*;
 import org.skysongdev.skysongstats.messages.ExternalPlaceholders;
 import org.skysongdev.skysongstats.messages.Messages;
@@ -229,7 +231,17 @@ public class SkysongStats extends JavaPlugin {
         getServer().getPluginManager().registerEvents(pendingFocusChanges, this);
         getServer().getPluginManager().registerEvents(new PlayerShiftRightClickListener(), this);
         getServer().getPluginManager().registerEvents(
-                new ItemTagListener(statService, utils.getProfileManager()::activeCharacter), this);
+                new ItemTagListener(statService, utils.getProfileManager()::activeCharacter, itemTagReader()), this);
+    }
+
+    // Item tags are read through the SkysongItems API. Without SkysongItems (it is a
+    // softdepend) they add 0 and the rest of the plugin works as usual.
+    private ItemTagReader itemTagReader() {
+        if (!getServer().getPluginManager().isPluginEnabled(SkysongItemsTagReader.PLUGIN_NAME)) {
+            getLogger().info("Skysong_Items is not enabled, so item tags in stats.yml add nothing to stats.");
+            return ItemTagReader.NONE;
+        }
+        return SkysongItemsTagReader.fromServer();
     }
 
     public void InitializeDowntime(){
