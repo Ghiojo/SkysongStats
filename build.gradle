@@ -29,8 +29,9 @@ repositories {
     }
 }
 
-// The SkysongItems API version: a release tag of Skysong-Special-Items.
-def skysongItemsApi = 'com.github.Ghiojo.Skysong-Special-Items:api:1.0.1'
+// The SkysongItems API, at a release tag of Skysong-Special-Items. JitPack publishes
+// its one module (api) as the repository itself, so the coordinate has no ":api".
+def skysongItemsApi = 'com.github.Ghiojo:Skysong-Special-Items:1.0.1'
 
 
 dependencies {

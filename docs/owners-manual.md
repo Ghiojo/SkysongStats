@@ -59,7 +59,7 @@ Everything the plugin shows to players comes from `messages.yml`, so the whole p
 
 Paper downloads HikariCP (the database connection pool) by itself on the first start, through `libraries:` in `plugin.yml`.
 
-**Building:** run `./gradlew build` in the repository. The jar is `build/libs/SkysongStats-<version>.jar` (the version is in `build.gradle`). `./gradlew build test` also runs the unit tests. The build downloads the SkysongItems API from JitPack (`skysongItemsApi` in `build.gradle`, set to a Skysong-Special-Items release tag, currently `1.0.1`).
+**Building:** run `./gradlew build` in the repository. The jar is `build/libs/SkysongStats-<version>.jar` (the version is in `build.gradle`). `./gradlew build test` also runs the unit tests. The build downloads the SkysongItems API from JitPack (`skysongItemsApi` in `build.gradle`: `com.github.Ghiojo:Skysong-Special-Items:<tag>`, currently `1.0.1`). After changing that tag, build once with `./gradlew build --refresh-dependencies`.
 
 **First start:** the plugin writes its default `config.yml`, `stats.yml`, `skills.yml`, `proficiencies.yml` and `messages.yml` into `plugins/SkysongStats/`. Fill in the `database:` section of `config.yml` and restart.
 
