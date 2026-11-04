@@ -6,7 +6,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.skysongdev.skysongstats.character.StatService;
-import org.skysongdev.skysongstats.events.ProfileUpdateEvent;
+import org.skysongdev.skysongstats.api.event.ProfileUpdateEvent;
 import org.skysongdev.skysongstats.storage.ProfileKey;
 
 import java.util.Objects;
@@ -41,9 +41,7 @@ public final class ItemTagListener implements Listener {
     @EventHandler
     public void onProfileSwitch(ProfileUpdateEvent event) {
         // /profile switch fires this after the new profile is active.
-        if (event.getPlayer() != null) {
-            recount(event.getPlayer());
-        }
+        recount(event.getPlayer());
     }
 
     // Does nothing for a player without a loaded character.

@@ -59,4 +59,22 @@ public interface SkysongStatsApi {
 
     /** Which profiles players have, and which one each player is playing. */
     @NotNull Profiles profiles();
+
+    /** The skills of skills.yml, their levels, and each character's XP. */
+    @NotNull Skills skills();
+
+    /** The stats of stats.yml and each character's values, bars included. */
+    @NotNull Stats stats();
+
+    /** The modifiers saved on each character, the same ones {@code /modifier} manages. */
+    @NotNull Modifiers modifiers();
+
+    /** The proficiencies and tiers of proficiencies.yml, and each character's training. */
+    @NotNull Proficiencies proficiencies();
+
+    /** Global and character downtime. */
+    @NotNull Downtime downtime();
+
+    /** The character sheet fields: name, age, gender, ancestry, pronouns and description. */
+    @NotNull CharacterSheets sheets();
 }

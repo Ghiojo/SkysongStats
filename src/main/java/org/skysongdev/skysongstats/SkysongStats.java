@@ -6,7 +6,16 @@ import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.skysongdev.skysongstats.Utils.ProfileManager;
 import org.skysongdev.skysongstats.Utils.Utils;
+import org.skysongdev.skysongstats.api.event.ChangeCause;
+import org.skysongdev.skysongstats.api.event.DowntimeChangeEvent;
+import org.skysongdev.skysongstats.api.event.ProficiencyFocusChangeEvent;
+import org.skysongdev.skysongstats.api.event.ProficiencyTierChangeEvent;
+import org.skysongdev.skysongstats.api.event.SkillChangeEvent;
+import org.skysongdev.skysongstats.api.event.StatChangeEvent;
+import org.skysongdev.skysongstats.api.event.SkysongStatsReloadEvent;
+import org.skysongdev.skysongstats.apiimpl.ApiTypes;
 import org.skysongdev.skysongstats.apiimpl.SkysongStatsApiImpl;
+import org.skysongdev.skysongstats.character.ChangeCauses;
 import org.skysongdev.skysongstats.character.ProficiencyChangeListener;
 import org.skysongdev.skysongstats.character.ProficiencyFocusChange;
 import org.skysongdev.skysongstats.character.ProficiencyService;
@@ -51,11 +60,6 @@ import org.skysongdev.skysongstats.messages.ExternalPlaceholders;
 import org.skysongdev.skysongstats.messages.Messages;
 import org.skysongdev.skysongstats.messages.MessagesFile;
 import org.skysongdev.skysongstats.messages.PluginTexts;
-import org.skysongdev.skysongstats.events.DowntimeChangeEvent;
-import org.skysongdev.skysongstats.events.ProficiencyFocusChangeEvent;
-import org.skysongdev.skysongstats.events.ProficiencyTierChangeEvent;
-import org.skysongdev.skysongstats.events.SkillChangeEvent;
-import org.skysongdev.skysongstats.events.StatChangeEvent;
 import org.skysongdev.skysongstats.placeholders.PlaceholderApiPlaceholders;
 import org.skysongdev.skysongstats.placeholders.StatsExpansion;
 import org.skysongdev.skysongstats.service.downtime.DowntimeService;
@@ -142,6 +146,9 @@ public class SkysongStats extends JavaPlugin {
 
     // The public API offered to other plugins, null until onEnable finished.
     private SkysongStatsApiImpl api;
+    // What the change being made now is caused by, for the change events.
+    private final ChangeCauses changeCauses = new ChangeCauses();
+    public ChangeCauses getChangeCauses() { return changeCauses; }
 
     @Override
     public void onEnable() {
@@ -223,7 +230,7 @@ public class SkysongStats extends JavaPlugin {
         getCommand("skills").setExecutor(new SkillsCommand(skillService, targets, texts, new SkillBook(this::getMessages),
                 onlinePlayers, getLogger()::info));
         getCommand("proficiency").setExecutor(new ProficiencyCommand(proficiencyService, skillService, targets, texts,
-                new ProficiencySheet(this::getMessages), pendingFocusChanges, onlinePlayers, getLogger()::info));
+                new ProficiencySheet(this::getMessages), pendingFocusChanges, onlinePlayers, getLogger()::info, changeCauses));
         getCommand("ssreload").setExecutor(new ReloadCommand());
         getCommand("schar").setExecutor(characterCommand);
         getCommand("char").setExecutor(characterCommand);
@@ -258,7 +265,8 @@ public class SkysongStats extends JavaPlugin {
         downtimeService = new DowntimeService(
                 new SqlDowntimeRepository(() -> database.getConnection()),
                 DowntimeSettings.fromConfig(getConfig().getConfigurationSection("downtime")),
-                change -> Bukkit.getPluginManager().callEvent(new DowntimeChangeEvent(change)));
+                change -> Bukkit.getPluginManager().callEvent(
+                        new DowntimeChangeEvent(ApiTypes.downtimeChange(change), changeCauses.current())));
         try {
             downtimeService.load();
         } catch (DowntimeStorageException e) {
@@ -303,7 +311,8 @@ public class SkysongStats extends JavaPlugin {
     public void InitializeStats(){
         StatRepository repository = storage.repository();
         statService = new StatService(statsConfig.stats(), repository,
-                change -> Bukkit.getPluginManager().callEvent(new StatChangeEvent(change)));
+                change -> Bukkit.getPluginManager().callEvent(
+                        new StatChangeEvent(ApiTypes.statChange(change), changeCauses.current())));
         try {
             repository.createTables();
             statService.load();
@@ -348,7 +357,7 @@ public class SkysongStats extends JavaPlugin {
 
     private void onSkillChange(SkillChange change){
         skillLevels.onChange(change);
-        Bukkit.getPluginManager().callEvent(new SkillChangeEvent(change));
+        Bukkit.getPluginManager().callEvent(new SkillChangeEvent(ApiTypes.skillChange(change), changeCauses.current()));
     }
 
     // Loads every character's proficiencies from the stat database, and keeps
@@ -359,12 +368,14 @@ public class SkysongStats extends JavaPlugin {
             @Override
             public void onTierChange(ProficiencyTierChange change) {
                 proficiencyTiers.onTierChange(change);
-                Bukkit.getPluginManager().callEvent(new ProficiencyTierChangeEvent(change));
+                Bukkit.getPluginManager().callEvent(
+                        new ProficiencyTierChangeEvent(ApiTypes.tierChange(change), changeCauses.current()));
             }
 
             @Override
             public void onFocusChange(ProficiencyFocusChange change) {
-                Bukkit.getPluginManager().callEvent(new ProficiencyFocusChangeEvent(change));
+                Bukkit.getPluginManager().callEvent(new ProficiencyFocusChangeEvent(ApiTypes.character(change.character()),
+                        ApiTypes.focus(change.before()), ApiTypes.focus(change.after()), changeCauses.current()));
             }
         }, getLogger()::warning);
         proficiencyTiers = new ProficiencyTierPermissions(playerNodes, proficiencyService::config,
@@ -420,6 +431,12 @@ public class SkysongStats extends JavaPlugin {
     // Returns the files that had mistakes and were not reloaded, so /ssreload can
     // tell whoever ran it; the details are in the console.
     public List<String> reloadSettings(){
+        List<String> notReloaded = changeCauses.during(ChangeCause.RELOAD, this::reloadEverySetting);
+        Bukkit.getPluginManager().callEvent(new SkysongStatsReloadEvent());
+        return notReloaded;
+    }
+
+    private List<String> reloadEverySetting(){
         reloadConfig();
         downtimeService.setSettings(DowntimeSettings.fromConfig(getConfig().getConfigurationSection("downtime")));
         loadMessages();

@@ -4,7 +4,9 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.PluginCommand;
+import org.bukkit.event.EventHandler;
 import org.bukkit.event.HandlerList;
+import org.bukkit.event.Listener;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -15,6 +17,8 @@ import org.mockbukkit.mockbukkit.entity.PlayerMock;
 import org.skysongdev.skysongstats.OfflineSkysongStats;
 import org.skysongdev.skysongstats.SkysongStats;
 import org.skysongdev.skysongstats.Utils.ProfileManager;
+import org.skysongdev.skysongstats.api.event.ChangeCause;
+import org.skysongdev.skysongstats.api.event.ProficiencyTierChangeEvent;
 import org.skysongdev.skysongstats.character.ProficiencyFocus;
 import org.skysongdev.skysongstats.character.ProficiencyService;
 import org.skysongdev.skysongstats.database.ProfileIndex;
@@ -240,6 +244,22 @@ class ProficiencyCommandTest {
         assertEquals("[SkysongStats] Your Axes is now Proficient!", next(alice));
         assertEquals("proficient", tier(alice, "axes"));
         assertEquals(new ProficiencyFocus(proficiency("axes"), 0), focus(alice).orElseThrow());
+    }
+
+    @Test
+    void trainingFiresTheTierEventWithCauseTraining() {
+        focusAxesWithPoints(3);
+        List<ChangeCause> causes = new ArrayList<>();
+        MockBukkit.getMock().getPluginManager().registerEvents(new Listener() {
+            @EventHandler
+            public void onTier(ProficiencyTierChangeEvent event) {
+                causes.add(event.getCause());
+            }
+        }, SkysongStats.getPlugin());
+
+        console("points", "add", "Alice", "5", "martial", "adept");
+
+        assertEquals(List.of(ChangeCause.TRAINING), causes);
     }
 
     @Test

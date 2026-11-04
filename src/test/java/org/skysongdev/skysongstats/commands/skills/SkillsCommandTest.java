@@ -19,7 +19,8 @@ import org.skysongdev.skysongstats.SkysongStats;
 import org.skysongdev.skysongstats.Utils.ProfileManager;
 import org.skysongdev.skysongstats.character.SkillService;
 import org.skysongdev.skysongstats.database.ProfileIndex;
-import org.skysongdev.skysongstats.events.SkillChangeEvent;
+import org.skysongdev.skysongstats.api.event.ChangeCause;
+import org.skysongdev.skysongstats.api.event.SkillChangeEvent;
 import org.skysongdev.skysongstats.storage.ProfileKey;
 
 import java.util.ArrayList;
@@ -187,6 +188,7 @@ class SkillsCommandTest {
         assertEquals(1, fired.events.size());
         assertEquals("mining", fired.events.get(0).getChange().skill().id());
         assertEquals(16, fired.events.get(0).getChange().after());
+        assertEquals(ChangeCause.COMMAND, fired.events.get(0).getCause());
     }
 
     @Test

@@ -11,7 +11,8 @@ import org.mockbukkit.mockbukkit.ServerMock;
 import org.mockbukkit.mockbukkit.entity.PlayerMock;
 import org.skysongdev.skysongstats.character.SkillService;
 import org.skysongdev.skysongstats.definition.SkillsConfig;
-import org.skysongdev.skysongstats.events.ProfileUpdateEvent;
+import org.skysongdev.skysongstats.api.CharacterId;
+import org.skysongdev.skysongstats.api.event.ProfileUpdateEvent;
 import org.skysongdev.skysongstats.storage.ProfileKey;
 import org.skysongdev.skysongstats.storage.UnsavedSkillRepository;
 
@@ -66,7 +67,7 @@ class SkillLevelSyncTest {
     @Test
     void switchingProfileGivesTheNewCharactersLevels() {
         active.put(alice, main);
-        sync.onProfileSwitch(new ProfileUpdateEvent(alice, alice.getUniqueId().toString(), "main"));
+        sync.onProfileSwitch(new ProfileUpdateEvent(alice, null, new CharacterId(alice.getUniqueId(), "main")));
         assertEquals(List.of(Set.<String>of()), granted);
     }
 
