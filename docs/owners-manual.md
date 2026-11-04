@@ -20,12 +20,13 @@ When this manual and the code disagree, the code wins. The last section, [Where 
 12. [Commands](#commands)
 13. [Permissions and LuckPerms nodes](#permissions-and-luckperms-nodes)
 14. [Placeholders](#placeholders)
-15. [Events for other plugins](#events-for-other-plugins)
-16. [The database](#the-database)
-17. [Skysong Special Items compatibility](#skysong-special-items-compatibility)
-18. [How to make common changes](#how-to-make-common-changes)
-19. [Things to know (quirks and leftovers)](#things-to-know-quirks-and-leftovers)
-20. [Where things live in the code](#where-things-live-in-the-code)
+15. [The API for other plugins](#the-api-for-other-plugins)
+16. [Events for other plugins](#events-for-other-plugins)
+17. [The database](#the-database)
+18. [Skysong Special Items compatibility](#skysong-special-items-compatibility)
+19. [How to make common changes](#how-to-make-common-changes)
+20. [Things to know (quirks and leftovers)](#things-to-know-quirks-and-leftovers)
+21. [Where things live in the code](#where-things-live-in-the-code)
 
 ---
 
@@ -637,6 +638,34 @@ All of these follow the config files: add a stat, skill or proficiency and its p
 
 ---
 
+## The API for other plugins
+
+Other plugins read SkysongStats through its public API, the classes in `org.skysongdev.skysongstats.api` (the `api/` folder of the repo). Everything else in the plugin is internal: other plugins must not call `SkysongStats.getPlugin()` or the services.
+
+**Hooking in.** A plugin compiles against the API module, which JitPack publishes from a git tag as `com.github.Ghiojo.SkysongStats:api:<tag>` (`compileOnly`, never shaded: the API classes ship inside the SkysongStats jar). It adds `depend: [SkysongStats]` to its plugin.yml and gets the API with:
+
+```java
+SkysongStatsApi stats = SkysongStatsApi.get();
+```
+
+SkysongStats offers the API at the very end of its startup and removes it when it disables. If SkysongStats didn't start (for example the database is down), `get()` throws an error telling the other plugin to check SkysongStats.
+
+**Rules every part of the API follows.**
+
+- A character is a `CharacterId(player UUID, profile name)`. The profile name is matched exactly, with its case.
+- Nothing returns null: a missing answer is an empty `Optional`. Null arguments are refused.
+- Methods that read or change a character must be called on the server's main thread, otherwise they throw an error.
+- Every profile is kept in memory, so the API works for offline players too.
+- `apiVersion()` says which API version is installed (`major.minor.patch`). Adding methods raises the minor number; removing or changing one raises the major.
+
+**What is in the API so far.**
+
+| Part | Methods |
+|---|---|
+| `profiles()` | `active(uuid)`: the character the player is playing now. `all(uuid)`: every character of the player, sorted by name. `exists(character)`. `isSetUp(character)`: finished /setup. Read only: profiles are created, switched and deleted by players with `/profile`. |
+
+---
+
 ## Events for other plugins
 
 Other plugins can listen to these Bukkit events (package `org.skysongdev.skysongstats.events`). All fire **after** the change.
@@ -822,6 +851,7 @@ All code is under `src/main/java/org/skysongdev/skysongstats/`; default files ar
 | LuckPerms skill nodes / proficiency nodes | `skill/`, `proficiency/` |
 | Messages | `messages/Messages.java`, `messages/MessagesFile.java` |
 | Placeholders | `placeholders/` |
+| Public API for other plugins | `api/src/main/java/org/skysongdev/skysongstats/api/` (what other plugins see), `apiimpl/` (how SkysongStats answers it) |
 | Events | `events/` |
 | Database: stat, skill, proficiency tables | `storage/` |
 | Database: profiles, setup, characters | `database/Database.java` |

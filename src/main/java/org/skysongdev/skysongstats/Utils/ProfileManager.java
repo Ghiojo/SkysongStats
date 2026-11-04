@@ -22,11 +22,26 @@ public class ProfileManager {
     // The player's active profile as a stat character, or empty when they have
     // none (or the profiles could not be loaded).
     public Optional<ProfileKey> activeCharacter(Player player){
+        return activeProfile(player.getUniqueId()).map(profile -> new ProfileKey(player.getUniqueId(), profile));
+    }
+
+    // The name of the profile the player is playing now, or empty when they have
+    // none (or the profiles could not be loaded). Works for offline players.
+    public Optional<String> activeProfile(UUID player){
         if(ProfileManager.activeProfiles == null){
             return Optional.empty();
         }
-        return Optional.ofNullable(getActiveProfileName(player.getUniqueId().toString()))
-                .map(profile -> new ProfileKey(player.getUniqueId(), profile));
+        return Optional.ofNullable(getActiveProfileName(player.toString()));
+    }
+
+    // Whether this character finished /setup. False when it has no setup row, or
+    // the setup rows could not be loaded.
+    public boolean isSetUp(ProfileKey character){
+        if(ProfileManager.setupProfiles == null){
+            return false;
+        }
+        SetupProfile setup = findSetupProfile(character.player().toString(), character.profile());
+        return setup != null && setup.isSetUp();
     }
 
     // Whether this character is the profile its player is playing now.

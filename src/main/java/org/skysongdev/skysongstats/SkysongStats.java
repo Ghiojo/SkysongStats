@@ -6,6 +6,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.skysongdev.skysongstats.Utils.ProfileManager;
 import org.skysongdev.skysongstats.Utils.Utils;
+import org.skysongdev.skysongstats.apiimpl.SkysongStatsApiImpl;
 import org.skysongdev.skysongstats.character.ProficiencyChangeListener;
 import org.skysongdev.skysongstats.character.ProficiencyFocusChange;
 import org.skysongdev.skysongstats.character.ProficiencyService;
@@ -139,6 +140,9 @@ public class SkysongStats extends JavaPlugin {
     public SkillService getSkillService() { return skillService; }
     public ProficiencyService getProficiencyService() { return proficiencyService; }
 
+    // The public API offered to other plugins, null until onEnable finished.
+    private SkysongStatsApiImpl api;
+
     @Override
     public void onEnable() {
         plugin = this;
@@ -191,6 +195,10 @@ public class SkysongStats extends JavaPlugin {
         super.onEnable();
 
         Bukkit.getScheduler().runTaskTimer(this, new Pinger(), 0L, 6000L);
+
+        // Last, so other plugins only get the API once everything behind it is running.
+        api = new SkysongStatsApiImpl(this);
+        api.register(getServer().getServicesManager(), this);
 
     }
 
@@ -271,6 +279,10 @@ public class SkysongStats extends JavaPlugin {
 
     @Override
     public void onDisable() {
+        if (api != null) {
+            api.unregister(getServer().getServicesManager());
+            api = null;
+        }
         if (statCommands != null) {
             statCommands.unregisterAll();
             statPermissions.unregisterAll();
