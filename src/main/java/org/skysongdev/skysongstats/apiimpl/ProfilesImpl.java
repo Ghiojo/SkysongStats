@@ -40,7 +40,7 @@ final class ProfilesImpl implements Profiles {
         mainThread.check();
         return characters.get().stream()
                 .filter(character -> character.player().equals(player))
-                .map(Keys::toApi)
+                .map(ApiTypes::character)
                 .sorted(Comparator.comparing(CharacterId::profile, String.CASE_INSENSITIVE_ORDER))
                 .toList();
     }
@@ -49,13 +49,13 @@ final class ProfilesImpl implements Profiles {
     public boolean exists(@NotNull CharacterId character) {
         Objects.requireNonNull(character, "character");
         mainThread.check();
-        return characters.get().contains(Keys.toInternal(character));
+        return characters.get().contains(ApiTypes.key(character));
     }
 
     @Override
     public boolean isSetUp(@NotNull CharacterId character) {
         Objects.requireNonNull(character, "character");
         mainThread.check();
-        return profileManager.isSetUp(Keys.toInternal(character));
+        return profileManager.isSetUp(ApiTypes.key(character));
     }
 }

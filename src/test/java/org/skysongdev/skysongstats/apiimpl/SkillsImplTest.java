@@ -8,6 +8,7 @@ import org.skysongdev.skysongstats.api.CharacterId;
 import org.skysongdev.skysongstats.api.Skill;
 import org.skysongdev.skysongstats.api.SkillChange;
 import org.skysongdev.skysongstats.api.SkillLevel;
+import org.skysongdev.skysongstats.character.ChangeCauses;
 import org.skysongdev.skysongstats.character.SkillService;
 import org.skysongdev.skysongstats.definition.SkillsConfig;
 import org.skysongdev.skysongstats.definition.SkillsConfigLoader;
@@ -63,7 +64,7 @@ class SkillsImplTest {
     void setUp() {
         service = new SkillService(config(SKILLS), new UnsavedSkillRepository(line -> { }), fired::add);
         service.createCharacter(new ProfileKey(ALICE.player(), ALICE.profile()));
-        skills = new SkillsImpl(service, new MainThread(() -> true));
+        skills = new SkillsImpl(service, new MainThread(() -> true), new ChangeCauses());
     }
 
     private Skill skill(String name) {
@@ -189,7 +190,7 @@ class SkillsImplTest {
 
     @Test
     void characterMethodsRefuseCallsOffTheMainThread() {
-        SkillsImpl offThread = new SkillsImpl(service, new MainThread(() -> false));
+        SkillsImpl offThread = new SkillsImpl(service, new MainThread(() -> false), new ChangeCauses());
         Skill cooking = skill("cooking");
 
         assertThrows(IllegalStateException.class, () -> offThread.xp(ALICE, cooking));
@@ -200,7 +201,7 @@ class SkillsImplTest {
 
     @Test
     void skillsYmlLookupsWorkOffTheMainThread() {
-        SkillsImpl offThread = new SkillsImpl(service, new MainThread(() -> false));
+        SkillsImpl offThread = new SkillsImpl(service, new MainThread(() -> false), new ChangeCauses());
 
         assertEquals(3, offThread.all().size());
         assertTrue(offThread.find("mist").isPresent());

@@ -6,6 +6,8 @@ import org.skysongdev.skysongstats.api.Skill;
 import org.skysongdev.skysongstats.api.SkillChange;
 import org.skysongdev.skysongstats.api.SkillLevel;
 import org.skysongdev.skysongstats.api.Skills;
+import org.skysongdev.skysongstats.api.event.ChangeCause;
+import org.skysongdev.skysongstats.character.ChangeCauses;
 import org.skysongdev.skysongstats.character.SkillService;
 import org.skysongdev.skysongstats.definition.SkillDefinition;
 import org.skysongdev.skysongstats.storage.ProfileKey;
@@ -21,31 +23,33 @@ import java.util.function.BiFunction;
 final class SkillsImpl implements Skills {
     private final SkillService skills;
     private final MainThread mainThread;
+    private final ChangeCauses causes;
 
-    SkillsImpl(SkillService skills, MainThread mainThread) {
+    SkillsImpl(SkillService skills, MainThread mainThread, ChangeCauses causes) {
         this.skills = skills;
         this.mainThread = mainThread;
+        this.causes = causes;
     }
 
     @Override
     public @NotNull List<Skill> all() {
-        return skills.config().skills().all().stream().map(SkillsImpl::toApi).toList();
+        return skills.config().skills().all().stream().map(ApiTypes::skill).toList();
     }
 
     @Override
     public @NotNull Optional<Skill> find(@NotNull String idOrAlias) {
         Objects.requireNonNull(idOrAlias, "idOrAlias");
-        return skills.config().skills().find(idOrAlias).map(SkillsImpl::toApi);
+        return skills.config().skills().find(idOrAlias).map(ApiTypes::skill);
     }
 
     @Override
     public @NotNull List<SkillLevel> levels() {
-        return skills.config().levels().all().stream().map(SkillsImpl::toApi).toList();
+        return skills.config().levels().all().stream().map(ApiTypes::level).toList();
     }
 
     @Override
     public @NotNull SkillLevel levelFor(int xp) {
-        return toApi(skills.config().levels().levelFor(xp));
+        return ApiTypes.level(skills.config().levels().levelFor(xp));
     }
 
     @Override
@@ -60,7 +64,7 @@ final class SkillsImpl implements Skills {
         if (!skills.hasCharacter(key)) {
             return Optional.empty();
         }
-        return definition(skill).map(definition -> toApi(skills.level(key, definition)));
+        return definition(skill).map(definition -> ApiTypes.level(skills.level(key, definition)));
     }
 
     @Override
@@ -85,7 +89,8 @@ final class SkillsImpl implements Skills {
         if (!skills.hasCharacter(key)) {
             return Optional.empty();
         }
-        return definition(skill).map(definition -> toApi(change.apply(key, definition)));
+        return definition(skill).map(definition -> ApiTypes.skillChange(
+                causes.during(ChangeCause.API, () -> change.apply(key, definition))));
     }
 
     // Checks the arguments and the thread, and gives the internal key.
@@ -93,25 +98,12 @@ final class SkillsImpl implements Skills {
         Objects.requireNonNull(character, "character");
         Objects.requireNonNull(skill, "skill");
         mainThread.check();
-        return Keys.toInternal(character);
+        return ApiTypes.key(character);
     }
 
     // The skill as skills.yml has it now, matched by id only: an alias can move to
     // another skill on reload, an id can't.
     private Optional<SkillDefinition> definition(Skill skill) {
         return skills.config().skills().get(skill.id());
-    }
-
-    static Skill toApi(SkillDefinition skill) {
-        return new Skill(skill.id(), skill.name(), skill.shortName(), skill.color(), skill.aliases());
-    }
-
-    static SkillLevel toApi(org.skysongdev.skysongstats.definition.SkillLevel level) {
-        return new SkillLevel(level.id(), level.name(), level.color(), level.xp());
-    }
-
-    static SkillChange toApi(org.skysongdev.skysongstats.character.SkillChange change) {
-        return new SkillChange(Keys.toApi(change.character()), toApi(change.skill()), change.before(),
-                change.after());
     }
 }

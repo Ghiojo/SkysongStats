@@ -671,18 +671,19 @@ SkysongStats offers the API at the very end of its startup and removes it when i
 
 ## Events for other plugins
 
-Other plugins can listen to these Bukkit events (package `org.skysongdev.skysongstats.events`). All fire **after** the change.
+Other plugins can listen to these Bukkit events. All fire on the main thread, **after** the change, and can't be cancelled. The events in `org.skysongdev.skysongstats.api.event` are part of the [API](#the-api-for-other-plugins) and only carry API types. The others still live in the old `org.skysongdev.skysongstats.events` package and move into the API one by one, with their part of the API.
 
-| Event | Fired when | `getChange()` / getters |
-|---|---|---|
-| `StatChangeEvent` | A stat's total changed: a command, a modifier, /setup, a reload that brought a bar down. | `StatChange(character, stat, oldValue, newValue)`. Item recounts don't fire it. |
-| `SkillChangeEvent` | Skill XP changed: addxp, setxp, /setup. | `SkillChange(character, skill, before, after)` |
-| `ProficiencyTierChangeEvent` | A tier changed: training tier-up, /setup, `tier set` (up **or down**). | `ProficiencyTierChange(character, proficiency, before, after, tierUp)` |
-| `ProficiencyFocusChangeEvent` | The focus changed: new focus, points added/removed/set, cleared at the top tier. | `ProficiencyFocusChange(character, before, after)`; null = no focus. |
-| `DowntimeChangeEvent` | Downtime changed: add, remove, resetall. | `getPlayerUUID()`, `getPool()` (GLOBAL/CHARACTER), `getProfile()`, `getOldValue()`, `getNewValue()`, `getCause()` (ADD/REMOVE/RESET) |
-| `ProfileUpdateEvent` | A player switched profile. | `getPlayer()`, `getPlayerUUID()`, `getProfile()` |
+| Event | Package | Fired when | Carries |
+|---|---|---|---|
+| `SkillChangeEvent` | `api.event` | Skill XP changed: addxp, setxp, /setup, the API. Only when the XP is different afterwards. | `getChange()`: `SkillChange(character, skill, before, after)`; `getCause()` |
+| `ProfileUpdateEvent` | `api.event` | A player's active profile changed (`/profile switch`). | `getPlayer()`, `getPrevious()` (empty when they had none), `getCharacter()` |
+| `SkysongStatsReloadEvent` | `api.event` | `/ssreload` finished and the new files are in use (also when some files had mistakes and kept their old content). | nothing: look things up again |
+| `StatChangeEvent` | `events` | A stat's total changed: a command, a modifier, /setup, a reload that brought a bar down. | `StatChange(character, stat, oldValue, newValue)`. Item recounts don't fire it. |
+| `ProficiencyTierChangeEvent` | `events` | A tier changed: training tier-up, /setup, `tier set` (up **or down**). | `ProficiencyTierChange(character, proficiency, before, after, tierUp)` |
+| `ProficiencyFocusChangeEvent` | `events` | The focus changed: new focus, points added/removed/set, cleared at the top tier. | `ProficiencyFocusChange(character, before, after)`; null = no focus. |
+| `DowntimeChangeEvent` | `events` | Downtime changed: add, remove, resetall. | `getPlayerUUID()`, `getPool()` (GLOBAL/CHARACTER), `getProfile()`, `getOldValue()`, `getNewValue()`, `getCause()` (ADD/REMOVE/RESET) |
 
-`character` is a `ProfileKey(player UUID, profile name)`.
+`getCause()` says what made the change: `COMMAND`, `SETUP` (finishing /setup), `TRAINING`, `RELOAD` (/ssreload) or `API` (another plugin). In the old events, `character` is the internal `ProfileKey(player UUID, profile name)`.
 
 ---
 
@@ -855,7 +856,7 @@ All code is under `src/main/java/org/skysongdev/skysongstats/`; default files ar
 | Messages | `messages/Messages.java`, `messages/MessagesFile.java` |
 | Placeholders | `placeholders/` |
 | Public API for other plugins | `api/src/main/java/org/skysongdev/skysongstats/api/` (what other plugins see), `apiimpl/` (how SkysongStats answers it) |
-| Events | `events/` |
+| Events | `api/.../api/event/` (API events), `events/` (events not moved into the API yet) |
 | Database: stat, skill, proficiency tables | `storage/` |
 | Database: profiles, setup, characters | `database/Database.java` |
 | Skysong item tags | `items/` (`SkysongItemsTagReader` is the only class that calls the SkysongItems API) |

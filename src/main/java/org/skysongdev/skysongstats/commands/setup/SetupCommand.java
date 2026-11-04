@@ -5,6 +5,7 @@ import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
+import org.skysongdev.skysongstats.api.event.ChangeCause;
 import org.skysongdev.skysongstats.database.SetupProfile;
 import org.skysongdev.skysongstats.definition.ProficiencyDefinition;
 import org.skysongdev.skysongstats.definition.SkillDefinition;
@@ -67,8 +68,9 @@ public class SetupCommand implements CommandExecutor {
 
     private void finish(Player player, SetupProfile setup, List<SkillDefinition> pickedSkills,
                         List<ProficiencyDefinition> proficiencies) {
-        setup.finishProfileSetup(getPlugin().getStatService(), getPlugin().getSkillService(), pickedSkills,
-                getPlugin().getProficiencyService(), proficiencies);
+        getPlugin().getChangeCauses().during(ChangeCause.SETUP, () -> setup.finishProfileSetup(
+                getPlugin().getStatService(), getPlugin().getSkillService(), pickedSkills,
+                getPlugin().getProficiencyService(), proficiencies));
         getPlugin().getMessages().send(player, "setup.completed");
     }
 }
