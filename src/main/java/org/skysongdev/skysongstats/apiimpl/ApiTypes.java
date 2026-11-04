@@ -1,6 +1,8 @@
 package org.skysongdev.skysongstats.apiimpl;
 
 import org.skysongdev.skysongstats.api.CharacterId;
+import org.skysongdev.skysongstats.api.DowntimeChange;
+import org.skysongdev.skysongstats.api.DowntimeTarget;
 import org.skysongdev.skysongstats.api.Focus;
 import org.skysongdev.skysongstats.api.Proficiency;
 import org.skysongdev.skysongstats.api.Skill;
@@ -19,6 +21,7 @@ import org.skysongdev.skysongstats.character.Training;
 import org.skysongdev.skysongstats.definition.ProficiencyDefinition;
 import org.skysongdev.skysongstats.definition.ProficiencyTier;
 import org.skysongdev.skysongstats.definition.SkillDefinition;
+import org.skysongdev.skysongstats.service.downtime.DowntimePool;
 import org.skysongdev.skysongstats.definition.StatDefinition;
 import org.skysongdev.skysongstats.storage.ProfileKey;
 
@@ -85,5 +88,13 @@ public final class ApiTypes {
         return new TrainingResult(TrainingResult.Outcome.valueOf(training.outcome().name()),
                 training.proficiency() == null ? null : proficiency(training.proficiency()),
                 training.tier() == null ? null : tier(training.tier()), training.points());
+    }
+
+    public static DowntimeChange downtimeChange(org.skysongdev.skysongstats.service.downtime.DowntimeChange change) {
+        DowntimeTarget target = change.pool() == DowntimePool.GLOBAL
+                ? DowntimeTarget.global(change.player())
+                : DowntimeTarget.character(new CharacterId(change.player(), change.profile()));
+        return new DowntimeChange(target, DowntimeChange.Kind.valueOf(change.cause().name()), change.oldValue(),
+                change.newValue());
     }
 }

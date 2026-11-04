@@ -669,24 +669,25 @@ SkysongStats offers the API at the very end of its startup and removes it when i
 | `stats()` | `all()`, `find(name)`: a stat by its stats.yml id or alias, ignoring case. `get(character, stat)`: the same numbers as the placeholders: `base()`, `modifiers()`, `items()`, `total()`, and for bars `max()` and `maxBase()` (before max modifiers). `apply(character, stat, action, amount)` with `SET`, `ADD`, `REDUCE` or `DAMAGE` works like the stat commands: same limits, saved, `StatChangeEvent` follows (a damage the shield absorbs fires one for the shield too). |
 | `modifiers()` | `list(character)`, `add(character, target, amount)` (target: a stat id or alias, or `max_<bar>`), `remove(character, modifierId)`. The same saved modifiers as `/modifier`: one added by a plugin shows in `/modifier view` and can be removed there. |
 | `proficiencies()` | `all()`, `find(name)`, `ofSkill(skill)`, `tiers()`, `findTier(id)`. `tier(character, proficiency)`, `focus(character)`, `pointsNeeded(character)`. `setFocus(character, proficiency, discardPoints)`: like `/proficiency focus`; without `discardPoints` a focus with points answers `NEEDS_CONFIRMATION` and nothing changes. `train(character, skill, points, maxTier)`: a trainer's lesson, the same rules as `/proficiency points add`. `setTier`, `setPoints`, `removePoints`: like the staff commands. Saved, LuckPerms tier nodes and the proficiency events follow. |
+| `downtime()` | `limits()` (the `downtime:` settings). `get(target)`, `add(target, amount)`, `remove(target, amount)` where the target is `DowntimeTarget.global(player)` or `DowntimeTarget.character(character)`: like `/downtime add/remove`, stopping at the max and at 0. `spend(player, amount)`: from the pool the player prefers. `spendsGlobal(player)`, `setSpendsGlobal(player, value)`. Only answers for players with a profile and characters that exist (it never creates downtime for strangers). `/downtime resetall` stays a command only. |
 
 ---
 
 ## Events for other plugins
 
-Other plugins can listen to these Bukkit events. All fire on the main thread, **after** the change, and can't be cancelled. The events in `org.skysongdev.skysongstats.api.event` are part of the [API](#the-api-for-other-plugins) and only carry API types. The others still live in the old `org.skysongdev.skysongstats.events` package and move into the API one by one, with their part of the API.
+Other plugins can listen to these Bukkit events, all in `org.skysongdev.skysongstats.api.event` (part of the [API](#the-api-for-other-plugins)). They only carry API types, fire on the main thread **after** the change, and can't be cancelled.
 
-| Event | Package | Fired when | Carries |
-|---|---|---|---|
-| `SkillChangeEvent` | `api.event` | Skill XP changed: addxp, setxp, /setup, the API. Only when the XP is different afterwards. | `getChange()`: `SkillChange(character, skill, before, after)`; `getCause()` |
-| `StatChangeEvent` | `api.event` | A stat's total changed: a command, a modifier, /setup, a reload that brought a bar down, the API. A damage the shield absorbs fires one for the shield and one for the bar. Item recounts don't fire it. | `getChange()`: `StatChange(character, stat, before, after)`; `getCause()` |
-| `ProficiencyTierChangeEvent` | `api.event` | A tier changed: training tier-up, /setup, `tier set` (up **or down**), the API. | `getChange()`: `TierChange(character, proficiency, before, after, tierUp)`; `getCause()` (`TRAINING` for `/proficiency points add`) |
-| `ProficiencyFocusChangeEvent` | `api.event` | The focus changed: new focus, points added/removed/set, cleared at the top tier. | `getCharacter()`, `getBefore()`, `getAfter()` (empty = no focus), `getCause()` |
-| `ProfileUpdateEvent` | `api.event` | A player's active profile changed (`/profile switch`). | `getPlayer()`, `getPrevious()` (empty when they had none), `getCharacter()` |
-| `SkysongStatsReloadEvent` | `api.event` | `/ssreload` finished and the new files are in use (also when some files had mistakes and kept their old content). | nothing: look things up again |
-| `DowntimeChangeEvent` | `events` | Downtime changed: add, remove, resetall. | `getPlayerUUID()`, `getPool()` (GLOBAL/CHARACTER), `getProfile()`, `getOldValue()`, `getNewValue()`, `getCause()` (ADD/REMOVE/RESET) |
+| Event | Fired when | Carries |
+|---|---|---|
+| `SkillChangeEvent` | Skill XP changed: addxp, setxp, /setup, the API. Only when the XP is different afterwards. | `getChange()`: `SkillChange(character, skill, before, after)`; `getCause()` |
+| `StatChangeEvent` | A stat's total changed: a command, a modifier, /setup, a reload that brought a bar down, the API. A damage the shield absorbs fires one for the shield and one for the bar. Item recounts don't fire it. | `getChange()`: `StatChange(character, stat, before, after)`; `getCause()` |
+| `ProficiencyTierChangeEvent` | A tier changed: training tier-up, /setup, `tier set` (up **or down**), the API. | `getChange()`: `TierChange(character, proficiency, before, after, tierUp)`; `getCause()` (`TRAINING` for `/proficiency points add`) |
+| `ProficiencyFocusChangeEvent` | The focus changed: new focus, points added/removed/set, cleared at the top tier. | `getCharacter()`, `getBefore()`, `getAfter()` (empty = no focus), `getCause()` |
+| `ProfileUpdateEvent` | A player's active profile changed (`/profile switch`). | `getPlayer()`, `getPrevious()` (empty when they had none), `getCharacter()` |
+| `SkysongStatsReloadEvent` | `/ssreload` finished and the new files are in use (also when some files had mistakes and kept their old content). | nothing: look things up again |
+| `DowntimeChangeEvent` | Downtime changed: add, remove, resetall, the API. | `getChange()`: `DowntimeChange(target, kind, before, after)` where `kind` is ADD/REMOVE/RESET and `target` names the player (global) or the character; `getCause()` |
 
-`getCause()` says what made the change: `COMMAND`, `SETUP` (finishing /setup), `TRAINING`, `RELOAD` (/ssreload) or `API` (another plugin). In the old events, `character` is the internal `ProfileKey(player UUID, profile name)`.
+`getCause()` says what made the change: `COMMAND`, `SETUP` (finishing /setup), `TRAINING`, `RELOAD` (/ssreload) or `API` (another plugin).
 
 ---
 
@@ -859,7 +860,7 @@ All code is under `src/main/java/org/skysongdev/skysongstats/`; default files ar
 | Messages | `messages/Messages.java`, `messages/MessagesFile.java` |
 | Placeholders | `placeholders/` |
 | Public API for other plugins | `api/src/main/java/org/skysongdev/skysongstats/api/` (what other plugins see), `apiimpl/` (how SkysongStats answers it) |
-| Events | `api/.../api/event/` (API events), `events/` (events not moved into the API yet) |
+| Events | `api/src/main/java/org/skysongdev/skysongstats/api/event/` |
 | Database: stat, skill, proficiency tables | `storage/` |
 | Database: profiles, setup, characters | `database/Database.java` |
 | Skysong item tags | `items/` (`SkysongItemsTagReader` is the only class that calls the SkysongItems API) |
