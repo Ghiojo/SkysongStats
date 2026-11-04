@@ -68,4 +68,7 @@ public interface SkysongStatsApi {
 
     /** The modifiers saved on each character, the same ones {@code /modifier} manages. */
     @NotNull Modifiers modifiers();
+
+    /** The proficiencies and tiers of proficiencies.yml, and each character's training. */
+    @NotNull Proficiencies proficiencies();
 }

@@ -7,6 +7,8 @@ import org.bukkit.plugin.java.JavaPlugin;
 import org.skysongdev.skysongstats.Utils.ProfileManager;
 import org.skysongdev.skysongstats.Utils.Utils;
 import org.skysongdev.skysongstats.api.event.ChangeCause;
+import org.skysongdev.skysongstats.api.event.ProficiencyFocusChangeEvent;
+import org.skysongdev.skysongstats.api.event.ProficiencyTierChangeEvent;
 import org.skysongdev.skysongstats.api.event.SkillChangeEvent;
 import org.skysongdev.skysongstats.api.event.StatChangeEvent;
 import org.skysongdev.skysongstats.api.event.SkysongStatsReloadEvent;
@@ -58,8 +60,6 @@ import org.skysongdev.skysongstats.messages.Messages;
 import org.skysongdev.skysongstats.messages.MessagesFile;
 import org.skysongdev.skysongstats.messages.PluginTexts;
 import org.skysongdev.skysongstats.events.DowntimeChangeEvent;
-import org.skysongdev.skysongstats.events.ProficiencyFocusChangeEvent;
-import org.skysongdev.skysongstats.events.ProficiencyTierChangeEvent;
 import org.skysongdev.skysongstats.placeholders.PlaceholderApiPlaceholders;
 import org.skysongdev.skysongstats.placeholders.StatsExpansion;
 import org.skysongdev.skysongstats.service.downtime.DowntimeService;
@@ -230,7 +230,7 @@ public class SkysongStats extends JavaPlugin {
         getCommand("skills").setExecutor(new SkillsCommand(skillService, targets, texts, new SkillBook(this::getMessages),
                 onlinePlayers, getLogger()::info));
         getCommand("proficiency").setExecutor(new ProficiencyCommand(proficiencyService, skillService, targets, texts,
-                new ProficiencySheet(this::getMessages), pendingFocusChanges, onlinePlayers, getLogger()::info));
+                new ProficiencySheet(this::getMessages), pendingFocusChanges, onlinePlayers, getLogger()::info, changeCauses));
         getCommand("ssreload").setExecutor(new ReloadCommand());
         getCommand("schar").setExecutor(characterCommand);
         getCommand("char").setExecutor(characterCommand);
@@ -367,12 +367,14 @@ public class SkysongStats extends JavaPlugin {
             @Override
             public void onTierChange(ProficiencyTierChange change) {
                 proficiencyTiers.onTierChange(change);
-                Bukkit.getPluginManager().callEvent(new ProficiencyTierChangeEvent(change));
+                Bukkit.getPluginManager().callEvent(
+                        new ProficiencyTierChangeEvent(ApiTypes.tierChange(change), changeCauses.current()));
             }
 
             @Override
             public void onFocusChange(ProficiencyFocusChange change) {
-                Bukkit.getPluginManager().callEvent(new ProficiencyFocusChangeEvent(change));
+                Bukkit.getPluginManager().callEvent(new ProficiencyFocusChangeEvent(ApiTypes.character(change.character()),
+                        ApiTypes.focus(change.before()), ApiTypes.focus(change.after()), changeCauses.current()));
             }
         }, getLogger()::warning);
         proficiencyTiers = new ProficiencyTierPermissions(playerNodes, proficiencyService::config,
