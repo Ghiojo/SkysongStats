@@ -29,9 +29,8 @@ repositories {
     }
 }
 
-// The SkysongItems API version: a commit of Skysong-Special-Items master, because that
-// repository has no release tag yet. Swap in the tag once there is one.
-def skysongItemsApi = 'com.github.Ghiojo.Skysong-Special-Items:api:4e1188fd78'
+// The SkysongItems API version: a release tag of Skysong-Special-Items.
+def skysongItemsApi = 'com.github.Ghiojo.Skysong-Special-Items:api:1.0.0'
 
 
 dependencies {
