@@ -17,8 +17,8 @@ import org.skysongdev.skysongstats.commands.misc.ReloadCommand;
 import org.skysongdev.skysongstats.database.ProfileIndex;
 import org.skysongdev.skysongstats.database.SetupProfile;
 import org.skysongdev.skysongstats.definition.ProficiencyDefinition;
-import org.skysongdev.skysongstats.events.ProficiencyFocusChangeEvent;
-import org.skysongdev.skysongstats.events.ProficiencyTierChangeEvent;
+import org.skysongdev.skysongstats.api.event.ProficiencyFocusChangeEvent;
+import org.skysongdev.skysongstats.api.event.ProficiencyTierChangeEvent;
 import org.skysongdev.skysongstats.storage.ProfileKey;
 
 import java.io.File;
@@ -108,7 +108,7 @@ class ProficiencySwitchoverTest {
 
         assertEquals(2, fired.size());
         ProficiencyFocusChangeEvent focus = assertInstanceOf(ProficiencyFocusChangeEvent.class, fired.get(0));
-        assertEquals("axes", focus.getChange().after().proficiency().id());
+        assertEquals("axes", focus.getAfter().orElseThrow().proficiency().id());
         ProficiencyTierChangeEvent tier = assertInstanceOf(ProficiencyTierChangeEvent.class, fired.get(1));
         assertTrue(tier.getChange().tierUp());
         assertEquals("adept", tier.getChange().after().id());

@@ -4,6 +4,7 @@ import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabExecutor;
 import org.jetbrains.annotations.NotNull;
+import org.skysongdev.skysongstats.character.ChangeCauses;
 import org.skysongdev.skysongstats.character.ProficiencyFocus;
 import org.skysongdev.skysongstats.character.ProficiencyService;
 import org.skysongdev.skysongstats.character.SkillService;
@@ -50,7 +51,7 @@ public final class ProficiencyCommand implements TabExecutor {
     // log gets a line for every change staff make, so the console sees who changed what.
     public ProficiencyCommand(ProficiencyService proficiencies, SkillService skills, CommandTargets targets,
                               MessageSink messages, ProficiencySheet sheet, PendingFocusChanges pending,
-                              Supplier<List<String>> onlinePlayers, Consumer<String> log) {
+                              Supplier<List<String>> onlinePlayers, Consumer<String> log, ChangeCauses causes) {
         this.proficiencies = Objects.requireNonNull(proficiencies, "proficiencies");
         this.skills = Objects.requireNonNull(skills, "skills");
         this.messages = Objects.requireNonNull(messages, "messages");
@@ -58,7 +59,7 @@ public final class ProficiencyCommand implements TabExecutor {
         this.pending = Objects.requireNonNull(pending, "pending");
         this.onlinePlayers = Objects.requireNonNull(onlinePlayers, "onlinePlayers");
         this.arguments = new ProficiencyArguments(proficiencies, skills, targets, messages);
-        this.management = new ProficiencyManagement(proficiencies, arguments, messages, log);
+        this.management = new ProficiencyManagement(proficiencies, arguments, messages, log, causes);
     }
 
     @Override

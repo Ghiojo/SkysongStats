@@ -2,6 +2,8 @@ package org.skysongdev.skysongstats.commands.proficiency;
 
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
+import org.skysongdev.skysongstats.api.event.ChangeCause;
+import org.skysongdev.skysongstats.character.ChangeCauses;
 import org.skysongdev.skysongstats.character.ProficiencyFocus;
 import org.skysongdev.skysongstats.character.ProficiencyService;
 import org.skysongdev.skysongstats.character.Training;
@@ -37,10 +39,12 @@ final class ProficiencyManagement {
     private final ProficiencyArguments arguments;
     private final MessageSink messages;
     private final Consumer<String> log;
+    private final ChangeCauses causes;
 
     ProficiencyManagement(ProficiencyService proficiencies, ProficiencyArguments arguments, MessageSink messages,
-                          Consumer<String> log) {
+                          Consumer<String> log, ChangeCauses causes) {
         this.proficiencies = Objects.requireNonNull(proficiencies, "proficiencies");
+        this.causes = Objects.requireNonNull(causes, "causes");
         this.arguments = Objects.requireNonNull(arguments, "arguments");
         this.messages = Objects.requireNonNull(messages, "messages");
         this.log = Objects.requireNonNull(log, "log");
@@ -88,7 +92,8 @@ final class ProficiencyManagement {
 
     private void train(CommandSender sender, CommandTargets.Target target, TrainingOrder order) {
         ProfileKey character = target.character();
-        Training training = proficiencies.train(character, order.amount(), order.skill().id(), order.maxTier());
+        Training training = causes.during(ChangeCause.TRAINING,
+                () -> proficiencies.train(character, order.amount(), order.skill().id(), order.maxTier()));
         Map<String, String> placeholders = trainingPlaceholders(target, order, training);
         String key = POINTS + "add." + training.outcome().name().toLowerCase(Locale.ROOT).replace('_', '-');
         tell(sender, target.player(), key, placeholders);

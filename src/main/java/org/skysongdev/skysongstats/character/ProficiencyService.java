@@ -30,7 +30,8 @@ public class ProficiencyService {
     private final Consumer<String> warnings;
     private final Map<ProfileKey, Map<String, String>> tiers = new HashMap<>();
     private final Map<ProfileKey, StoredFocus> focuses = new HashMap<>();
-    private ProficienciesConfig config;
+    // volatile: the API reads it from any thread, and /ssreload swaps it on the main thread.
+    private volatile ProficienciesConfig config;
 
     // warnings gets saved tiers that proficiencies.yml no longer has.
     public ProficiencyService(ProficienciesConfig config, ProficiencyRepository repository,

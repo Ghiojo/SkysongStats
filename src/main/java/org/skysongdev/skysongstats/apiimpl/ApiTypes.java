@@ -1,6 +1,8 @@
 package org.skysongdev.skysongstats.apiimpl;
 
 import org.skysongdev.skysongstats.api.CharacterId;
+import org.skysongdev.skysongstats.api.Focus;
+import org.skysongdev.skysongstats.api.Proficiency;
 import org.skysongdev.skysongstats.api.Skill;
 import org.skysongdev.skysongstats.api.SkillChange;
 import org.skysongdev.skysongstats.api.SkillLevel;
@@ -8,6 +10,14 @@ import org.skysongdev.skysongstats.api.Stat;
 import org.skysongdev.skysongstats.api.StatAction;
 import org.skysongdev.skysongstats.api.StatChange;
 import org.skysongdev.skysongstats.api.StatType;
+import org.skysongdev.skysongstats.api.Tier;
+import org.skysongdev.skysongstats.api.TierChange;
+import org.skysongdev.skysongstats.api.TrainingResult;
+import org.skysongdev.skysongstats.character.ProficiencyFocus;
+import org.skysongdev.skysongstats.character.ProficiencyTierChange;
+import org.skysongdev.skysongstats.character.Training;
+import org.skysongdev.skysongstats.definition.ProficiencyDefinition;
+import org.skysongdev.skysongstats.definition.ProficiencyTier;
 import org.skysongdev.skysongstats.definition.SkillDefinition;
 import org.skysongdev.skysongstats.definition.StatDefinition;
 import org.skysongdev.skysongstats.storage.ProfileKey;
@@ -50,5 +60,30 @@ public final class ApiTypes {
 
     static org.skysongdev.skysongstats.definition.StatAction action(StatAction action) {
         return org.skysongdev.skysongstats.definition.StatAction.valueOf(action.name());
+    }
+
+    public static Proficiency proficiency(ProficiencyDefinition proficiency) {
+        return new Proficiency(proficiency.id(), proficiency.name(), proficiency.color(), proficiency.skill(),
+                proficiency.aliases());
+    }
+
+    public static Tier tier(ProficiencyTier tier) {
+        return new Tier(tier.id(), tier.name(), tier.color());
+    }
+
+    // Null stays null: the focus events use it for "no focus".
+    public static Focus focus(ProficiencyFocus focus) {
+        return focus == null ? null : new Focus(proficiency(focus.proficiency()), focus.points());
+    }
+
+    public static TierChange tierChange(ProficiencyTierChange change) {
+        return new TierChange(character(change.character()), proficiency(change.proficiency()), tier(change.before()),
+                tier(change.after()), change.tierUp());
+    }
+
+    static TrainingResult training(Training training) {
+        return new TrainingResult(TrainingResult.Outcome.valueOf(training.outcome().name()),
+                training.proficiency() == null ? null : proficiency(training.proficiency()),
+                training.tier() == null ? null : tier(training.tier()), training.points());
     }
 }

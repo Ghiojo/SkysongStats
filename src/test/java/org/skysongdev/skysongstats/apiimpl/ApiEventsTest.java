@@ -12,11 +12,17 @@ import org.mockbukkit.mockbukkit.entity.PlayerMock;
 import org.skysongdev.skysongstats.OfflineSkysongStats;
 import org.skysongdev.skysongstats.SkysongStats;
 import org.skysongdev.skysongstats.api.CharacterId;
+import org.skysongdev.skysongstats.api.Focus;
+import org.skysongdev.skysongstats.api.Proficiencies;
+import org.skysongdev.skysongstats.api.Proficiency;
 import org.skysongdev.skysongstats.api.SkillChange;
 import org.skysongdev.skysongstats.api.SkysongStatsApi;
 import org.skysongdev.skysongstats.api.StatAction;
 import org.skysongdev.skysongstats.api.StatChange;
+import org.skysongdev.skysongstats.api.TierChange;
 import org.skysongdev.skysongstats.api.event.ChangeCause;
+import org.skysongdev.skysongstats.api.event.ProficiencyFocusChangeEvent;
+import org.skysongdev.skysongstats.api.event.ProficiencyTierChangeEvent;
 import org.skysongdev.skysongstats.api.event.ProfileUpdateEvent;
 import org.skysongdev.skysongstats.api.event.SkillChangeEvent;
 import org.skysongdev.skysongstats.api.event.StatChangeEvent;
@@ -40,6 +46,8 @@ class ApiEventsTest {
     public static final class Fired implements Listener {
         final List<SkillChangeEvent> skills = new ArrayList<>();
         final List<StatChangeEvent> stats = new ArrayList<>();
+        final List<ProficiencyTierChangeEvent> tiers = new ArrayList<>();
+        final List<ProficiencyFocusChangeEvent> focuses = new ArrayList<>();
         int reloads;
 
         @EventHandler
@@ -50,6 +58,16 @@ class ApiEventsTest {
         @EventHandler
         public void onStatChange(StatChangeEvent event) {
             stats.add(event);
+        }
+
+        @EventHandler
+        public void onTier(ProficiencyTierChangeEvent event) {
+            tiers.add(event);
+        }
+
+        @EventHandler
+        public void onFocus(ProficiencyFocusChangeEvent event) {
+            focuses.add(event);
         }
 
         @EventHandler
@@ -68,6 +86,7 @@ class ApiEventsTest {
         alice = new CharacterId(player.getUniqueId(), "Default");
         plugin.getSkillService().createCharacter(new ProfileKey(alice.player(), alice.profile()));
         plugin.getStatService().createCharacter(new ProfileKey(alice.player(), alice.profile()));
+        plugin.getProficiencyService().createCharacter(new ProfileKey(alice.player(), alice.profile()));
         fired = new Fired();
         server.getPluginManager().registerEvents(fired, plugin);
     }
@@ -111,6 +130,24 @@ class ApiEventsTest {
         assertEquals(1, fired.stats.size());
         assertEquals(change, fired.stats.getFirst().getChange());
         assertEquals(ChangeCause.API, fired.stats.getFirst().getCause());
+    }
+
+    @Test
+    void apiProficiencyWritesFireTheProficiencyEventsWithApiTypes() {
+        Proficiencies proficiencies = SkysongStatsApi.get().proficiencies();
+        Proficiency axes = proficiencies.find("axes").orElseThrow();
+
+        proficiencies.setFocus(alice, axes, false);
+        TierChange change = proficiencies.setTier(alice, axes, proficiencies.findTier("adept").orElseThrow())
+                .orElseThrow();
+
+        ProficiencyFocusChangeEvent focus = fired.focuses.getFirst();
+        assertEquals(alice, focus.getCharacter());
+        assertEquals(Optional.empty(), focus.getBefore());
+        assertEquals(Optional.of(new Focus(axes, 0)), focus.getAfter());
+        assertEquals(ChangeCause.API, focus.getCause());
+        assertEquals(change, fired.tiers.getFirst().getChange());
+        assertEquals(ChangeCause.API, fired.tiers.getFirst().getCause());
     }
 
     @Test
