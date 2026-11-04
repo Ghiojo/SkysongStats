@@ -30,7 +30,7 @@ repositories {
 }
 
 // The SkysongItems API version: a release tag of Skysong-Special-Items.
-def skysongItemsApi = 'com.github.Ghiojo.Skysong-Special-Items:api:1.0.0'
+def skysongItemsApi = 'com.github.Ghiojo.Skysong-Special-Items:api:1.0.1'
 
 
 dependencies {
