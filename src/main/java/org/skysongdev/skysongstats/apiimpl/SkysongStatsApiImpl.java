@@ -6,6 +6,7 @@ import org.bukkit.plugin.ServicePriority;
 import org.bukkit.plugin.ServicesManager;
 import org.jetbrains.annotations.NotNull;
 import org.skysongdev.skysongstats.SkysongStats;
+import org.skysongdev.skysongstats.api.Modifiers;
 import org.skysongdev.skysongstats.api.Profiles;
 import org.skysongdev.skysongstats.api.Skills;
 import org.skysongdev.skysongstats.api.SkysongStatsApi;
@@ -22,6 +23,7 @@ public final class SkysongStatsApiImpl implements SkysongStatsApi {
     private final Profiles profiles;
     private final Skills skills;
     private final Stats stats;
+    private final Modifiers modifiers;
 
     /** An API reading through the plugin's services, guarded to the server's main thread. */
     public SkysongStatsApiImpl(SkysongStats plugin) {
@@ -30,6 +32,7 @@ public final class SkysongStatsApiImpl implements SkysongStatsApi {
                 () -> plugin.getStatService().characters(), mainThread);
         this.skills = new SkillsImpl(plugin.getSkillService(), mainThread, plugin.getChangeCauses());
         this.stats = new StatsImpl(plugin.getStatService(), mainThread, plugin.getChangeCauses());
+        this.modifiers = new ModifiersImpl(plugin.getStatService(), mainThread, plugin.getChangeCauses());
     }
 
     @Override
@@ -50,6 +53,11 @@ public final class SkysongStatsApiImpl implements SkysongStatsApi {
     @Override
     public @NotNull Stats stats() {
         return stats;
+    }
+
+    @Override
+    public @NotNull Modifiers modifiers() {
+        return modifiers;
     }
 
     /** Offers this API to other plugins, owned by {@code owner}. */
