@@ -9,6 +9,7 @@ import org.skysongdev.skysongstats.SkysongStats;
 import org.skysongdev.skysongstats.api.Profiles;
 import org.skysongdev.skysongstats.api.Skills;
 import org.skysongdev.skysongstats.api.SkysongStatsApi;
+import org.skysongdev.skysongstats.api.Stats;
 
 /**
  * SkysongStats' implementation of its public API, offered to other plugins through
@@ -20,6 +21,7 @@ public final class SkysongStatsApiImpl implements SkysongStatsApi {
 
     private final Profiles profiles;
     private final Skills skills;
+    private final Stats stats;
 
     /** An API reading through the plugin's services, guarded to the server's main thread. */
     public SkysongStatsApiImpl(SkysongStats plugin) {
@@ -27,6 +29,7 @@ public final class SkysongStatsApiImpl implements SkysongStatsApi {
         this.profiles = new ProfilesImpl(plugin.getUtils().getProfileManager(),
                 () -> plugin.getStatService().characters(), mainThread);
         this.skills = new SkillsImpl(plugin.getSkillService(), mainThread, plugin.getChangeCauses());
+        this.stats = new StatsImpl(plugin.getStatService(), mainThread, plugin.getChangeCauses());
     }
 
     @Override
@@ -42,6 +45,11 @@ public final class SkysongStatsApiImpl implements SkysongStatsApi {
     @Override
     public @NotNull Skills skills() {
         return skills;
+    }
+
+    @Override
+    public @NotNull Stats stats() {
+        return stats;
     }
 
     /** Offers this API to other plugins, owned by {@code owner}. */

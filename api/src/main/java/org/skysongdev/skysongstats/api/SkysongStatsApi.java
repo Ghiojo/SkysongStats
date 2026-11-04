@@ -62,4 +62,7 @@ public interface SkysongStatsApi {
 
     /** The skills of skills.yml, their levels, and each character's XP. */
     @NotNull Skills skills();
+
+    /** The stats of stats.yml and each character's values, bars included. */
+    @NotNull Stats stats();
 }

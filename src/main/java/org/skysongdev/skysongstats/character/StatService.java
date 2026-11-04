@@ -30,7 +30,8 @@ public class StatService {
     private final StatRepository repository;
     private final StatChangeListener listener;
     private final Map<ProfileKey, CharacterSheet> sheets = new HashMap<>();
-    private StatDefinitions definitions;
+    // volatile: the API reads it from any thread, and /ssreload swaps it on the main thread.
+    private volatile StatDefinitions definitions;
 
     public StatService(StatDefinitions definitions, StatRepository repository, StatChangeListener listener) {
         this.definitions = Objects.requireNonNull(definitions, "definitions");
