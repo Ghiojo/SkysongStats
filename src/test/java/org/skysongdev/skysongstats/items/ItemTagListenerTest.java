@@ -12,8 +12,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockbukkit.mockbukkit.MockBukkit;
 import org.mockbukkit.mockbukkit.ServerMock;
-import org.skysongdev.skysongstats.Utils.SkysongItemsKeys;
 import org.skysongdev.skysongstats.character.StatService;
+import org.skysongdev.skysongstats.definition.ItemTagSource;
 import org.skysongdev.skysongstats.definition.StatsConfigLoader;
 import org.skysongdev.skysongstats.storage.ProfileKey;
 import org.skysongdev.skysongstats.storage.StatRepository;
@@ -24,6 +24,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
 import java.nio.charset.StandardCharsets;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
@@ -34,6 +35,15 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
  * character, using the default stats.yml.
  */
 class ItemTagListenerTest {
+    // Where SkysongItems stores a tag on an item: skysong_items:<tag id>.
+    private static final String SKYSONG_ITEMS = "skysong_items";
+
+    // Stands in for SkysongItems' sumInt: value times stack size (charges are tested there).
+    private static final ItemTagReader READER = (List<ItemStack> items, ItemTagSource source) -> items.stream()
+            .filter(item -> item != null && !item.getType().isAir())
+            .mapToInt(item -> item.getPersistentDataContainer().getOrDefault(
+                    new NamespacedKey(SKYSONG_ITEMS, source.tag()), PersistentDataType.INTEGER, 0) * item.getAmount())
+            .sum();
 
     private static final StatRepository NO_STORAGE = new StatRepository() {
         @Override
@@ -79,7 +89,7 @@ class ItemTagListenerTest {
         player = server.addPlayer();
         character = new ProfileKey(player.getUniqueId(), "main");
         stats.createCharacter(character);
-        listener = new ItemTagListener(stats, p -> Optional.of(new ProfileKey(p.getUniqueId(), "main")));
+        listener = new ItemTagListener(stats, p -> Optional.of(new ProfileKey(p.getUniqueId(), "main")), READER);
     }
 
     @AfterEach
@@ -90,7 +100,7 @@ class ItemTagListenerTest {
     private static ItemStack tagged(int amount, String tag, int value) {
         ItemStack item = new ItemStack(Material.STICK, amount);
         ItemMeta meta = item.getItemMeta();
-        meta.getPersistentDataContainer().set(new NamespacedKey(SkysongItemsKeys.NAMESPACE, tag), PersistentDataType.INTEGER, value);
+        meta.getPersistentDataContainer().set(new NamespacedKey(SKYSONG_ITEMS, tag), PersistentDataType.INTEGER, value);
         item.setItemMeta(meta);
         return item;
     }
@@ -120,7 +130,7 @@ class ItemTagListenerTest {
     void playersWithoutACharacterAreIgnored() {
         Player stranger = server.addPlayer();
         stranger.getInventory().addItem(tagged(1, "arcrot", 5));
-        new ItemTagListener(stats, p -> Optional.empty()).recount(stranger);
+        new ItemTagListener(stats, p -> Optional.empty(), READER).recount(stranger);
         listener.recount(stranger);
         assertEquals(0, value("arcrot"), "the other character is untouched");
     }

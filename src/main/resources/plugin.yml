@@ -3,9 +3,10 @@ version: '${version}'
 main: org.skysongdev.skysongstats.SkysongStats
 api-version: '1.21.11'
 
-# LuckPerms holds the skill level nodes, so the plugin can't run without it.
-depend: [LuckPerms]
-softdepend: [PlaceholderAPI, Skysong_Items]
+# LuckPerms holds the skill level nodes, and Skysong_Items' API gives the item
+# tags that stats.yml counts, so the plugin can't run without either.
+depend: [LuckPerms, Skysong_Items]
+softdepend: [PlaceholderAPI]
 # Downloaded by Paper at startup: the connection pool for the stat tables.
 libraries:
   - com.zaxxer:HikariCP:6.2.1

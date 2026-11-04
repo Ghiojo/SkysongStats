@@ -43,6 +43,8 @@ import org.skysongdev.skysongstats.definition.SkillsConfigFile;
 import org.skysongdev.skysongstats.definition.StatsConfig;
 import org.skysongdev.skysongstats.definition.StatsConfigFile;
 import org.skysongdev.skysongstats.items.ItemTagListener;
+import org.skysongdev.skysongstats.items.ItemTagReader;
+import org.skysongdev.skysongstats.items.SkysongItemsTagReader;
 import org.skysongdev.skysongstats.listeners.*;
 import org.skysongdev.skysongstats.messages.ExternalPlaceholders;
 import org.skysongdev.skysongstats.messages.Messages;
@@ -229,7 +231,19 @@ public class SkysongStats extends JavaPlugin {
         getServer().getPluginManager().registerEvents(pendingFocusChanges, this);
         getServer().getPluginManager().registerEvents(new PlayerShiftRightClickListener(), this);
         getServer().getPluginManager().registerEvents(
-                new ItemTagListener(statService, utils.getProfileManager()::activeCharacter), this);
+                new ItemTagListener(statService, utils.getProfileManager()::activeCharacter, itemTagReader()), this);
+    }
+
+    // Skysong_Items is a hard depend, so its API is there unless Skysong_Items failed
+    // to start. Then, as with LuckPerms, the rest of the plugin keeps working and item
+    // tags add 0.
+    private ItemTagReader itemTagReader(){
+        try {
+            return SkysongItemsTagReader.fromServer();
+        } catch (IllegalStateException e) {
+            getLogger().severe("Skysong_Items is not running, item tags in stats.yml will add nothing to stats");
+            return (items, source) -> 0;
+        }
     }
 
     public void InitializeDowntime(){

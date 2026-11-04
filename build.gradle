@@ -19,13 +19,25 @@ repositories {
         name = "placeholderapi"
         url = "https://repo.extendedclip.com/releases/"
     }
+    // Publishes the SkysongItems API module straight from its GitHub repository.
+    maven {
+        name = "jitpack"
+        url = "https://jitpack.io"
+    }
 }
+
+// The SkysongItems API version: a commit of Skysong-Special-Items master, because that
+// repository has no release tag yet. Swap in the tag once there is one.
+def skysongItemsApi = 'com.github.Ghiojo.Skysong-Special-Items:api:4e1188fd78'
+
 
 dependencies {
     compileOnly "io.papermc.paper:paper-api:1.21.11-R0.1-SNAPSHOT"
     // LuckPerms is a hard dependency (plugin.yml depend:), so the server provides it.
     compileOnly 'net.luckperms:api:5.3'
     compileOnly 'me.clip:placeholderapi:2.11.6'
+    // SkysongItems ships its API classes inside its plugin jar, so the server provides them.
+    compileOnly skysongItemsApi
     // Connection pool for the stat tables. Paper downloads it at startup from the
     // plugin.yml "libraries:" list (added when the plugin starts using it), so it
     // is not bundled into the jar.
@@ -50,6 +62,7 @@ dependencies {
     testImplementation 'net.luckperms:api:5.3'
     // StatsExpansion extends PlaceholderAPI's PlaceholderExpansion.
     testImplementation 'me.clip:placeholderapi:2.11.6'
+    testImplementation skysongItemsApi
 }
 
 test {
