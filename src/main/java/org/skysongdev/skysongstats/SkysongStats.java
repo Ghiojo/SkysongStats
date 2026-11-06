@@ -52,6 +52,7 @@ import org.skysongdev.skysongstats.definition.SkillsConfig;
 import org.skysongdev.skysongstats.definition.SkillsConfigFile;
 import org.skysongdev.skysongstats.definition.StatsConfig;
 import org.skysongdev.skysongstats.definition.StatsConfigFile;
+import org.skysongdev.skysongstats.items.ItemSourceRegistry;
 import org.skysongdev.skysongstats.items.ItemTagListener;
 import org.skysongdev.skysongstats.items.ItemTagReader;
 import org.skysongdev.skysongstats.items.SkysongItemsTagReader;
@@ -149,6 +150,11 @@ public class SkysongStats extends JavaPlugin {
     // What the change being made now is caused by, for the change events.
     private final ChangeCauses changeCauses = new ChangeCauses();
     public ChangeCauses getChangeCauses() { return changeCauses; }
+    // Other plugins' containers counted with the inventory for item tags (API item sources).
+    private ItemSourceRegistry itemSourceRegistry;
+    public ItemSourceRegistry getItemSourceRegistry() { return itemSourceRegistry; }
+    private ItemTagListener itemTagListener;
+    public ItemTagListener getItemTagListener() { return itemTagListener; }
 
     @Override
     public void onEnable() {
@@ -245,8 +251,10 @@ public class SkysongStats extends JavaPlugin {
         getServer().getPluginManager().registerEvents(proficiencyTierSync, this);
         getServer().getPluginManager().registerEvents(pendingFocusChanges, this);
         getServer().getPluginManager().registerEvents(new PlayerShiftRightClickListener(), this);
-        getServer().getPluginManager().registerEvents(
-                new ItemTagListener(statService, utils.getProfileManager()::activeCharacter, itemTagReader()), this);
+        itemSourceRegistry = new ItemSourceRegistry(getLogger()::warning);
+        itemTagListener = new ItemTagListener(statService, utils.getProfileManager()::activeCharacter, itemTagReader(),
+                itemSourceRegistry::items);
+        getServer().getPluginManager().registerEvents(itemTagListener, this);
     }
 
     // Skysong_Items is a hard depend, so its API is there unless Skysong_Items failed
@@ -290,6 +298,9 @@ public class SkysongStats extends JavaPlugin {
         if (api != null) {
             api.unregister(getServer().getServicesManager());
             api = null;
+        }
+        if (itemSourceRegistry != null) {
+            itemSourceRegistry.clear();
         }
         if (statCommands != null) {
             statCommands.unregisterAll();

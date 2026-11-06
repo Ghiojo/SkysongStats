@@ -1,6 +1,7 @@
 package org.skysongdev.skysongstats.apiimpl;
 
 import org.bukkit.Bukkit;
+import org.bukkit.event.HandlerList;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.ServicePriority;
 import org.bukkit.plugin.ServicesManager;
@@ -8,6 +9,7 @@ import org.jetbrains.annotations.NotNull;
 import org.skysongdev.skysongstats.SkysongStats;
 import org.skysongdev.skysongstats.api.CharacterSheets;
 import org.skysongdev.skysongstats.api.Downtime;
+import org.skysongdev.skysongstats.api.ItemSources;
 import org.skysongdev.skysongstats.api.Modifiers;
 import org.skysongdev.skysongstats.api.Proficiencies;
 import org.skysongdev.skysongstats.api.Profiles;
@@ -21,7 +23,7 @@ import org.skysongdev.skysongstats.api.Stats;
  */
 public final class SkysongStatsApiImpl implements SkysongStatsApi {
     /** The API version this implementation provides. See {@link SkysongStatsApi#apiVersion()}. */
-    public static final String API_VERSION = "1.0.0";
+    public static final String API_VERSION = "1.1.0";
 
     private final Profiles profiles;
     private final Skills skills;
@@ -30,6 +32,7 @@ public final class SkysongStatsApiImpl implements SkysongStatsApi {
     private final Proficiencies proficiencies;
     private final Downtime downtime;
     private final CharacterSheets sheets;
+    private final ItemSourcesImpl itemSources;
 
     /** An API reading through the plugin's services, guarded to the server's main thread. */
     public SkysongStatsApiImpl(SkysongStats plugin) {
@@ -45,6 +48,8 @@ public final class SkysongStatsApiImpl implements SkysongStatsApi {
                 plugin.getUtils().getProfileManager()::activeProfile, mainThread, plugin.getChangeCauses());
         this.sheets = new CharacterSheetsImpl(plugin.getUtils().getCharacterManager()::findCharacterProfile,
                 profile -> plugin.getDatabase().updateCharacterData(profile), mainThread);
+        this.itemSources = new ItemSourcesImpl(plugin.getItemSourceRegistry(), plugin.getItemTagListener()::recount,
+                Bukkit::getOnlinePlayers, mainThread);
     }
 
     @Override
@@ -87,13 +92,21 @@ public final class SkysongStatsApiImpl implements SkysongStatsApi {
         return sheets;
     }
 
+    @Override
+    public @NotNull ItemSources itemSources() {
+        return itemSources;
+    }
+
     /** Offers this API to other plugins, owned by {@code owner}. */
     public void register(ServicesManager services, Plugin owner) {
+        // Removes a plugin's item sources when it disables.
+        owner.getServer().getPluginManager().registerEvents(itemSources, owner);
         services.register(SkysongStatsApi.class, this, owner, ServicePriority.Normal);
     }
 
     /** Stops offering this API, so {@link SkysongStatsApi#get()} fails until it is registered again. */
     public void unregister(ServicesManager services) {
         services.unregister(SkysongStatsApi.class, this);
+        HandlerList.unregisterAll(itemSources);
     }
 }

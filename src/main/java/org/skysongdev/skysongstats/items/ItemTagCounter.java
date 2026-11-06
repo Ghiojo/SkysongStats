@@ -5,7 +5,6 @@ import org.skysongdev.skysongstats.definition.ItemTagSource;
 import org.skysongdev.skysongstats.definition.StatDefinition;
 import org.skysongdev.skysongstats.definition.StatDefinitions;
 
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
@@ -32,12 +31,11 @@ public final class ItemTagCounter {
     }
 
     // The total of each source over the items, read through the reader.
-    public static Map<ItemTagSource, Integer> count(ItemTagReader reader, ItemStack[] items,
+    public static Map<ItemTagSource, Integer> count(ItemTagReader reader, List<ItemStack> items,
                                                     Collection<ItemTagSource> sources) {
-        List<ItemStack> inventory = Arrays.asList(items);
         Map<ItemTagSource, Integer> counts = new HashMap<>();
         for (ItemTagSource source : sources) {
-            counts.put(source, reader.sum(inventory, source));
+            counts.put(source, reader.sum(items, source));
         }
         return counts;
     }

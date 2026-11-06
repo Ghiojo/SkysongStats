@@ -671,6 +671,7 @@ SkysongStats offers the API at the very end of its startup and removes it when i
 | `proficiencies()` | `all()`, `find(name)`, `ofSkill(skill)`, `tiers()`, `findTier(id)`. `tier(character, proficiency)`, `focus(character)`, `pointsNeeded(character)`. `setFocus(character, proficiency, discardPoints)`: like `/proficiency focus`; without `discardPoints` a focus with points answers `NEEDS_CONFIRMATION` and nothing changes. `train(character, skill, points, maxTier)`: a trainer's lesson, the same rules as `/proficiency points add`. `setTier`, `setPoints`, `removePoints`: like the staff commands. Saved, LuckPerms tier nodes and the proficiency events follow. |
 | `downtime()` | `limits()` (the `downtime:` settings). `get(target)`, `add(target, amount)`, `remove(target, amount)` where the target is `DowntimeTarget.global(player)` or `DowntimeTarget.character(character)`: like `/downtime add/remove`, stopping at the max and at 0. `spend(player, amount)`: from the pool the player prefers. `spendsGlobal(player)`, `setSpendsGlobal(player, value)`. Only answers for players with a profile and characters that exist (it never creates downtime for strangers). `/downtime resetall` stays a command only. |
 | `sheets()` | `get(character)`: the sheet fields (name, age, gender, ancestry, pronouns, description) as saved. `set(character, field, value)`: changes one field and saves it. The value must not be blank and fits the database column: name 100, age 20, gender 20, ancestry 50, pronouns 20, description 500 characters (`SheetField.maxLength()`). If the database refuses the save, the old value stays. |
+| `itemSources()` | Lets a plugin with its own container (a backpack, a bag) make its items count toward `item-tags:` stats as if they were in the inventory. `register(plugin, id, source)`: the source answers the items it holds for a player; the id is lowercase letters, digits, `_` and `-`, unique within that plugin. It returns a registration with `unregister()`. `recount(player)`: the plugin calls it after its container changed, because SkysongStats can only see the inventory change. A plugin's sources are removed when it disables. A source that throws an error or answers null counts nothing that time and is logged once. Added in API 1.1.0. |
 
 ---
 
@@ -731,7 +732,8 @@ SkysongStats reads the item tags of Skysong_Items through the **SkysongItems API
 - A stat's `item-tags:` lists tags by their **tag id in Skysong_Items** (the name under `tags:` in its `config.yml`, or a tag another plugin registered there). For each tag the plugin asks Skysong_Items for the tag's value on each item in the player's inventory, times the stack size, added up (`sumInt` in the API). The sum is added to the stat's current value.
 - `requires-charges: true` only counts items that still have charges left (charges above 0).
 - A tag id Skysong_Items doesn't know, or a tag that isn't an int, adds 0.
-- Counts are recalculated whenever the inventory changes, on join, and on profile switch. They are never saved; they add on top of the saved base (so `/stats add arcrot 2` still stacks with Arcrot items).
+- Other plugins can add their own containers (a backpack, for example) through the API's [`itemSources()`](#the-api-for-other-plugins). Their items are counted together with the inventory, for every stat with `item-tags:`, with no change to `stats.yml`.
+- Counts are recalculated whenever the inventory changes, on join, on profile switch, and when a plugin with an item source says its container changed. They are never saved; they add on top of the saved base (so `/stats add arcrot 2` still stacks with Arcrot items).
 - The tags must exist in Skysong_Items' `config.yml` under `tags:` with `type: "int"`. The defaults there are `arcrot`, `charged_arcrot` and `fictis`, which is what the default `stats.yml` uses.
 - Skysong_Items is required (`depend:` in `plugin.yml`): the server won't enable SkysongStats without it.
 
@@ -864,5 +866,5 @@ All code is under `src/main/java/org/skysongdev/skysongstats/`; default files ar
 | Events | `api/src/main/java/org/skysongdev/skysongstats/api/event/` |
 | Database: stat, skill, proficiency tables | `storage/` |
 | Database: profiles, setup, characters | `database/Database.java` |
-| Skysong item tags | `items/` (`SkysongItemsTagReader` is the only class that calls the SkysongItems API) |
+| Skysong item tags | `items/` (`SkysongItemsTagReader` is the only class that calls the SkysongItems API; `ItemSourceRegistry` holds the other plugins' item sources) |
 | Join handling, shift right click | `listeners/` |

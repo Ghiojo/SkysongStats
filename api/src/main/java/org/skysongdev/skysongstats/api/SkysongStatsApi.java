@@ -77,4 +77,11 @@ public interface SkysongStatsApi {
 
     /** The character sheet fields: name, age, gender, ancestry, pronouns and description. */
     @NotNull CharacterSheets sheets();
+
+    /**
+     * Other plugins' containers whose items count toward the stats with {@code item-tags:}.
+     *
+     * @since 1.1.0
+     */
+    @NotNull ItemSources itemSources();
 }

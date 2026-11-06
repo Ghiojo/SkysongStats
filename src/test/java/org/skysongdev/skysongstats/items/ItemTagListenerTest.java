@@ -24,6 +24,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -77,6 +78,8 @@ class ItemTagListenerTest {
     private Player player;
     private ProfileKey character;
     private ItemTagListener listener;
+    // What the other plugins' item sources hold for the player.
+    private final List<ItemStack> sourceItems = new ArrayList<>();
 
     @BeforeEach
     void setUp() throws Exception {
@@ -89,7 +92,8 @@ class ItemTagListenerTest {
         player = server.addPlayer();
         character = new ProfileKey(player.getUniqueId(), "main");
         stats.createCharacter(character);
-        listener = new ItemTagListener(stats, p -> Optional.of(new ProfileKey(p.getUniqueId(), "main")), READER);
+        listener = new ItemTagListener(stats, p -> Optional.of(new ProfileKey(p.getUniqueId(), "main")), READER,
+                p -> sourceItems);
     }
 
     @AfterEach
@@ -130,8 +134,37 @@ class ItemTagListenerTest {
     void playersWithoutACharacterAreIgnored() {
         Player stranger = server.addPlayer();
         stranger.getInventory().addItem(tagged(1, "arcrot", 5));
-        new ItemTagListener(stats, p -> Optional.empty(), READER).recount(stranger);
+        new ItemTagListener(stats, p -> Optional.empty(), READER, p -> List.of()).recount(stranger);
         listener.recount(stranger);
         assertEquals(0, value("arcrot"), "the other character is untouched");
+    }
+
+    @Test
+    void itemSourcesCountWithTheInventory() {
+        player.getInventory().addItem(tagged(1, "arcrot", 2));
+        sourceItems.add(tagged(2, "arcrot", 3));
+        sourceItems.add(null);
+        listener.recount(player);
+        assertEquals(8, value("arcrot"));
+    }
+
+    @Test
+    void itemsLeavingASourceStopCountingOnTheNextRecount() {
+        sourceItems.add(tagged(1, "fictis", 4));
+        listener.recount(player);
+        sourceItems.clear();
+        listener.recount(player);
+        assertEquals(0, value("fictis"));
+    }
+
+    @Test
+    void sourcesAreNotAskedForPlayersWithoutACharacter() {
+        Player stranger = server.addPlayer();
+        List<Player> asked = new ArrayList<>();
+        new ItemTagListener(stats, p -> Optional.empty(), READER, p -> {
+            asked.add(p);
+            return List.of();
+        }).recount(stranger);
+        assertEquals(List.of(), asked);
     }
 }
