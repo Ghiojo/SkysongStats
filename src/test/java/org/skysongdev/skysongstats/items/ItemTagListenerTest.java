@@ -160,8 +160,11 @@ class ItemTagListenerTest {
     @Test
     void sourcesAreNotAskedForPlayersWithoutACharacter() {
         Player stranger = server.addPlayer();
+        List<Player> asked = new ArrayList<>();
         new ItemTagListener(stats, p -> Optional.empty(), READER, p -> {
-            throw new AssertionError("asked for " + p.getName());
+            asked.add(p);
+            return List.of();
         }).recount(stranger);
+        assertEquals(List.of(), asked);
     }
 }
