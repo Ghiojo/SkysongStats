@@ -45,14 +45,14 @@ class ItemTagCounterTest {
         Map<ItemTagSource, Integer> totals = Map.of(ARCROT, 11, CHARGED_ARCROT, 4, FICTIS, 6);
         ItemTagReader reader = (items, source) -> totals.get(source);
 
-        assertEquals(totals, ItemTagCounter.count(reader, new ItemStack[0], DEFAULT_SOURCES));
+        assertEquals(totals, ItemTagCounter.count(reader, List.of(), DEFAULT_SOURCES));
     }
 
     @Test
     void theReaderSeesTheWholeInventoryInOrder() {
         ItemStack sword = new ItemStack(Material.IRON_SWORD);
         ItemStack stone = new ItemStack(Material.STONE, 64);
-        ItemStack[] inventory = {sword, null, stone};
+        List<ItemStack> inventory = Arrays.asList(sword, null, stone);
         List<List<ItemStack>> seen = new ArrayList<>();
 
         ItemTagCounter.count((items, source) -> {
@@ -65,7 +65,7 @@ class ItemTagCounterTest {
 
     @Test
     void noSourcesCountNothing() {
-        assertEquals(Map.of(), ItemTagCounter.count((items, source) -> 1, new ItemStack[0], List.of()));
+        assertEquals(Map.of(), ItemTagCounter.count((items, source) -> 1, List.of(), List.of()));
     }
 
     @Test

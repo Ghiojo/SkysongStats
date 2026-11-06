@@ -1,5 +1,6 @@
 package org.skysongdev.skysongstats.apiimpl;
 
+import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.RegisteredServiceProvider;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -8,7 +9,10 @@ import org.mockbukkit.mockbukkit.MockBukkit;
 import org.mockbukkit.mockbukkit.ServerMock;
 import org.skysongdev.skysongstats.OfflineSkysongStats;
 import org.skysongdev.skysongstats.SkysongStats;
+import org.skysongdev.skysongstats.api.ItemSourceRegistration;
 import org.skysongdev.skysongstats.api.SkysongStatsApi;
+
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -71,6 +75,7 @@ class SkysongStatsApiImplTest {
         assertSame(api.proficiencies(), api.proficiencies());
         assertSame(api.downtime(), api.downtime());
         assertSame(api.sheets(), api.sheets());
+        assertSame(api.itemSources(), api.itemSources());
     }
 
     @Test
@@ -81,5 +86,28 @@ class SkysongStatsApiImplTest {
 
         assertFalse(server.getServicesManager().isProvidedFor(SkysongStatsApi.class));
         assertThrows(IllegalStateException.class, SkysongStatsApi::get);
+    }
+
+    @Test
+    void anItemSourceGoesWhenItsPluginDisables() {
+        OfflineSkysongStats.load();
+        Plugin backpacks = MockBukkit.createMockPlugin("Backpacks");
+        ItemSourceRegistration registration = SkysongStatsApi.get().itemSources()
+                .register(backpacks, "backpack", player -> List.of());
+
+        server.getPluginManager().disablePlugin(backpacks);
+
+        assertFalse(registration.isRegistered());
+    }
+
+    @Test
+    void disablingSkysongStatsDropsEveryItemSource() {
+        SkysongStats plugin = OfflineSkysongStats.load();
+        ItemSourceRegistration registration = SkysongStatsApi.get().itemSources()
+                .register(MockBukkit.createMockPlugin("Backpacks"), "backpack", player -> List.of());
+
+        server.getPluginManager().disablePlugin(plugin);
+
+        assertFalse(registration.isRegistered());
     }
 }

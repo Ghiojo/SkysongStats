@@ -19,7 +19,7 @@ public final class StatValues {
     /**
      * @param base      the saved value, before modifiers and items
      * @param modifiers the sum of the modifiers on the stat
-     * @param items     what Skysong items in the inventory add
+     * @param items     what Skysong items in the inventory and item sources add
      * @param max       a bar's max with its modifiers, null for plain values
      * @param maxBase   a bar's max before its modifiers (the max formula alone), null for plain values
      */
@@ -41,7 +41,7 @@ public final class StatValues {
         return modifiers;
     }
 
-    /** What Skysong items in the player's inventory add to the stat. */
+    /** What Skysong items in the player's inventory and in other plugins' {@link ItemSource}s add to the stat. */
     public int items() {
         return items;
     }
