@@ -20,12 +20,11 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 /** PlaceholderAPI asks without a player for offline players and player-less text. */
 class StatsExpansionTest {
     private StatsExpansion expansion;
-    private SkysongStats plugin;
 
     @BeforeEach
     void setUp() {
         MockBukkit.mock();
-        plugin = OfflineSkysongStats.load();
+        SkysongStats plugin = OfflineSkysongStats.load();
         HandlerList.unregisterAll(plugin);
         expansion = new StatsExpansion(plugin);
     }
