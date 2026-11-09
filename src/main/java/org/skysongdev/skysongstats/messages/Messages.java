@@ -202,7 +202,7 @@ public final class Messages {
         if (placeholders.containsKey(name)) {
             return MINI_MESSAGE.escapeTags(placeholders.get(name));
         }
-        if (name.equals(PREFIX_KEY)) {
+        if (PREFIX_KEY.equals(name)) {
             return String.join("", rawLines(PREFIX_KEY));
         }
         return unknown;
