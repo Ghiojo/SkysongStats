@@ -301,6 +301,21 @@ injury:
     header: "{prefix}<gold>{player}'s injuries:"
     entry: "<gray> - {injury}"
     none: "{prefix}<gray>{player} has no injuries."
+  # /injuries, the menu of the injuries your character knows.
+  menu:
+    usage: "{prefix}<red>Usage: /injuries [view [severity] | search (text)]"
+    title: "<dark_red>Known Injuries"
+    # {severity}
+    severity-title: "<dark_red>Known Injuries: {severity}"
+    # {search}
+    search-title: "<dark_red>Injuries matching {search}"
+    no-results: "{prefix}<red>You know no injury whose name contains \"{search}\"."
+    unknown-severity: "{prefix}<red>There is no injury severity called {severity}!"
+    # Lore lines under each injury's description. {id} {severity}
+    id-line: "<gold>ID: {id}"
+    severity-line: "<gray>Severity: {severity}"
+    previous-page: "<gray>Previous Page"
+    next-page: "<gray>Next Page"
 condition:
   usage: "{prefix}<red>Usage: /condition (award/remove) (player) (condition) [level]"
   unknown-subcommand: "{prefix}<red>Incorrect Arguments! Usage: /condition (list/award/remove)"
@@ -336,6 +351,19 @@ condition:
     entry: "<gray> - {condition}"
     entry-given: "<gray> - {condition} <dark_gray>(from {from})"
     none: "{prefix}<gray>{player} has no conditions."
+  # /conditions, the menu of every condition.
+  menu:
+    usage: "{prefix}<red>Usage: /conditions [search (text)]"
+    title: "<gold>Conditions"
+    # {search}
+    search-title: "<gold>Conditions matching {search}"
+    no-results: "{prefix}<red>There is no condition whose name contains \"{search}\"."
+    # What a description's $ shows as in the menu, where there is no level.
+    level: "[value]"
+    # Lore line under each condition's description. {id}
+    id-line: "<gold>ID: {id}"
+    previous-page: "<gray>Previous Page"
+    next-page: "<gray>Next Page"
 setup:
   already-set-up: "{prefix}<red>You have already set up your profile!"
   started: "{prefix}<red>You are now setting up your profile!"

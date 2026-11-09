@@ -69,6 +69,14 @@ commands:
   condition:
     description: "View and manage characters' conditions"
     usage: "/condition [list|award|remove]"
+  injuries:
+    description: "Look through the injuries your character knows"
+    usage: "/injuries [view [severity]|search <text>]"
+    permission: "skysongstats.injuries"
+  conditions:
+    description: "Look through every condition"
+    usage: "/conditions [search <text>]"
+    permission: "skysongstats.conditions"
 permissions:
   # The stat command nodes (skysongstats.stat.<stat>.<action>[.other]) are made
   # from stats.yml when the plugin starts and on /ssreload.
@@ -138,6 +146,12 @@ permissions:
   skysongstats.condition.remove:
     description: "Allows you to remove conditions"
     default: op
+  skysongstats.injuries:
+    description: "Allows you to open the /injuries menu"
+    default: true
+  skysongstats.conditions:
+    description: "Allows you to open the /conditions menu"
+    default: true
   skysongstats.*:
     description: "Wildcard permission"
     default: op
@@ -162,3 +176,5 @@ permissions:
         skysongstats.condition.list.other: true
         skysongstats.condition.award: true
         skysongstats.condition.remove: true
+        skysongstats.injuries: true
+        skysongstats.conditions: true
