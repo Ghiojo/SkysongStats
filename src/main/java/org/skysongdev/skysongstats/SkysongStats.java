@@ -1,5 +1,15 @@
 package org.skysongdev.skysongstats;
 
+import org.skysongdev.skysongstats.database.CharacterProfile;
+import org.skysongdev.skysongstats.Utils.CharacterManager;
+import java.util.Map;
+import org.skysongdev.skysongstats.character.AfflictionChangeListener;
+import org.skysongdev.skysongstats.character.AfflictionService;
+import org.skysongdev.skysongstats.character.InjuryAward;
+import org.skysongdev.skysongstats.commands.affliction.ConditionCommand;
+import org.skysongdev.skysongstats.commands.affliction.InjuryCommand;
+import org.skysongdev.skysongstats.messages.AfflictionTexts;
+import org.skysongdev.skysongstats.storage.AfflictionRepository;
 import net.luckperms.api.LuckPerms;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
@@ -133,6 +143,8 @@ public class SkysongStats extends JavaPlugin {
     private ProficiencyTierPermissions proficiencyTiers;
     private ProficiencyTierSync proficiencyTierSync;
     private ProficiencyPermissionRegistry proficiencyPermissions;
+    private AfflictionService afflictionService;
+    private final AfflictionTexts afflictionTexts = new AfflictionTexts(this::getMessages, this::characterName);
     // Skill level and proficiency tier nodes, in LuckPerms.
     private PlayerNodes playerNodes;
 
@@ -157,6 +169,8 @@ public class SkysongStats extends JavaPlugin {
     public StatService getStatService() { return statService; }
     public SkillService getSkillService() { return skillService; }
     public ProficiencyService getProficiencyService() { return proficiencyService; }
+    public AfflictionService getAfflictionService() { return afflictionService; }
+    public AfflictionTexts getAfflictionTexts() { return afflictionTexts; }
 
     // The public API offered to other plugins, null until onEnable finished.
     private SkysongStatsApiImpl api;
@@ -225,6 +239,7 @@ public class SkysongStats extends JavaPlugin {
         playerNodes = luckPermsNodes();
         InitializeSkills(skillsConfig);
         InitializeProficiencies(proficienciesConfig);
+        InitializeAfflictions();
 
         InitializeCommands();
         AssignListeners();
@@ -266,6 +281,10 @@ public class SkysongStats extends JavaPlugin {
                 onlinePlayers, getLogger()::info));
         getCommand("proficiency").setExecutor(new ProficiencyCommand(proficiencyService, skillService, targets, texts,
                 new ProficiencySheet(this::getMessages), pendingFocusChanges, onlinePlayers, getLogger()::info, changeCauses));
+        getCommand("injury").setExecutor(new InjuryCommand(afflictionService, targets, this::getMessages,
+                afflictionTexts, onlinePlayers, getLogger()::info, changeCauses));
+        getCommand("condition").setExecutor(new ConditionCommand(afflictionService, targets, this::getMessages,
+                afflictionTexts, onlinePlayers, getLogger()::info, changeCauses));
         getCommand("ssreload").setExecutor(new ReloadCommand());
         getCommand("schar").setExecutor(characterCommand);
         getCommand("char").setExecutor(characterCommand);
@@ -448,6 +467,47 @@ public class SkysongStats extends JavaPlugin {
         addProficienciesToOlderProfiles();
     }
 
+    // Loads every character's injuries, conditions and known injuries from the
+    // stat database.
+    public void InitializeAfflictions(){
+        AfflictionRepository repository = storage.afflictionRepository();
+        afflictionService = new AfflictionService(conditionDefinitions, injuryDefinitions, repository,
+                new AfflictionChangeListener() {
+                    @Override
+                    public void onInjuryAwarded(InjuryAward award) {
+                        announceInjury(award);
+                    }
+                }, System::currentTimeMillis);
+        try {
+            repository.createTables();
+            afflictionService.load();
+        } catch (StorageException e) {
+            getLogger().log(Level.SEVERE, "Unable to load the injuries and conditions from the database", e);
+        }
+    }
+
+    // An injury with a message: tells the injured player, when they are playing
+    // the injured character.
+    private void announceInjury(InjuryAward award){
+        Player player = Bukkit.getPlayer(award.character().player());
+        if (player == null || !utils.getProfileManager().isActive(award.character())) {
+            return;
+        }
+        afflictionTexts.announcement(award.character(), award.injury().injury()).ifPresent(message ->
+                messages.send(player, "injury.award.announcement", Map.of(), Map.of("message", message)));
+    }
+
+    // The name on the character's sheet, or the player's name when it has none.
+    private String characterName(ProfileKey character){
+        CharacterProfile profile = CharacterManager.characterProfiles == null ? null
+                : utils.getCharacterManager().findCharacterProfile(character.player().toString(), character.profile());
+        if (profile != null && profile.getName() != null && !profile.getName().isBlank()) {
+            return profile.getName();
+        }
+        String playerName = Bukkit.getOfflinePlayer(character.player()).getName();
+        return playerName == null ? character.profile() : playerName;
+    }
+
     // LuckPerms is a hard dependency, so it is only missing on a test server.
     private PlayerNodes luckPermsNodes(){
         LuckPerms luckPerms = Bukkit.getServicesManager().load(LuckPerms.class);
@@ -504,6 +564,9 @@ public class SkysongStats extends JavaPlugin {
             notReloaded.add(ProficienciesConfigFile.FILE_NAME);
         }
         notReloaded.addAll(reloadInjuriesAndConditions());
+        if (afflictionService != null) {
+            afflictionService.setDefinitions(conditionDefinitions, injuryDefinitions);
+        }
         return notReloaded;
     }
 
