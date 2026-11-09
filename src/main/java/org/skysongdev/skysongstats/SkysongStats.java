@@ -18,7 +18,6 @@ import org.skysongdev.skysongstats.database.CharacterProfile;
 import org.skysongdev.skysongstats.Utils.CharacterManager;
 import java.util.Map;
 import java.util.Optional;
-import org.bukkit.OfflinePlayer;
 import org.skysongdev.skysongstats.character.AfflictionChangeListener;
 import org.skysongdev.skysongstats.character.AfflictionService;
 import org.skysongdev.skysongstats.character.InjuryAward;
@@ -612,12 +611,6 @@ public class SkysongStats extends JavaPlugin {
         messages.send(player, "injury.award.announcement", Map.of(), Map.of("message", message));
     }
 
-    // The character an online player is playing; none for offline players.
-    private Optional<ProfileKey> activeCharacter(OfflinePlayer player){
-        Player online = player.getPlayer();
-        return online == null || utils == null ? Optional.empty() : utils.getProfileManager().activeCharacter(online);
-    }
-
     // The name on the character's sheet, or the player's name when it has none.
     private String characterName(ProfileKey character){
         CharacterProfile profile = CharacterManager.characterProfiles == null ? null
@@ -805,7 +798,10 @@ public class SkysongStats extends JavaPlugin {
 
     private void loadMessages(){
         messages = MessagesFile.load(new File(getDataFolder(), MessagesFile.FILE_NAME), bundled(MessagesFile.FILE_NAME), getLogger()::warning,
-                externalPlaceholders(), new AfflictionSheetTags(afflictionLists, this::activeCharacter));
+                externalPlaceholders(), new AfflictionSheetTags(afflictionLists,
+                // The character an online player is playing; none for offline players.
+                player -> Optional.ofNullable(player.getPlayer()).filter(online -> utils != null)
+                        .flatMap(online -> utils.getProfileManager().activeCharacter(online))));
     }
 
     // Other plugins' %placeholders% on the sheets, when PlaceholderAPI is installed.
