@@ -30,12 +30,12 @@ class InjuryCommandTest extends AfflictionCommandFixture {
 
     @Test
     void anAwardGivesAndTeachesTheInjuryAndSendsItsMessage() {
-        assertEquals(PREFIX + "Alice now has Broken Leg.", console("award", "Alice", "broken-leg"));
+        assertEquals(PREFIX + "Alice now has [Broken Leg].", console("award", "Alice", "broken-leg"));
 
         assertTrue(afflictions.hasInjury(character(alice), "broken-leg"));
         assertTrue(afflictions.knows(character(alice), "broken-leg"));
         // No character sheet, so the player's name stands in.
-        assertEquals("Alice now has a Broken Leg", next(alice));
+        assertEquals("Alice now has a [Broken Leg]", next(alice));
         assertNull(alice.nextComponentMessage());
     }
 
@@ -48,7 +48,7 @@ class InjuryCommandTest extends AfflictionCommandFixture {
     @Test
     void awardingAgainSaysSo() {
         console("award", "Alice", "cut");
-        assertEquals(PREFIX + "Alice already had Cut; it now counts from now.", console("award", "Alice", "CUT"));
+        assertEquals(PREFIX + "Alice already had [Cut]; it now counts from now.", console("award", "Alice", "CUT"));
     }
 
     @Test
@@ -71,27 +71,27 @@ class InjuryCommandTest extends AfflictionCommandFixture {
     @Test
     void removeTakesItAwayAndTellsThePlayer() {
         console("award", "Alice", "cut");
-        assertEquals(PREFIX + "Alice no longer has Cut.", console("remove", "Alice", "cut"));
-        assertEquals(PREFIX + "You no longer have Cut.", next(alice));
+        assertEquals(PREFIX + "Alice no longer has [Cut].", console("remove", "Alice", "cut"));
+        assertEquals(PREFIX + "You no longer have [Cut].", next(alice));
         assertTrue(afflictions.knows(character(alice), "cut"));
-        assertEquals(PREFIX + "Alice doesn't have Cut.", console("remove", "Alice", "cut"));
+        assertEquals(PREFIX + "Alice doesn't have [Cut].", console("remove", "Alice", "cut"));
     }
 
     @Test
     void discoverAndForget() {
-        assertEquals(PREFIX + "Alice now knows Bruise.", console("discover", "Alice", "bruise"));
-        assertEquals(PREFIX + "You now know about Bruise.", next(alice));
-        assertEquals(PREFIX + "Alice already knew Bruise.", console("discover", "Alice", "bruise"));
+        assertEquals(PREFIX + "Alice now knows [Bruise].", console("discover", "Alice", "bruise"));
+        assertEquals(PREFIX + "You now know about [Bruise].", next(alice));
+        assertEquals(PREFIX + "Alice already knew [Bruise].", console("discover", "Alice", "bruise"));
         assertFalse(afflictions.hasInjury(character(alice), "bruise"));
 
-        assertEquals(PREFIX + "Alice no longer knows Bruise.", console("forget", "Alice", "bruise"));
-        assertEquals(PREFIX + "Alice doesn't know Bruise.", console("forget", "Alice", "bruise"));
+        assertEquals(PREFIX + "Alice no longer knows [Bruise].", console("forget", "Alice", "bruise"));
+        assertEquals(PREFIX + "Alice doesn't know [Bruise].", console("forget", "Alice", "bruise"));
     }
 
     @Test
     void anInjuryCantBeForgottenWhileTheCharacterHasIt() {
         afflictions.awardInjury(character(alice), "cut");
-        assertEquals(PREFIX + "Alice has Cut right now, remove it first.", console("forget", "Alice", "cut"));
+        assertEquals(PREFIX + "Alice has [Cut] right now, remove it first.", console("forget", "Alice", "cut"));
         assertTrue(afflictions.knows(character(alice), "cut"));
     }
 
@@ -104,7 +104,7 @@ class InjuryCommandTest extends AfflictionCommandFixture {
         alice.nextComponentMessage();
 
         run(alice, "list");
-        assertEquals(List.of(PREFIX + "Alice's injuries:", " - Cut", " - Bruise"), all(alice));
+        assertEquals(List.of(PREFIX + "Alice's injuries:", " - [Cut]", " - [Bruise]"), all(alice));
     }
 
     @Test
