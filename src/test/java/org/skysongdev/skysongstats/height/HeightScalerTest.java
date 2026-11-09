@@ -68,7 +68,6 @@ class HeightScalerTest {
         }
     };
 
-    private ServerMock server;
     private StatService stats;
     private HeightScaler scaler;
     private PlayerMock alice;
@@ -79,7 +78,7 @@ class HeightScalerTest {
 
     @BeforeEach
     void setUp() throws Exception {
-        server = MockBukkit.mock();
+        ServerMock server = MockBukkit.mock();
         stats = new StatService(defaultStats(), NO_STORAGE, new StatChangeListener() {
             @Override
             public void onChange(StatChange change) {
