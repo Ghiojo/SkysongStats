@@ -265,6 +265,77 @@ proficiency:
     # Confirming with picks left that could still be used. {picks} {skill}
     pick-more: "{prefix}<red>Pick {picks} more {skill} proficiency(s) before confirming."
 
+# Injuries (injuries.yml) and conditions (conditions.yml). Names, descriptions
+# and an injury's message are MiniMessage from those files.
+injury:
+  usage: "{prefix}<red>Usage: /injury (award/remove/discover/forget) (player) (injury)"
+  unknown-subcommand: "{prefix}<red>Incorrect Arguments! Usage: /injury (list/award/remove/discover/forget)"
+  # {injury} as typed
+  unknown-injury: "{prefix}<red>There is no injury called {injury}!"
+  # How an injury looks wherever {injury} is shown in this file. {name} and
+  # {description} are the injury's, from injuries.yml.
+  tag: "<hover:show_text:'{description}'><red>{name}</red></hover>"
+  # In the messages below {player} is the player and {injury} the injury's tag.
+  award:
+    success: "{prefix}<green>{player} now has {injury}."
+    already-has: "{prefix}<yellow>{player} already had {injury}; it now counts from now."
+    # Sent to the injured player when they get an injury that has a message: in
+    # injuries.yml. {message} is that message, {character} and {injury} filled in.
+    announcement: "{message}"
+  remove:
+    success: "{prefix}<green>{player} no longer has {injury}."
+    not-injured: "{prefix}<red>{player} doesn't have {injury}."
+    # Sent to the player who lost it, when someone else removed it.
+    lost: "{prefix}<green>You no longer have {injury}."
+  discover:
+    success: "{prefix}<green>{player} now knows {injury}."
+    already-known: "{prefix}<yellow>{player} already knew {injury}."
+    # Sent to the player who learnt it, when someone else taught it.
+    learnt: "{prefix}<green>You now know about {injury}."
+  forget:
+    success: "{prefix}<green>{player} no longer knows {injury}."
+    not-known: "{prefix}<red>{player} doesn't know {injury}."
+    still-injured: "{prefix}<red>{player} has {injury} right now, remove it first."
+  # /injury list. {player}; entry has {injury}.
+  list:
+    header: "{prefix}<gold>{player}'s injuries:"
+    entry: "<gray> - {injury}"
+    none: "{prefix}<gray>{player} has no injuries."
+condition:
+  usage: "{prefix}<red>Usage: /condition (award/remove) (player) (condition) [level]"
+  unknown-subcommand: "{prefix}<red>Incorrect Arguments! Usage: /condition (list/award/remove)"
+  # {condition} as typed
+  unknown-condition: "{prefix}<red>There is no condition called {condition}!"
+  # {level} as typed
+  invalid-level: "{prefix}<red>\"{level}\" must be a whole number of at least 1!"
+  # How a condition looks wherever {condition} is shown in this file. {name} is
+  # its name (with level-format when above level 1), {description} its
+  # description with each $ shown as level-in-description.
+  tag: "<hover:show_text:'{description}'><yellow>{name}</yellow></hover>"
+  # {name} {level}
+  level-format: "{name} {level}"
+  # {level}
+  level-in-description: "{level}"
+  # In the messages below {player} is the player and {condition} the condition's tag.
+  award:
+    success: "{prefix}<green>{player} now has {condition}."
+    success-updated: "{prefix}<green>{player}'s condition is now {condition}."
+    # Sent to the player who got it, when someone else gave it.
+    received: "{prefix}<yellow>You now have {condition}."
+  remove:
+    success: "{prefix}<green>{player} no longer has {condition}."
+    # An injury or another condition still gives it.
+    still-given: "{prefix}<yellow>Removed, but {player} still has {condition} from an injury or another condition."
+    not-direct: "{prefix}<red>{player} wasn't given {condition} directly; it comes and goes with what gives it."
+    # Sent to the player who lost it, when someone else removed it.
+    lost: "{prefix}<green>You no longer have {condition}."
+  # /condition list. {player}; the entries have {condition}, entry-given also
+  # {from}: the injuries and conditions that give it.
+  list:
+    header: "{prefix}<gold>{player}'s conditions:"
+    entry: "<gray> - {condition}"
+    entry-given: "<gray> - {condition} <dark_gray>(from {from})"
+    none: "{prefix}<gray>{player} has no conditions."
 setup:
   already-set-up: "{prefix}<red>You have already set up your profile!"
   started: "{prefix}<red>You are now setting up your profile!"

@@ -506,6 +506,19 @@ Optional. An injury or condition without it changes nothing.
 - **`conditions:`** conditions that last exactly as long as the injury or condition that gives them. Chains work: an injury gives Bleeding, Bleeding gives Weakened, and removing the injury removes both. Conditions that give each other in a loop (a gives b, b gives a, or a gives a) are refused.
 - Any other key under `effects:` is a mistake (it catches typos such as `modifier:`).
 
+### What characters have
+
+Each character (each profile) has its own:
+
+- **Injuries**, given with `/injury award` and taken away with `/injury remove`. Getting an injury again keeps one, with the new time.
+- **Conditions given directly**, with `/condition award`, at a level (1 when none is given). Giving it again changes the level.
+- **Conditions that are given**, by its injuries or by its other conditions. These are never saved: they come and go with what gives them. When several things give the same condition, the highest level counts. `/condition remove` only takes back a direct award; a condition an injury also gives stays.
+- **Known injuries**: the injuries the character has learnt about. Getting an injury teaches it, and `/injury discover` teaches one without giving it. Removing an injury keeps it known. `/injury forget` undoes a discover, but not while the character has the injury. SkysongStats keeps this record itself, with how each was learnt (award, discover, API or import).
+
+When an injury with a `message:` is awarded, the injured player gets that message (`injury.award.announcement` in messages.yml), with `{character}` replaced by their character's name (from `/char set name`, or the player's name when it has none) and `{injury}` by the injury's tag. Players who aren't online, or are playing another profile, get nothing.
+
+An id removed from either file stays saved on the characters that have it, but is hidden everywhere. Put the id back and it returns. `/ssreload` with changed effects applies them to every character at once.
+
 ---
 
 ## messages.yml
@@ -532,6 +545,8 @@ Every message players and staff see. Edit the text and run `/ssreload`.
 | `character` | `/char`, `/schar` and the character sheet layout |
 | `skills` | `/skills`, the skills book, the /setup skill screen (`skills.choice`) |
 | `proficiency` | `/proficiency`, its sheet, the /setup proficiency screen (`proficiency.choice`) |
+| `injury` | `/injury`, how an injury is shown everywhere (`injury.tag`: its name with the description on hover), the award announcement |
+| `condition` | `/condition`, how a condition is shown (`condition.tag`, `level-format`, `level-in-description`) |
 | `setup` | `/setup` and its stat point screen |
 | `stats` | Stat actions, `/stats view` sheet |
 | `modifier` | `/modifier` |
@@ -637,6 +652,26 @@ XP is never below 0. Every XP change is logged in the console with who did it.
 
 Staff changes are logged in the console.
 
+### Injuries (`/injury`)
+
+| Command | Permission | What it does |
+|---|---|---|
+| `/injury [list] [player]` | `skysongstats.injury.list` (everyone); others: `....list.other` (ops) | Lists the character's current injuries, oldest first. |
+| `/injury award <player> <injury>` | `skysongstats.injury.award` (ops) | Gives the injury and teaches it. Sends the injury's message to the player. |
+| `/injury remove <player> <injury>` | `skysongstats.injury.remove` (ops) | Takes it away, with its conditions. The character still knows it. |
+| `/injury discover <player> <injury>` | `skysongstats.injury.discover` (ops) | Teaches the injury without giving it. |
+| `/injury forget <player> <injury>` | `...discover` | Undoes a discover. Refused while the character has the injury. |
+
+### Conditions (`/condition`)
+
+| Command | Permission | What it does |
+|---|---|---|
+| `/condition [list] [player]` | `skysongstats.condition.list` (everyone); others: `....list.other` (ops) | Lists the character's current conditions, and what gives the ones it wasn't given directly. |
+| `/condition award <player> <condition> [level]` | `skysongstats.condition.award` (ops) | Gives it directly, at level 1 or the level given. Again changes the level. |
+| `/condition remove <player> <condition>` | `skysongstats.condition.remove` (ops) | Takes back a direct award. |
+
+Injuries and conditions are named by their id from the files, in any case. The player must be online. Staff changes are logged in the console.
+
 ### Downtime (`/downtime`, alias `/dt`)
 
 | Command | Permission | What it does |
@@ -683,6 +718,10 @@ Downtime commands work on **offline** players too, as long as they have joined b
 | `skysongstats.proficiencies.view.other` | op | Others' proficiency sheets. |
 | `skysongstats.proficiencies.focus` | everyone | `/proficiency focus`. |
 | `skysongstats.proficiencies.manage` | op | Training and staff proficiency commands. |
+| `skysongstats.injury.list`, `skysongstats.condition.list` | everyone | `/injury list`, `/condition list` for yourself. |
+| `skysongstats.injury.list.other`, `skysongstats.condition.list.other` | op | The same for someone else. |
+| `skysongstats.injury.award`, `.remove`, `.discover` | op | The staff `/injury` commands (`.discover` also covers `forget`). |
+| `skysongstats.condition.award`, `.remove` | op | The staff `/condition` commands. |
 | `skysongstats.*` | op | Everything above (and the generated nodes below). |
 
 ### Generated nodes (from the config files)
@@ -812,8 +851,11 @@ The plugin creates its tables itself.
 | `ss_skill_xp` | XP per profile and skill id. |
 | `ss_proficiency_tiers` | Tier per profile and proficiency id. |
 | `ss_proficiency_focus` | The focus and its points, per profile. |
+| `ss_injuries` | Current injuries per profile, with when each was given. |
+| `ss_conditions` | Directly given conditions per profile, with their level. Given ones are never saved. |
+| `ss_known_injuries` | Known injuries per profile, with when and how each was learnt. |
 
-Stats, skills and proficiencies go through a small connection pool (HikariCP, 4 connections) that replaces connections MySQL drops, and are written by one background writer in order. A save that fails is logged as `Could not save a change: ...`. The `skysong_*` tables still use the older single connection, which the plugin pings every 5 minutes (you'll see `[Skysong Stats] Database pinged!` in the console).
+Stats, skills, proficiencies, injuries and conditions go through a small connection pool (HikariCP, 4 connections) that replaces connections MySQL drops, and are written by one background writer in order. A save that fails is logged as `Could not save a change: ...`. The `skysong_*` tables still use the older single connection, which the plugin pings every 5 minutes (you'll see `[Skysong Stats] Database pinged!` in the console).
 
 The old tables from before the refactor, `skysong_stats`, `skysong_modifiers` and `skysong_skills`, are no longer created or read. Since Skysong is restarting, you can drop them if your database still has them.
 
@@ -953,6 +995,9 @@ All code is under `src/main/java/org/skysongdev/skysongstats/`; default files ar
 | Stat rules (actions, limits, shields, modifiers) | `character/StatService.java`, `character/StatCalculator.java` |
 | Skill XP rules | `character/SkillService.java` |
 | Proficiency rules (focus, training, tiers) | `character/ProficiencyService.java` |
+| Injury and condition rules (awards, given conditions, known injuries) | `character/AfflictionService.java`, `character/ConditionResolver.java` |
+| How injuries and conditions are shown (tags, announcement) | `messages/AfflictionTexts.java` |
+| /injury, /condition | `commands/affliction/` |
 | Downtime rules | `service/downtime/DowntimeService.java` |
 | Stat commands, /modifier, generated stat commands and permissions | `commands/stat/` |
 | /skills, /proficiency, /downtime, /profile, /char, /setup, /ssreload | `commands/<name>/` |

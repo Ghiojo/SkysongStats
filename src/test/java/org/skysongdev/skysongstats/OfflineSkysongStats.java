@@ -3,11 +3,13 @@ package org.skysongdev.skysongstats;
 import org.bukkit.plugin.InvalidDescriptionException;
 import org.bukkit.plugin.PluginDescriptionFile;
 import org.mockbukkit.mockbukkit.MockBukkit;
+import org.skysongdev.skysongstats.storage.AfflictionRepository;
 import org.skysongdev.skysongstats.storage.CharacterStorage;
 import org.skysongdev.skysongstats.storage.DatabaseSettings;
 import org.skysongdev.skysongstats.storage.ProficiencyRepository;
 import org.skysongdev.skysongstats.storage.SkillRepository;
 import org.skysongdev.skysongstats.storage.StatRepository;
+import org.skysongdev.skysongstats.storage.UnsavedAfflictionRepository;
 import org.skysongdev.skysongstats.storage.UnsavedProficiencyRepository;
 import org.skysongdev.skysongstats.storage.UnsavedSkillRepository;
 import org.skysongdev.skysongstats.storage.UnsavedStatRepository;
@@ -49,6 +51,7 @@ public class OfflineSkysongStats extends SkysongStats {
         StatRepository stats = new UnsavedStatRepository(line -> { });
         SkillRepository skills = new UnsavedSkillRepository(line -> { });
         ProficiencyRepository proficiencies = new UnsavedProficiencyRepository(line -> { });
+        AfflictionRepository afflictions = new UnsavedAfflictionRepository(line -> { });
         return new CharacterStorage() {
             @Override
             public StatRepository repository() {
@@ -63,6 +66,11 @@ public class OfflineSkysongStats extends SkysongStats {
             @Override
             public ProficiencyRepository proficiencyRepository() {
                 return proficiencies;
+            }
+
+            @Override
+            public AfflictionRepository afflictionRepository() {
+                return afflictions;
             }
 
             @Override

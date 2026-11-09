@@ -63,6 +63,12 @@ commands:
     usage: "/downtime [player] [amount]"
     aliases:
       - dt
+  injury:
+    description: "View and manage characters' injuries"
+    usage: "/injury [list|award|remove|discover|forget]"
+  condition:
+    description: "View and manage characters' conditions"
+    usage: "/condition [list|award|remove]"
 permissions:
   # The stat command nodes (skysongstats.stat.<stat>.<action>[.other]) are made
   # from stats.yml when the plugin starts and on /ssreload.
@@ -105,6 +111,33 @@ permissions:
   skysongstats.proficiencies.manage:
     description: "Allows you to add, remove and set proficiency points and tiers"
     default: op
+  skysongstats.injury.list:
+    description: "Allows you to list your injuries"
+    default: true
+  skysongstats.injury.list.other:
+    description: "Allows you to list other players' injuries"
+    default: op
+  skysongstats.injury.award:
+    description: "Allows you to give injuries"
+    default: op
+  skysongstats.injury.remove:
+    description: "Allows you to remove injuries"
+    default: op
+  skysongstats.injury.discover:
+    description: "Allows you to teach and unteach injuries"
+    default: op
+  skysongstats.condition.list:
+    description: "Allows you to list your conditions"
+    default: true
+  skysongstats.condition.list.other:
+    description: "Allows you to list other players' conditions"
+    default: op
+  skysongstats.condition.award:
+    description: "Allows you to give conditions"
+    default: op
+  skysongstats.condition.remove:
+    description: "Allows you to remove conditions"
+    default: op
   skysongstats.*:
     description: "Wildcard permission"
     default: op
@@ -120,3 +153,12 @@ permissions:
         skysongstats.proficiencies.view.other: true
         skysongstats.proficiencies.focus: true
         skysongstats.proficiencies.manage: true
+        skysongstats.injury.list: true
+        skysongstats.injury.list.other: true
+        skysongstats.injury.award: true
+        skysongstats.injury.remove: true
+        skysongstats.injury.discover: true
+        skysongstats.condition.list: true
+        skysongstats.condition.list.other: true
+        skysongstats.condition.award: true
+        skysongstats.condition.remove: true
