@@ -1,0 +1,40 @@
+# The conditions characters can have: bleeding, poisoned, weakened...
+# Staff give them with /condition award, injuries can bring them (see injuries.yml),
+# and /conditions lists every one of them to everybody.
+# Changes apply with /ssreload. A file with mistakes is not reloaded: the console
+# lists every mistake and the conditions from before stay in use.
+#
+# Each condition, under its id (lowercase letters, digits and '-'; no '_', because
+# chat writes a condition with its level as [condition_<id>_<level>]):
+#   name:        shown everywhere. MiniMessage. Default: the id.
+#   description: shown on hover and in /conditions. MiniMessage. $ is replaced by
+#                the level the character has the condition at. Default: none.
+#   icon:        the /conditions menu item: a Material (REDSTONE) or
+#                model:<namespace:id>. Default: PAPER.
+#   effects:     optional. Leave it out for a condition that changes no stat.
+#     modifiers: stat modifiers while a character has the condition, as one text
+#                split by commas ("str-1, dex+2") or a list. Each entry is
+#                <stat><+ or -><amount>. <stat> is a stat id or alias from
+#                stats.yml, or max_<bar> for a bar's max (max_hp). <amount> is a
+#                whole number, or $ for the condition's level: con-$ at level 3
+#                gives con -3.
+#     conditions: other conditions the character has while it has this one, each
+#                with an optional :level (default 1), like [weakened, "dizzy:2"].
+#                They go away with this condition. Conditions can't give each
+#                other in a loop (a gives b, b gives a), and never give injuries.
+#
+# Example:
+#   bleeding:
+#     name: "<dark_red>Bleeding"
+#     description: "Loses $ HP every turn."
+#     icon: REDSTONE
+#     effects:
+#       modifiers: "con-$"
+#       conditions: [weakened]
+#   weakened:
+#     name: "Weakened"
+#     description: "Hits a little softer."
+#     icon: GRAY_DYE
+#     effects:
+#       modifiers: [str-1]
+conditions: {}

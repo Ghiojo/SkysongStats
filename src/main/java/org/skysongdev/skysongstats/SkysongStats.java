@@ -46,7 +46,11 @@ import org.skysongdev.skysongstats.commands.stat.StatsRootCommand;
 import org.skysongdev.skysongstats.database.Database;
 import org.skysongdev.skysongstats.database.Pinger;
 import org.skysongdev.skysongstats.database.SetupProfile;
+import org.skysongdev.skysongstats.definition.ConditionDefinitions;
+import org.skysongdev.skysongstats.definition.ConditionsConfigFile;
 import org.skysongdev.skysongstats.definition.DefinitionException;
+import org.skysongdev.skysongstats.definition.InjuriesConfigFile;
+import org.skysongdev.skysongstats.definition.InjuryDefinitions;
 import org.skysongdev.skysongstats.definition.ProficienciesConfig;
 import org.skysongdev.skysongstats.definition.ProficienciesConfigFile;
 import org.skysongdev.skysongstats.definition.SkillDefinitions;
@@ -115,6 +119,10 @@ public class SkysongStats extends JavaPlugin {
     private DowntimeService downtimeService;
     private Messages messages;
     private StatsConfig statsConfig;
+    // The conditions and injuries of conditions.yml and injuries.yml. Conditions
+    // load first: injuries name them.
+    private ConditionDefinitions conditionDefinitions;
+    private InjuryDefinitions injuryDefinitions;
     private CharacterStorage storage;
     private StatService statService;
     private SkillService skillService;
@@ -144,6 +152,8 @@ public class SkysongStats extends JavaPlugin {
     public DowntimeService getDowntimeService() { return downtimeService; }
     public Messages getMessages() { return messages; }
     public StatsConfig getStatsConfig() { return statsConfig; }
+    public ConditionDefinitions getConditionDefinitions() { return conditionDefinitions; }
+    public InjuryDefinitions getInjuryDefinitions() { return injuryDefinitions; }
     public StatService getStatService() { return statService; }
     public SkillService getSkillService() { return skillService; }
     public ProficiencyService getProficiencyService() { return proficiencyService; }
@@ -188,6 +198,20 @@ public class SkysongStats extends JavaPlugin {
             proficienciesConfig = loadProficienciesConfig(skillsConfig.skills());
         } catch (DefinitionException e) {
             getLogger().log(Level.SEVERE, "Fix proficiencies.yml and restart the server. SkysongStats is disabled.", e);
+            getServer().getPluginManager().disablePlugin(this);
+            return;
+        }
+        try {
+            conditionDefinitions = loadConditionsConfig();
+        } catch (DefinitionException e) {
+            getLogger().log(Level.SEVERE, "Fix conditions.yml and restart the server. SkysongStats is disabled.", e);
+            getServer().getPluginManager().disablePlugin(this);
+            return;
+        }
+        try {
+            injuryDefinitions = loadInjuriesConfig(conditionDefinitions);
+        } catch (DefinitionException e) {
+            getLogger().log(Level.SEVERE, "Fix injuries.yml and restart the server. SkysongStats is disabled.", e);
             getServer().getPluginManager().disablePlugin(this);
             return;
         }
@@ -479,6 +503,7 @@ public class SkysongStats extends JavaPlugin {
         if (!reloadProficienciesConfig()) {
             notReloaded.add(ProficienciesConfigFile.FILE_NAME);
         }
+        notReloaded.addAll(reloadInjuriesAndConditions());
         return notReloaded;
     }
 
@@ -535,6 +560,37 @@ public class SkysongStats extends JavaPlugin {
         proficiencyPermissions.register(config);
         Bukkit.getOnlinePlayers().forEach(proficiencyTierSync::sync);
         return true;
+    }
+
+    // Conditions first, since injuries name them. A conditions.yml with mistakes
+    // keeps the conditions from before, and injuries.yml is then checked against
+    // those. Either file with mistakes keeps its own definitions from before.
+    // Returns the files that were not reloaded.
+    private List<String> reloadInjuriesAndConditions(){
+        List<String> notReloaded = new ArrayList<>();
+        try {
+            conditionDefinitions = loadConditionsConfig();
+        } catch (DefinitionException e) {
+            getLogger().log(Level.WARNING, "conditions.yml was not reloaded, keeping the conditions from before", e);
+            notReloaded.add(ConditionsConfigFile.FILE_NAME);
+        }
+        try {
+            injuryDefinitions = loadInjuriesConfig(conditionDefinitions);
+        } catch (DefinitionException e) {
+            getLogger().log(Level.WARNING, "injuries.yml was not reloaded, keeping the injuries from before", e);
+            notReloaded.add(InjuriesConfigFile.FILE_NAME);
+        }
+        return notReloaded;
+    }
+
+    private ConditionDefinitions loadConditionsConfig(){
+        return ConditionsConfigFile.load(new File(getDataFolder(), ConditionsConfigFile.FILE_NAME),
+                bundled(ConditionsConfigFile.FILE_NAME), statsConfig.stats());
+    }
+
+    private InjuryDefinitions loadInjuriesConfig(ConditionDefinitions conditions){
+        return InjuriesConfigFile.load(new File(getDataFolder(), InjuriesConfigFile.FILE_NAME),
+                bundled(InjuriesConfigFile.FILE_NAME), statsConfig.stats(), conditions);
     }
 
     private ProficienciesConfig loadProficienciesConfig(SkillDefinitions skills){
