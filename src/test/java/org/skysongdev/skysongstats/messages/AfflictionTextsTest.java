@@ -73,22 +73,22 @@ class AfflictionTextsTest {
     @Test
     void anInjuryTagShowsItsNameWithItsDescriptionOnHover() {
         Component tag = texts.injuryTag(injury("broken-leg"));
-        assertEquals("Broken Leg", plain(tag));
+        assertEquals("[Broken Leg]", plain(tag));
         assertEquals("Snapped", hover(tag));
     }
 
     @Test
     void aConditionTagShowsItsLevelAboveOne() {
-        assertEquals("Bleeding", plain(texts.conditionTag(condition("bleeding"), 1)));
+        assertEquals("[Bleeding]", plain(texts.conditionTag(condition("bleeding"), 1)));
         Component levelTwo = texts.conditionTag(condition("bleeding"), 2);
-        assertEquals("Bleeding 2", plain(levelTwo));
+        assertEquals("[Bleeding 2]", plain(levelTwo));
         assertEquals("Loses 2 blood", hover(levelTwo));
     }
 
     @Test
     void theAnnouncementFillsInTheCharacterAndTheInjuryTag() {
         Component announcement = texts.announcement(CHARACTER, injury("broken-leg")).orElseThrow();
-        assertEquals("Aria now has a Broken Leg", plain(announcement));
+        assertEquals("Aria now has a [Broken Leg]", plain(announcement));
         assertEquals("Snapped", hover(announcement));
         assertTrue(AfflictionTexts.miniMessage(announcement).contains("<b>Aria</b>")
                 || AfflictionTexts.miniMessage(announcement).contains("<bold>Aria</bold>"));

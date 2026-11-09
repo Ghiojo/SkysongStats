@@ -26,11 +26,11 @@ class ConditionCommandTest extends AfflictionCommandFixture {
 
     @Test
     void anAwardIsLevelOneUnlessALevelIsGiven() {
-        assertEquals(PREFIX + "Alice now has Bleeding.", console("award", "Alice", "bleeding"));
+        assertEquals(PREFIX + "Alice now has [Bleeding].", console("award", "Alice", "bleeding"));
         assertEquals(1, level("bleeding"));
-        assertEquals(PREFIX + "You now have Bleeding.", next(alice));
+        assertEquals(PREFIX + "You now have [Bleeding].", next(alice));
 
-        assertEquals(PREFIX + "Alice's condition is now Bleeding 3.", console("award", "Alice", "bleeding", "3"));
+        assertEquals(PREFIX + "Alice's condition is now [Bleeding 3].", console("award", "Alice", "bleeding", "3"));
         assertEquals(3, level("bleeding"));
     }
 
@@ -50,15 +50,15 @@ class ConditionCommandTest extends AfflictionCommandFixture {
     void removeTakesBackADirectAward() {
         console("award", "Alice", "dazed");
         alice.nextComponentMessage();
-        assertEquals(PREFIX + "Alice no longer has Dazed.", console("remove", "Alice", "dazed"));
-        assertEquals(PREFIX + "You no longer have Dazed.", next(alice));
+        assertEquals(PREFIX + "Alice no longer has [Dazed].", console("remove", "Alice", "dazed"));
+        assertEquals(PREFIX + "You no longer have [Dazed].", next(alice));
         assertTrue(afflictions.conditions(character(alice)).isEmpty());
     }
 
     @Test
     void aConditionOnlyAnInjuryGivesCantBeRemoved() {
         afflictions.awardInjury(character(alice), "cut");
-        assertEquals(PREFIX + "Alice wasn't given Bleeding directly; it comes and goes with what gives it.",
+        assertEquals(PREFIX + "Alice wasn't given [Bleeding] directly; it comes and goes with what gives it.",
                 console("remove", "Alice", "bleeding"));
         assertEquals(2, level("bleeding"));
     }
@@ -67,7 +67,7 @@ class ConditionCommandTest extends AfflictionCommandFixture {
     void removingADirectAwardThatIsAlsoGivenSaysSo() {
         afflictions.awardInjury(character(alice), "cut");
         console("award", "Alice", "bleeding", "5");
-        assertEquals(PREFIX + "Removed, but Alice still has Bleeding from an injury or another condition.",
+        assertEquals(PREFIX + "Removed, but Alice still has [Bleeding] from an injury or another condition.",
                 console("remove", "Alice", "bleeding"));
         assertEquals(2, level("bleeding"));
     }
@@ -79,8 +79,8 @@ class ConditionCommandTest extends AfflictionCommandFixture {
         all(alice);
 
         run(alice, "list");
-        assertEquals(List.of(PREFIX + "Alice's conditions:", " - Bleeding 2", " - Weakened (from Broken Leg)",
-                " - Dazed 2 (from Weakened)"), all(alice));
+        assertEquals(List.of(PREFIX + "Alice's conditions:", " - [Bleeding 2]", " - [Weakened] (from Broken Leg)",
+                " - [Dazed 2] (from Weakened)"), all(alice));
     }
 
     @Test

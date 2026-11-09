@@ -274,7 +274,7 @@ injury:
   unknown-injury: "{prefix}<red>There is no injury called {injury}!"
   # How an injury looks wherever {injury} is shown in this file. {name} and
   # {description} are the injury's, from injuries.yml.
-  tag: "<hover:show_text:'{description}'><red>{name}</red></hover>"
+  tag: "<hover:show_text:'{description}'><dark_gray>[</dark_gray><white>{name}</white><dark_gray>]</dark_gray></hover>"
   # In the messages below {player} is the player and {injury} the injury's tag.
   award:
     success: "{prefix}<green>{player} now has {injury}."
@@ -326,7 +326,7 @@ condition:
   # How a condition looks wherever {condition} is shown in this file. {name} is
   # its name (with level-format when above level 1), {description} its
   # description with each $ shown as level-in-description.
-  tag: "<hover:show_text:'{description}'><yellow>{name}</yellow></hover>"
+  tag: "<hover:show_text:'{description}'><dark_gray>[</dark_gray><white>{name}</white><dark_gray>]</dark_gray></hover>"
   # {name} {level}
   level-format: "{name} {level}"
   # {level}
