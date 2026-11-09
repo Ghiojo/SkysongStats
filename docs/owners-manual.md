@@ -548,6 +548,7 @@ Every message players and staff see. Edit the text and run `/ssreload`.
 | `skills` | `/skills`, the skills book, the /setup skill screen (`skills.choice`) |
 | `proficiency` | `/proficiency`, its sheet, the /setup proficiency screen (`proficiency.choice`) |
 | `injury` | `/injury`, the `/injuries` menu (`injury.menu`), how an injury is shown everywhere (`injury.tag`: its name with the description on hover), the award announcement |
+| `placeholders` | The separator and "None" text of the injury and condition lists (placeholders and sheet tags) |
 | `condition` | `/condition`, the `/conditions` menu (`condition.menu`), how a condition is shown (`condition.tag`, `level-format`, `level-in-description`) |
 | `setup` | `/setup` and its stat point screen |
 | `stats` | Stat actions, `/stats view` sheet |
@@ -570,6 +571,10 @@ So to give `/heal` its own text you edit `stats.hp.add.player`; a new stat `mana
 | Character sheet (`/char`) | `character.view.header`, `description-line`, `footer` | `{player} {name} {age} {gender} {pronouns} {ancestry}`, and `{height}` (metres) / `{height_feet}` from the stat with a `scale:` block (empty when there is none); the description is wrapped into lines of about 60 characters, one `description-line` each. |
 | Proficiency sheet (`/proficiency view`) | `proficiency.sheet` | `{player}`, `{focus}` (a `sheet-focus` or `sheet-no-focus` line), `{proficiencies}` (one `sheet-skill` line per skill, each a list of `sheet-entry` parts joined by `sheet-separator`). |
 | Skills book (`/skills`) | `skills.view.page`, `skill-line` | One page per `book:` page of skills.yml. |
+
+#### Injuries and conditions on the sheets
+
+Every sheet (the character sheet, `stats.sheet`, `proficiency.sheet`, and the lines that go with them) can show the character's injuries and conditions with the same names as the placeholders, as `{tags}`: `{injuries}`, `{injuries_hover}`, `{injuries_50}`, `{injuries_hover_50}`, `{injuries_count}`, and the same for `{conditions...}`. They need no PlaceholderAPI. The default character sheet has `Injuries:` and `Conditions:` lines after the height, with `{injuries_hover_50}` and `{conditions_hover_50}`; change their colours or remove them as you like. The separator and the "None" text are in the `placeholders:` section at the end of messages.yml.
 
 #### Other plugins' placeholders on the sheets
 
@@ -781,6 +786,13 @@ So every stat can be checked both ways: `<stat>_base` / `<stat>` for a value, an
 | `proficiency_focus_cost` | Points the focus needs for its next tier, 0 without a focus. |
 | `character_name`, `_age`, `_gender`, `_pronouns`, `_ancestry`, `_description` | Character sheet fields. Placeholders inside them are filled in too. |
 | `global_downtime`, `character_downtime` | Downtime. |
+| `injuries` | Current injury names on one line, oldest first, joined by `placeholders.injuries.separator` (`Broken Leg, Bruised Ribs`). `placeholders.injuries.none` ("None") when there are none. |
+| `injuries_hover` | The same, each name as its `injury.tag` (in brackets, the description on hover). |
+| `injuries_<number>`, `injuries_hover_<number>` | Broken into lines of at most that many characters, e.g. `%skysongstats_injuries_hover_50%`. See below. |
+| `injuries_count` | How many. |
+| `conditions`, `conditions_hover`, `conditions_<number>`, `conditions_hover_<number>`, `conditions_count` | The same for current conditions (given ones included). A level above 1 follows the name (`Bleeding 2`); the hover shows the description with `$` as the level. |
+
+**Line lengths.** Only the visible text counts, never MiniMessage tags, so colours and hovers don't use up the length. Lines break only at spaces, never inside a word; a word longer than the limit gets a line of its own. The break is a MiniMessage `<br>`, so it works in SkysongStats' sheets and in any plugin that reads PlaceholderAPI output as MiniMessage (one that doesn't shows `<br>` as written). A name split over two lines keeps its hover on both.
 
 All of these follow the config files: add a stat, skill or proficiency and its placeholders exist after `/ssreload`.
 
@@ -1011,7 +1023,7 @@ All code is under `src/main/java/org/skysongdev/skysongstats/`; default files ar
 | Skill XP rules | `character/SkillService.java` |
 | Proficiency rules (focus, training, tiers) | `character/ProficiencyService.java` |
 | Injury and condition rules (awards, given conditions, known injuries) | `character/AfflictionService.java`, `character/ConditionResolver.java` |
-| How injuries and conditions are shown (tags, announcement) | `messages/AfflictionTexts.java` |
+| How injuries and conditions are shown (tags, announcement, lists) | `messages/AfflictionTexts.java`, `messages/AfflictionLists.java`, `messages/LineWrapper.java` |
 | /injury, /condition, /injuries, /conditions | `commands/affliction/` (menus drawn by `menu/`) |
 | Downtime rules | `service/downtime/DowntimeService.java` |
 | Stat commands, /modifier, generated stat commands and permissions | `commands/stat/` |

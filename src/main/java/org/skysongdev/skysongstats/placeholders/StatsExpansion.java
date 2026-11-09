@@ -17,7 +17,8 @@ import java.util.function.Function;
 // %skysongstats_<name>%. Stat placeholders come from stats.yml (see
 // StatPlaceholders): <stat>, <stat>_base, <stat>_modifiers, max_<bar>, max_<bar>_base... Then the
 // skill XP (<skill id> from skills.yml), the proficiencies (proficiency_..., see
-// ProficiencyPlaceholders), the character sheet fields
+// ProficiencyPlaceholders), the injuries and conditions (injuries, conditions_hover_50...,
+// see AfflictionLists), the character sheet fields
 // (character_<field>) and downtime (global_downtime, character_downtime).
 public class StatsExpansion extends PlaceholderExpansion {
 
@@ -79,7 +80,8 @@ public class StatsExpansion extends PlaceholderExpansion {
         return plugin.getUtils().getProfileManager().activeCharacter(player)
                 .flatMap(character -> stats.resolve(character, params)
                         .or(() -> skillXp(character, params))
-                        .or(() -> proficiencies.resolve(character, params)))
+                        .or(() -> proficiencies.resolve(character, params))
+                        .or(() -> plugin.getAfflictionLists().resolve(character, params)))
                 .orElseGet(() -> otherPlaceholder(player, params));
     }
 

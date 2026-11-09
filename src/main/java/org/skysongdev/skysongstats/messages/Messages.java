@@ -8,6 +8,7 @@ import org.bukkit.OfflinePlayer;
 import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.ConfigurationSection;
 
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -29,7 +30,7 @@ import java.util.regex.Pattern;
  * <p>
  * The methods that take the player a message is {@code about} (a sheet's owner)
  * also fill in other plugins' {@code %placeholders%} for that player, through
- * {@link ExternalPlaceholders}.
+ * {@link ExternalPlaceholders}, and the {@link SheetTags} ({@code {injuries}}...).
  */
 public final class Messages {
     public static final String PREFIX_KEY = "prefix";
@@ -40,6 +41,7 @@ public final class Messages {
     private final ConfigurationSection defaults;
     private final Consumer<String> warn;
     private final ExternalPlaceholders external;
+    private final SheetTags sheetTags;
     private final Set<String> warnedKeys = new HashSet<>();
 
     public Messages(ConfigurationSection texts, ConfigurationSection defaults, Consumer<String> warn) {
@@ -48,6 +50,12 @@ public final class Messages {
 
     public Messages(ConfigurationSection texts, ConfigurationSection defaults, Consumer<String> warn,
                     ExternalPlaceholders external) {
+        this(texts, defaults, warn, external, SheetTags.NONE);
+    }
+
+    public Messages(ConfigurationSection texts, ConfigurationSection defaults, Consumer<String> warn,
+                    ExternalPlaceholders external, SheetTags sheetTags) {
+        this.sheetTags = Objects.requireNonNull(sheetTags, "sheetTags");
         this.texts = Objects.requireNonNull(texts, "texts");
         this.defaults = Objects.requireNonNull(defaults, "defaults");
         this.warn = Objects.requireNonNull(warn, "warn");
@@ -88,7 +96,7 @@ public final class Messages {
     /** {@link #get(String, Map, Map)} with other plugins' %placeholders% filled in for {@code about}. */
     public Component get(String key, Map<String, String> placeholders, Map<String, Component> components,
                          OfflinePlayer about) {
-        return render(external.fill(about, String.join("\n", rawLines(key))), placeholders, components);
+        return renderAbout(String.join("\n", rawLines(key)), placeholders, components, about);
     }
 
     public List<Component> getLines(String key) {
@@ -108,7 +116,7 @@ public final class Messages {
     public List<Component> getLines(String key, Map<String, String> placeholders, Map<String, Component> components,
                                     OfflinePlayer about) {
         return rawLines(key).stream()
-                .map(line -> render(external.fill(about, line), placeholders, components))
+                .map(line -> renderAbout(line, placeholders, components, about))
                 .toList();
     }
 
@@ -160,6 +168,16 @@ public final class Messages {
         if (warnedKeys.add(key)) {
             warn.accept(warning);
         }
+    }
+
+    // A line about a player: other plugins' %placeholders% and the sheet tags
+    // ({injuries...}) for that player go in too.
+    private Component renderAbout(String text, Map<String, String> placeholders, Map<String, Component> components,
+                                  OfflinePlayer about) {
+        String filled = external.fill(about, text);
+        Map<String, Component> withTags = new HashMap<>(sheetTags.tags(about, filled));
+        withTags.putAll(components);
+        return render(filled, placeholders, withTags);
     }
 
     // Text placeholders are written into the MiniMessage text, escaped. Component

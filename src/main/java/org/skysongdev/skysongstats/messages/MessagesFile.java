@@ -35,6 +35,12 @@ public final class MessagesFile {
      * @param external    fills in other plugins' %placeholders% on the sheets
      */
     public static Messages load(File file, String bundledText, Consumer<String> log, ExternalPlaceholders external) {
+        return load(file, bundledText, log, external, SheetTags.NONE);
+    }
+
+    /** {@link #load(File, String, Consumer, ExternalPlaceholders)} with the plugin's own sheet tags. */
+    public static Messages load(File file, String bundledText, Consumer<String> log, ExternalPlaceholders external,
+                                SheetTags sheetTags) {
         YamlConfiguration bundled = parse(bundledText);
         if (!file.exists()) {
             write(file, bundledText, log);
@@ -45,7 +51,7 @@ public final class MessagesFile {
             save(server, file, log);
             added.forEach(key -> log.accept("messages.yml: added the new message '" + key + "'"));
         }
-        return new Messages(server, bundled, log, external);
+        return new Messages(server, bundled, log, external, sheetTags);
     }
 
     private static YamlConfiguration parse(String bundledText) {
