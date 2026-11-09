@@ -1,5 +1,6 @@
 package org.skysongdev.skysongstats.character;
 
+import org.skysongdev.skysongstats.api.EffectSource;
 import org.skysongdev.skysongstats.definition.ConditionDefinition;
 import org.skysongdev.skysongstats.definition.ConditionDefinitions;
 import org.skysongdev.skysongstats.definition.InjuryDefinition;
@@ -108,8 +109,10 @@ public class AfflictionService {
         return current;
     }
 
+    // The id in any case, like everywhere here.
     public boolean hasInjury(ProfileKey character, String injuryId) {
-        return injuries(character).stream().anyMatch(injury -> injury.injury().id().equals(injuryId));
+        return injuries.get(injuryId).map(InjuryDefinition::id).map(id -> injuries(character).stream()
+                .anyMatch(injury -> injury.injury().id().equals(id))).orElse(false);
     }
 
     // Gives the character an injury and teaches it to them. Awarding one it already
@@ -253,11 +256,13 @@ public class AfflictionService {
         for (CharacterInjury current : injuries(character)) {
             InjuryDefinition injury = current.injury();
             injury.modifiers().forEach(modifier ->
-                    effects.add(new StatEffect(modifier.target(), modifier.amountAt(1), injury.name())));
+                    effects.add(new StatEffect(modifier.target(), modifier.amountAt(1), EffectSource.INJURY,
+                            injury.id(), injury.name())));
         }
         for (ActiveCondition condition : conditions(character)) {
-            condition.condition().modifiers().forEach(modifier -> effects.add(new StatEffect(modifier.target(),
-                    modifier.amountAt(condition.level()), condition.condition().name())));
+            ConditionDefinition definition = condition.condition();
+            definition.modifiers().forEach(modifier -> effects.add(new StatEffect(modifier.target(),
+                    modifier.amountAt(condition.level()), EffectSource.CONDITION, definition.id(), definition.name())));
         }
         return effects;
     }

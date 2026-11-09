@@ -151,7 +151,7 @@ public final class StatModifierCommand implements TabExecutor {
     private Map<String, String> placeholders(StatEffect effect) {
         return Map.of("target", effect.target(), "name", displayName(effect.target()),
                 "amount", Integer.toString(effect.amount()),
-                "source", MiniMessage.miniMessage().stripTags(effect.source()));
+                "source", MiniMessage.miniMessage().stripTags(effect.sourceName()));
     }
 
     private List<StoredModifier> modifiers(CommandTargets.Target character) {

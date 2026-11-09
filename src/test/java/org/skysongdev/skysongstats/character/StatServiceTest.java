@@ -4,6 +4,7 @@ import org.bukkit.configuration.InvalidConfigurationException;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.skysongdev.skysongstats.api.EffectSource;
 import org.skysongdev.skysongstats.definition.ItemTagSource;
 import org.skysongdev.skysongstats.definition.StatAction;
 import org.skysongdev.skysongstats.definition.StatDefinition;
@@ -457,8 +458,8 @@ class StatServiceTest {
 
     @Test
     void effectsAddToTotalsAndMaximumsLikeModifiers() {
-        service.setEffects(ALICE, List.of(new StatEffect("str", -1, "Broken Arm"), new StatEffect("con", 1, "Tough"),
-                new StatEffect("max_hp", -5, "Broken Arm")));
+        service.setEffects(ALICE, List.of(new StatEffect("str", -1, EffectSource.INJURY, "test", "Broken Arm"), new StatEffect("con", 1, EffectSource.INJURY, "test", "Tough"),
+                new StatEffect("max_hp", -5, EffectSource.INJURY, "test", "Broken Arm")));
         assertEquals(-1, value("str"));
         assertEquals(1, value("con"));
         assertEquals(65, value("max_hp"));
@@ -469,11 +470,11 @@ class StatServiceTest {
 
     @Test
     void settingEffectsReportsEveryStatThatChanged() {
-        service.setEffects(ALICE, List.of(new StatEffect("str", 2, "Rage")));
+        service.setEffects(ALICE, List.of(new StatEffect("str", 2, EffectSource.INJURY, "test", "Rage")));
         assertEquals(List.of(new StatChange(ALICE, stat("str"), 0, 2)), changes);
 
         changes.clear();
-        service.setEffects(ALICE, List.of(new StatEffect("str", 2, "Rage")));
+        service.setEffects(ALICE, List.of(new StatEffect("str", 2, EffectSource.INJURY, "test", "Rage")));
         assertEquals(List.of(), changes);
 
         service.setEffects(ALICE, List.of());
@@ -482,7 +483,7 @@ class StatServiceTest {
 
     @Test
     void anEffectLoweringMaxHpBringsHpDownAndRemovingItDoesntRefill() {
-        service.setEffects(ALICE, List.of(new StatEffect("max_hp", -10, "Broken Leg")));
+        service.setEffects(ALICE, List.of(new StatEffect("max_hp", -10, EffectSource.INJURY, "test", "Broken Leg")));
         assertEquals(50, value("max_hp"));
         assertEquals(50, value("hp"));
         assertTrue(changes.contains(new StatChange(ALICE, stat("hp"), 60, 50)));
@@ -495,7 +496,7 @@ class StatServiceTest {
     @Test
     void effectsOnACharacterWithoutStatsAreIgnored() {
         ProfileKey nobody = new ProfileKey(UUID.randomUUID(), "main");
-        service.setEffects(nobody, List.of(new StatEffect("str", 1, "Rage")));
+        service.setEffects(nobody, List.of(new StatEffect("str", 1, EffectSource.INJURY, "test", "Rage")));
         assertTrue(service.sheet(nobody).isEmpty());
         assertEquals(List.of(), changes);
     }

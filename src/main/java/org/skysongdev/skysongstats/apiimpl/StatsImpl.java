@@ -2,6 +2,7 @@ package org.skysongdev.skysongstats.apiimpl;
 
 import org.jetbrains.annotations.NotNull;
 import org.skysongdev.skysongstats.api.CharacterId;
+import org.skysongdev.skysongstats.api.Effect;
 import org.skysongdev.skysongstats.api.Stat;
 import org.skysongdev.skysongstats.api.StatAction;
 import org.skysongdev.skysongstats.api.StatChange;
@@ -84,5 +85,14 @@ final class StatsImpl implements Stats {
     // another stat on reload, an id can't.
     private Optional<StatDefinition> definition(Stat stat) {
         return stats.definitions().get(stat.id());
+    }
+
+    @Override
+    public @NotNull List<Effect> effects(@NotNull CharacterId character) {
+        Objects.requireNonNull(character, "character");
+        mainThread.check();
+        return stats.sheet(ApiTypes.key(character))
+                .map(sheet -> sheet.effects().stream().map(AfflictionApiTypes::effect).toList())
+                .orElse(List.of());
     }
 }
