@@ -13,7 +13,9 @@ import java.util.Map;
  */
 public interface SheetTags {
     /** For tests and while nothing provides tags: no extra tags. */
-    SheetTags NONE = (player, line) -> Map.of();
+    static SheetTags none() {
+        return (player, line) -> Map.of();
+    }
 
     /** The tags this line uses that this knows, by name, for the player. */
     Map<String, Component> tags(OfflinePlayer player, String line);

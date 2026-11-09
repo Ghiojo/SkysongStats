@@ -35,7 +35,7 @@ public final class MessagesFile {
      * @param external    fills in other plugins' %placeholders% on the sheets
      */
     public static Messages load(File file, String bundledText, Consumer<String> log, ExternalPlaceholders external) {
-        return load(file, bundledText, log, external, SheetTags.NONE);
+        return load(file, bundledText, log, external, SheetTags.none());
     }
 
     /** {@link #load(File, String, Consumer, ExternalPlaceholders)} with the plugin's own sheet tags. */
