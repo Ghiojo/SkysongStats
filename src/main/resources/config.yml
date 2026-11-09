@@ -22,3 +22,9 @@ downtime:
   global-start: 3      # new players start here
   global-recovery: 3   # resetall adds this to every player's global downtime
   global-max: 9        # add and resetall never go above this
+
+# /ssimport chattweaks reads SkysongChatTweaks' config.yml (its conditions, its
+# injuries and its database settings) from this folder. Relative to the server
+# folder; an absolute path works too, to import from a copy.
+import:
+  chattweaks-folder: "plugins/SkysongChatTweaks"

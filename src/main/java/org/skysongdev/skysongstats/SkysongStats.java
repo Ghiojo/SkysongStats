@@ -58,7 +58,10 @@ import org.skysongdev.skysongstats.character.StatChangeListener;
 import org.skysongdev.skysongstats.character.StatService;
 import org.skysongdev.skysongstats.commands.character.CharacterCommand;
 import org.skysongdev.skysongstats.commands.downtime.DowntimeCommand;
+import org.skysongdev.skysongstats.commands.misc.ImportCommand;
 import org.skysongdev.skysongstats.commands.misc.ReloadCommand;
+import org.skysongdev.skysongstats.importer.ChatTweaksImporter;
+import org.skysongdev.skysongstats.definition.DefinitionFile;
 import org.skysongdev.skysongstats.commands.profile.ProfileCommand;
 import org.skysongdev.skysongstats.commands.setup.SetupCommand;
 import org.skysongdev.skysongstats.commands.skills.SkillBook;
@@ -128,6 +131,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.UncheckedIOException;
 import java.nio.charset.StandardCharsets;
+import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
@@ -318,11 +322,33 @@ public class SkysongStats extends JavaPlugin {
                 afflictionMenus));
         getCommand("conditions").setExecutor(new ConditionsMenuCommand(afflictionService, this::getMessages,
                 afflictionMenus));
+        getCommand("ssimport").setExecutor(new ImportCommand(chatTweaksImporter(), this::getMessages));
         getCommand("ssreload").setExecutor(new ReloadCommand());
         getCommand("schar").setExecutor(characterCommand);
         getCommand("char").setExecutor(characterCommand);
         downtimeCommand = new DowntimeCommand(downtimeService);
         getCommand("downtime").setExecutor(downtimeCommand);
+    }
+
+    // /ssimport chattweaks. Its folder comes from config.yml on every run, relative
+    // to the server folder unless it is absolute.
+    private ChatTweaksImporter chatTweaksImporter(){
+        File serverFolder = getDataFolder().getAbsoluteFile().getParentFile().getParentFile();
+        Supplier<File> folder = () -> {
+            File configured = new File(getConfig().getString("import.chattweaks-folder", "plugins/SkysongChatTweaks"));
+            return configured.isAbsolute() ? configured : new File(serverFolder, configured.getPath());
+        };
+        ChatTweaksImporter.Targets targets = new ChatTweaksImporter.Targets(
+                new File(getDataFolder(), ConditionsConfigFile.FILE_NAME),
+                new File(getDataFolder(), InjuriesConfigFile.FILE_NAME),
+                this::reloadInjuriesAndConditionsFiles, afflictionService,
+                character -> statService.sheet(character).isPresent());
+        ChatTweaksImporter.Threads threads = new ChatTweaksImporter.Threads(
+                task -> Bukkit.getScheduler().runTaskAsynchronously(this, task),
+                task -> Bukkit.getScheduler().runTask(this, task));
+        return new ChatTweaksImporter(folder, targets,
+                settings -> DriverManager.getConnection(settings.jdbcUrl(), settings.user(), settings.password()),
+                threads, this::getMessages, getLogger(), DefinitionFile::isItem);
     }
 
     public void AssignListeners() {
@@ -731,6 +757,19 @@ public class SkysongStats extends JavaPlugin {
             getLogger().log(Level.WARNING, "injuries.yml was not reloaded, keeping the injuries from before", e);
             notReloaded.add(InjuriesConfigFile.FILE_NAME);
         }
+        return notReloaded;
+    }
+
+    // Reloads only conditions.yml and injuries.yml, as /ssreload would, for
+    // /ssimport chattweaks after it added to them. Returns the files that had
+    // mistakes and were not reloaded.
+    private List<String> reloadInjuriesAndConditionsFiles(){
+        List<String> notReloaded = changeCauses.during(ChangeCause.RELOAD, () -> {
+            List<String> files = reloadInjuriesAndConditions();
+            afflictionService.setDefinitions(conditionDefinitions, injuryDefinitions);
+            return files;
+        });
+        Bukkit.getPluginManager().callEvent(new SkysongStatsReloadEvent());
         return notReloaded;
     }
 

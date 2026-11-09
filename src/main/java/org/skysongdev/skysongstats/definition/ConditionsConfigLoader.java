@@ -45,6 +45,11 @@ public final class ConditionsConfigLoader {
         return new ConditionsConfigLoader(stats, isItemMaterial).read(root);
     }
 
+    // Whether a condition may be called this in conditions.yml.
+    public static boolean isValidId(String id) {
+        return ID.matcher(id).matches();
+    }
+
     private ConditionDefinitions read(ConfigurationSection root) {
         Map<String, ConditionDefinition> conditions = new LinkedHashMap<>();
         ConfigurationSection section = root.getConfigurationSection("conditions");
@@ -73,7 +78,7 @@ public final class ConditionsConfigLoader {
             errors.add(path + ": must be a section with its settings");
             return Optional.empty();
         }
-        if (!ID.matcher(id).matches()) {
+        if (!isValidId(id)) {
             errors.add(path + ": condition ids may only use lowercase letters, digits and '-'"
                     + " ('_' separates the level in chat: [condition_" + id.replace('_', '-') + "_2])");
             return Optional.empty();

@@ -533,6 +533,31 @@ modifier:
 #   {injuries_count}      how many
 # and the same for {conditions...} (condition.tag; a level above 1 follows the
 # name). The placeholders are the same names: %skysongstats_injuries_hover_50%...
+# /ssimport chattweaks, the one-off import from SkysongChatTweaks.
+import:
+  usage: "{prefix}<red>Usage: /ssimport chattweaks"
+  chattweaks:
+    already-running: "{prefix}<yellow>An import is already running, wait for its report."
+    # {path} is SkysongChatTweaks' config.yml, from import.chattweaks-folder in config.yml.
+    not-found: "{prefix}<red>There is no SkysongChatTweaks config at {path}. Set import.chattweaks-folder in config.yml."
+    read-failed: "{prefix}<red>{path} could not be read. See the console for details."
+    started: "{prefix}<gray>Importing from {path}..."
+    save-failed: "{prefix}<red>conditions.yml or injuries.yml could not be saved, nothing was imported. See the console for details."
+    # {files}: the files the import added to that now have mistakes.
+    not-reloaded: "{prefix}<red>{files} has mistakes after the import and was not reloaded, so no known injuries were imported. Fix it and run the import again. See the console for details."
+    no-database: "{prefix}<red>{path} has no database: section, so no known injuries were imported."
+    database-failed: "{prefix}<red>SkysongChatTweaks' database could not be read, so no known injuries were imported. See the console for details."
+    # {conditions_added} {conditions_skipped} {injuries_added} {injuries_skipped}
+    report-definitions:
+      - "{prefix}<green>Imported from SkysongChatTweaks:"
+      - "<gray>Conditions: <white>{conditions_added}</white> added, <white>{conditions_skipped}</white> skipped"
+      - "<gray>Injuries: <white>{injuries_added}</white> added, <white>{injuries_skipped}</white> skipped"
+    # {characters} {learnt} {already_known} {unknown_profiles} {unreadable_rows} {unmatched_nodes}
+    report-known:
+      - "<gray>Known injuries: <white>{learnt}</white> imported for <white>{characters}</white> characters, <white>{already_known}</white> already known"
+      - "<gray>Skipped: <white>{unknown_profiles}</white> profiles SkysongStats doesn't have, <white>{unreadable_rows}</white> unreadable rows, <white>{unmatched_nodes}</white> nodes that match no injury"
+      - "<gray>Every added and skipped entry is listed in the console."
+
 placeholders:
   injuries:
     separator: "<gray>, </gray>"
