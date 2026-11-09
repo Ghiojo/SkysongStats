@@ -14,19 +14,20 @@ When this manual and the code disagree, the code wins. The last section, [Where 
 6. [Formulas](#formulas)
 7. [skills.yml](#skillsyml)
 8. [proficiencies.yml](#proficienciesyml)
-9. [messages.yml](#messagesyml)
-10. [Profiles and characters](#profiles-and-characters)
-11. [The /setup flow](#the-setup-flow)
-12. [Commands](#commands)
-13. [Permissions and LuckPerms nodes](#permissions-and-luckperms-nodes)
-14. [Placeholders](#placeholders)
-15. [The API for other plugins](#the-api-for-other-plugins)
-16. [Events for other plugins](#events-for-other-plugins)
-17. [The database](#the-database)
-18. [Skysong Special Items compatibility](#skysong-special-items-compatibility)
-19. [How to make common changes](#how-to-make-common-changes)
-20. [Things to know (quirks and leftovers)](#things-to-know-quirks-and-leftovers)
-21. [Where things live in the code](#where-things-live-in-the-code)
+9. [conditions.yml and injuries.yml](#conditionsyml-and-injuriesyml)
+10. [messages.yml](#messagesyml)
+11. [Profiles and characters](#profiles-and-characters)
+12. [The /setup flow](#the-setup-flow)
+13. [Commands](#commands)
+14. [Permissions and LuckPerms nodes](#permissions-and-luckperms-nodes)
+15. [Placeholders](#placeholders)
+16. [The API for other plugins](#the-api-for-other-plugins)
+17. [Events for other plugins](#events-for-other-plugins)
+18. [The database](#the-database)
+19. [Skysong Special Items compatibility](#skysong-special-items-compatibility)
+20. [How to make common changes](#how-to-make-common-changes)
+21. [Things to know (quirks and leftovers)](#things-to-know-quirks-and-leftovers)
+22. [Where things live in the code](#where-things-live-in-the-code)
 
 ---
 
@@ -61,7 +62,7 @@ Paper downloads HikariCP (the database connection pool) by itself on the first s
 
 **Building:** run `./gradlew build` in the repository. The jar is `build/libs/SkysongStats-<version>.jar` (the version is in `build.gradle`). `./gradlew build test` also runs the unit tests. The build downloads the SkysongItems API from JitPack (`skysongItemsApi` in `build.gradle`: `com.github.Ghiojo:Skysong-Special-Items:<tag>`, currently `1.0.1`). After changing that tag, build once with `./gradlew build --refresh-dependencies`.
 
-**First start:** the plugin writes its default `config.yml`, `stats.yml`, `skills.yml`, `proficiencies.yml` and `messages.yml` into `plugins/SkysongStats/`. Fill in the `database:` section of `config.yml` and restart.
+**First start:** the plugin writes its default `config.yml`, `stats.yml`, `skills.yml`, `proficiencies.yml`, `conditions.yml`, `injuries.yml` and `messages.yml` into `plugins/SkysongStats/`. Fill in the `database:` section of `config.yml` and restart.
 
 ---
 
@@ -73,11 +74,13 @@ Paper downloads HikariCP (the database connection pool) by itself on the first s
 | `stats.yml` | Every stat, its limits, its commands, its /setup button | Yes |
 | `skills.yml` | Skill levels, skills, the /skills book, /setup skill picks | Yes |
 | `proficiencies.yml` | Tiers, costs, proficiencies, /setup proficiency picks | Yes |
+| `conditions.yml` | Conditions (bleeding, weakened...) and their effects | Yes |
+| `injuries.yml` | Injury severities, injuries and their effects | Yes |
 | `messages.yml` | Every player-facing text | Yes |
 
 ### What `/ssreload` does
 
-`/ssreload` re-reads every file above in this order: `config.yml` (downtime limits only), `messages.yml`, `stats.yml`, `skills.yml`, `proficiencies.yml`.
+`/ssreload` re-reads every file above in this order: `config.yml` (downtime limits only), `messages.yml`, `stats.yml`, `skills.yml`, `proficiencies.yml`, `conditions.yml`, `injuries.yml`.
 
 - **A file with mistakes is not applied.** The plugin keeps using the version it already had, tells whoever ran the command `<file> has mistakes and was not reloaded`, and prints the full list of mistakes to the console. Fix them and run `/ssreload` again.
 - **At startup, a file with mistakes disables the plugin**, with the list of mistakes in the console. Fix it and restart.
@@ -88,6 +91,7 @@ Paper downloads HikariCP (the database connection pool) by itself on the first s
   - Everyone online gets their skill level and proficiency tier nodes recalculated for the new files.
 - Things removed from a file are **not deleted from the database**: their saved values stay, unused. If you add them back, the old values come back too.
 - `proficiencies.yml` is checked against the skills now loaded. If `skills.yml` failed to reload, proficiencies are checked against the old skills.
+- `conditions.yml` and `injuries.yml` are checked against the stats now loaded, and `injuries.yml` against the conditions now loaded, in the same way.
 
 ### Missing messages are added for you
 
@@ -443,6 +447,64 @@ The key is the proficiency's **id** (lowercase letters, digits, `_`, `-`). It ca
 | Economical (Logistics & Economics) | Perception, Surface Vehicle, Air Vehicle, Surface Mount, Air Mount, Survival |
 | Medical | Medicine |
 | Entertainment | Sleight of Hand, Stealth, Performance |
+
+## conditions.yml and injuries.yml
+
+Conditions (Bleeding, Weakened...) and injuries (Broken Leg, Bruised Ribs...) that characters can have. Both can change stats while a character has them, through `effects:`. Injuries and conditions can give conditions; conditions never give injuries. Both files ship empty, with an example in their comments.
+
+```yaml
+# conditions.yml
+conditions:
+  bleeding:
+    name: "<dark_red>Bleeding"
+    description: "Loses $ HP every turn."
+    icon: REDSTONE
+    effects:
+      modifiers: "con-$"
+      conditions: [weakened]
+  weakened:
+    name: "Weakened"
+    effects:
+      modifiers: [str-1]
+```
+
+```yaml
+# injuries.yml
+severities: [minor, moderate, severe, permanent]
+injuries:
+  broken-leg:
+    name: "<red>Broken Leg"
+    description: "The bone is snapped below the knee."
+    icon: BONE
+    severity: severe
+    message: "{character} feels their leg buckle as the bones snap, they now have a {injury}"
+    effects:
+      modifiers: "dex-2, max_hp-5"
+      conditions: ["bleeding:2"]
+```
+
+### Fields
+
+| Field | Conditions | Injuries | Meaning |
+|---|---|---|---|
+| the key | lowercase letters, digits, `-` | lowercase letters, digits, `_`, `-` | The id. Conditions can't use `_`, because chat writes a condition with its level as `[condition_<id>_<level>]`. |
+| `name` | yes | yes | MiniMessage. Default: the id. |
+| `description` | yes | yes | MiniMessage. Default: empty. In a condition, `$` is the level the character has it at. |
+| `icon` | yes | yes | A Material or `model:<namespace:id>`. Default: `PAPER`. |
+| `severity` | | required | One of `severities:`. Not every severity needs injuries. |
+| `message` | | yes | Said when the injury is awarded. `{character}` is the character's name, `{injury}` the injury as chat shows it. Default: none. |
+| `effects.modifiers` | yes | yes | Stat modifiers while a character has it (below). |
+| `effects.conditions` | yes | yes | Conditions it brings, each with an optional `:level` (default 1): `[weakened, "bleeding:2"]`. |
+
+`severities:` at the top of `injuries.yml` lists every severity an injury may have, in the order they are shown.
+
+### `effects:`
+
+Optional. An injury or condition without it changes nothing.
+
+- **`modifiers:`** one text split by commas (`"str-1, dex+2"`) or a list. Each entry is `<stat><+ or -><amount>`. `<stat>` is anything `/modifier add` takes: a stat id or alias from `stats.yml`, or `max_<bar>` for a bar's max. `<amount>` is a whole number other than 0; in `conditions.yml` it can also be `$`, the condition's level (`con-$` at level 3 gives con -3).
+- **`conditions:`** conditions that last exactly as long as the injury or condition that gives them. Chains work: an injury gives Bleeding, Bleeding gives Weakened, and removing the injury removes both. Conditions that give each other in a loop (a gives b, b gives a, or a gives a) are refused.
+- Any other key under `effects:` is a mistake (it catches typos such as `modifier:`).
 
 ---
 
@@ -886,7 +948,7 @@ All code is under `src/main/java/org/skysongdev/skysongstats/`; default files ar
 | Part | Package / file |
 |---|---|
 | Startup, reload, wiring | `SkysongStats.java` (`onEnable`, `reloadSettings`) |
-| Reading and checking stats.yml, skills.yml, proficiencies.yml | `definition/` (`*ConfigLoader`, `*Validator`) |
+| Reading and checking stats.yml, skills.yml, proficiencies.yml, conditions.yml, injuries.yml | `definition/` (`*ConfigLoader`, `*Validator`; effects in `EffectModifierParser`, `GivenConditionsReader`, `ConditionLoops`) |
 | Formulas | `formula/Formula.java` |
 | Stat rules (actions, limits, shields, modifiers) | `character/StatService.java`, `character/StatCalculator.java` |
 | Skill XP rules | `character/SkillService.java` |
