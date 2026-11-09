@@ -1,9 +1,11 @@
 package org.skysongdev.skysongstats.api;
 
+import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.Plugin;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -21,6 +23,7 @@ import java.util.Optional;
  * if (characters.owner(guard).isEmpty()) {
  *     characters.create(this, guard, Map.of(stats.find("str").orElseThrow(), 4));
  * }
+ * characters.setItems(guard, Arrays.asList(npcInventory.getContents()));
  * SkysongStatsApi.get().stats().apply(guard, "hp", StatAction.DAMAGE, 5);
  * }</pre>
  *
@@ -110,4 +113,23 @@ public interface Characters {
      * @throws IllegalStateException when called from another thread
      */
     @NotNull List<CharacterId> ownedBy(@NotNull Plugin owner);
+
+    /**
+     * The items a plugin character carries now, such as an NPC's inventory and equipment.
+     * They count toward the stats with {@code item-tags:} in stats.yml (Arcrot, Fictis...)
+     * exactly like the items in a player's inventory, and replace what the last call gave.
+     *
+     * <p>SkysongStats can't see a plugin's NPCs, so the plugin calls this whenever their
+     * items change, for each of its characters when it enables (the counts are not saved),
+     * and on {@link org.skysongdev.skysongstats.api.event.SkysongStatsReloadEvent}, since
+     * stats.yml may count other tags after a reload. {@link ItemSources} are for players
+     * and don't add to plugin characters.
+     *
+     * @param character a plugin character
+     * @param items     everything it carries; {@code null} entries (empty slots) count as nothing
+     * @return true when they were counted, false when the character isn't a plugin
+     *         character (a player's items are always their inventory), and nothing changed
+     * @throws IllegalStateException when called from another thread
+     */
+    boolean setItems(@NotNull CharacterId character, @NotNull Collection<? extends ItemStack> items);
 }
