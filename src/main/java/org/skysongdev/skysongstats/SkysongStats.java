@@ -3,6 +3,7 @@ package org.skysongdev.skysongstats;
 import org.skysongdev.skysongstats.database.CharacterProfile;
 import org.skysongdev.skysongstats.Utils.CharacterManager;
 import java.util.Map;
+import java.util.Optional;
 import org.skysongdev.skysongstats.character.AfflictionChangeListener;
 import org.skysongdev.skysongstats.character.AfflictionService;
 import org.skysongdev.skysongstats.character.InjuryAward;
@@ -12,6 +13,8 @@ import org.skysongdev.skysongstats.commands.affliction.InjuriesMenuCommand;
 import org.skysongdev.skysongstats.menu.AfflictionMenus;
 import org.skysongdev.skysongstats.menu.ListMenuListener;
 import org.skysongdev.skysongstats.commands.affliction.InjuryCommand;
+import org.skysongdev.skysongstats.messages.AfflictionLists;
+import org.skysongdev.skysongstats.messages.AfflictionSheetTags;
 import org.skysongdev.skysongstats.messages.AfflictionTexts;
 import org.skysongdev.skysongstats.storage.AfflictionRepository;
 import net.luckperms.api.LuckPerms;
@@ -149,6 +152,9 @@ public class SkysongStats extends JavaPlugin {
     private ProficiencyPermissionRegistry proficiencyPermissions;
     private AfflictionService afflictionService;
     private final AfflictionTexts afflictionTexts = new AfflictionTexts(this::getMessages, this::characterName);
+    // A character's injuries and conditions as text, for placeholders and sheets.
+    private final AfflictionLists afflictionLists = new AfflictionLists(this::getAfflictionService, afflictionTexts,
+            this::getMessages);
     // Skill level and proficiency tier nodes, in LuckPerms.
     private PlayerNodes playerNodes;
 
@@ -175,6 +181,7 @@ public class SkysongStats extends JavaPlugin {
     public ProficiencyService getProficiencyService() { return proficiencyService; }
     public AfflictionService getAfflictionService() { return afflictionService; }
     public AfflictionTexts getAfflictionTexts() { return afflictionTexts; }
+    public AfflictionLists getAfflictionLists() { return afflictionLists; }
 
     // The public API offered to other plugins, null until onEnable finished.
     private SkysongStatsApiImpl api;
@@ -693,7 +700,10 @@ public class SkysongStats extends JavaPlugin {
 
     private void loadMessages(){
         messages = MessagesFile.load(new File(getDataFolder(), MessagesFile.FILE_NAME), bundled(MessagesFile.FILE_NAME), getLogger()::warning,
-                externalPlaceholders());
+                externalPlaceholders(), new AfflictionSheetTags(afflictionLists,
+                // The character an online player is playing; none for offline players.
+                player -> Optional.ofNullable(player.getPlayer()).filter(online -> utils != null)
+                        .flatMap(online -> utils.getProfileManager().activeCharacter(online))));
     }
 
     // Other plugins' %placeholders% on the sheets, when PlaceholderAPI is installed.

@@ -101,7 +101,9 @@ character:
     # These lines also fill in other plugins' PlaceholderAPI placeholders
     # (%vault_eco_balance%...) for the sheet's player.
     # {player}, {name}, {age}, {gender}, {pronouns}, {ancestry}, and the stats.yml
-    # height: {height} in metres and {height_feet} in feet and inches
+    # height: {height} in metres and {height_feet} in feet and inches. Like every
+    # sheet, it can also show the character's injuries and conditions (see the
+    # placeholders: section at the end of this file).
     header:
       - "<#864811>|====================<<<#63C934>₪<#864811>>>====================|"
       - "                <#F6DA23>{player}' s <#864811>Character Sheet:"
@@ -111,6 +113,8 @@ character:
       - "<#D0530C><bold>Gender:</bold> <#f8e886>{gender}<#e7d462>({pronouns})"
       - "<#D0530C><bold>Ancestry:</bold> <#f8e886>{ancestry}"
       - "<#D0530C><bold>Height:</bold> <#f8e886>{height} m <#e7d462>({height_feet})"
+      - "<#B1262C><bold>Injuries:</bold> <#f8e886>{injuries_hover_50}"
+      - "<#D4992C><bold>Conditions:</bold> <#f8e886>{conditions_hover_50}"
       - "<#D0530C><bold>Description:</bold>"
     # {line}
     description-line: "<#f8e886>{line}"
@@ -518,3 +522,21 @@ modifier:
     effect-line: "<gray>- <#864811>{name}: <#63C934>{amount} <gray>({source})"
     effect-line-max: "<gray>- <#864811>Max {name}: <#63C934>{amount} <gray>({source})"
     footer: "<#864811>|====================<<<#63C934>₪<#864811>>>====================|"
+
+# A character's current injuries and conditions as one text, for the PlaceholderAPI
+# placeholders and the sheet tags. Every sheet in this file (the character sheet,
+# stats.sheet, proficiency.sheet) can use them as tags:
+#   {injuries}            names, joined by separator
+#   {injuries_hover}      each name as its injury.tag, the description on hover
+#   {injuries_50}         broken into lines of at most 50 characters (any number);
+#   {injuries_hover_50}   lines break only between words, colours and hovers don't count
+#   {injuries_count}      how many
+# and the same for {conditions...} (condition.tag; a level above 1 follows the
+# name). The placeholders are the same names: %skysongstats_injuries_hover_50%...
+placeholders:
+  injuries:
+    separator: "<gray>, </gray>"
+    none: "<gray>None</gray>"
+  conditions:
+    separator: "<gray>, </gray>"
+    none: "<gray>None</gray>"
