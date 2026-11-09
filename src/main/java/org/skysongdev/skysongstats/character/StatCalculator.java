@@ -14,6 +14,8 @@ import java.util.Set;
 //   base   saved value, else the baseline (bars: the start value)
 //   total  base + modifiers on the stat + Skysong item counts (for a bar: its current value)
 //   max    the bar's max formula, read with stat totals, + modifiers on max_<bar>
+// where the modifiers are the saved ones (/modifier) and the effects of the
+// character's injuries and conditions.
 //   max base  the bar's max formula alone, before the modifiers on max_<bar>
 // A calculator is cheap and is made for one question, so it can guard against a
 // formula reading a value that is being computed (a full-at-start bar whose max
@@ -48,11 +50,17 @@ public final class StatCalculator {
         return max(stat) - extra(stat);
     }
 
+    // Saved modifiers and effects on a stat id or max_<bar>.
     public int modifiers(String target) {
         int sum = 0;
         for (StoredModifier modifier : sheet.modifiers()) {
             if (modifier.target().equals(target)) {
                 sum += modifier.amount();
+            }
+        }
+        for (StatEffect effect : sheet.effects()) {
+            if (effect.target().equals(target)) {
+                sum += effect.amount();
             }
         }
         return sum;

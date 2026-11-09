@@ -512,4 +512,9 @@ modifier:
     empty: "<#F6DA23>No modifiers found!"
     line: "<#F6DA23>{index}. <#864811>{name}: <#63C934>{amount}"
     line-max: "<#F6DA23>{index}. <#864811>Max {name}: <#63C934>{amount}"
+    # An injury's or condition's modifier, shown on the first page below the saved
+    # ones. It has no number: removing the injury or condition removes it.
+    # {name} {amount} {source}
+    effect-line: "<gray>- <#864811>{name}: <#63C934>{amount} <gray>({source})"
+    effect-line-max: "<gray>- <#864811>Max {name}: <#63C934>{amount} <gray>({source})"
     footer: "<#864811>|====================<<<#63C934>₪<#864811>>>====================|"

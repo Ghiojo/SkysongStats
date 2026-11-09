@@ -279,6 +279,8 @@ A stat with a `scale:` block is a height, kept in **centimetres** (stats are who
 
 `/modifier add <stat|max_<bar>> <amount> [player]` adds a modifier. A modifier on a stat adds to its total; a modifier on `max_hp` adds to HP's max. Modifiers are saved per profile and listed with `/modifier view`. Removing one (`/modifier del <number>`) uses the number `view` shows.
 
+Injuries and conditions add their [`effects: modifiers:`](#effects) the same way, as long as the character has them. These are worked out live, never saved: removing the injury removes them, and changing `effects:` then `/ssreload` changes everyone who has it. They show on the first page of `/modifier view`, below the saved ones, with the injury or condition they come from (`modifier.view.effect-line`), and can't be deleted there. The after-modifier placeholders (`%skysongstats_<id>%`, `%skysongstats_max_<bar>%`) include them; the `_base` ones don't. When an effect lowers a bar's max below its current value, the bar comes down to the new max; taking the effect away doesn't refill it.
+
 ---
 
 ## Formulas
@@ -624,7 +626,7 @@ Nothing is applied until the last screen is confirmed. **Closing any screen** ca
 | `/height <height> [player]` | `skysongstats.stat.height.set` (everyone); others: `....set.other` (op) | Sets the character's height in metres or feet and inches; changes the player's size. See [`scale:`](#scale-height-and-the-players-size). |
 | `/modifier add <stat\|max_<bar>> <amount> [player]` | `skysongstats.modifier`; others: `skysongstats.modifier.add.other` | Adds a modifier. |
 | `/modifier del <number> [player]` | `skysongstats.modifier`; others: `skysongstats.modifier.del.other` | Removes the modifier with that number in `view`. |
-| `/modifier view [page] [player]` | `skysongstats.modifier`; others: `skysongstats.modifier.view.other` | Lists modifiers, 10 per page. |
+| `/modifier view [page] [player]` | `skysongstats.modifier`; others: `skysongstats.modifier.view.other` | Lists modifiers, 10 per page. The first page also lists the injury and condition effects. |
 
 Stat and modifier commands only work on **online** players.
 
@@ -1005,7 +1007,7 @@ All code is under `src/main/java/org/skysongdev/skysongstats/`; default files ar
 | Startup, reload, wiring | `SkysongStats.java` (`onEnable`, `reloadSettings`) |
 | Reading and checking stats.yml, skills.yml, proficiencies.yml, conditions.yml, injuries.yml | `definition/` (`*ConfigLoader`, `*Validator`; effects in `EffectModifierParser`, `GivenConditionsReader`, `ConditionLoops`) |
 | Formulas | `formula/Formula.java` |
-| Stat rules (actions, limits, shields, modifiers) | `character/StatService.java`, `character/StatCalculator.java` |
+| Stat rules (actions, limits, shields, modifiers, effects) | `character/StatService.java`, `character/StatCalculator.java` |
 | Skill XP rules | `character/SkillService.java` |
 | Proficiency rules (focus, training, tiers) | `character/ProficiencyService.java` |
 | Injury and condition rules (awards, given conditions, known injuries) | `character/AfflictionService.java`, `character/ConditionResolver.java` |

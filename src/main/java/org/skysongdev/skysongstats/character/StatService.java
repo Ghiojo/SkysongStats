@@ -10,6 +10,7 @@ import org.skysongdev.skysongstats.storage.StoredModifier;
 import org.skysongdev.skysongstats.storage.StoredStats;
 
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -183,6 +184,22 @@ public class StatService {
         return definitions.get(target).isPresent() || definitions.findBarByMaxId(target).isPresent();
     }
 
+    // Replaces the effects of the character's injuries and conditions, after one was
+    // given or removed. Every stat whose total changes is reported, and capped bars
+    // above their new max come down to it (taking an effect away doesn't refill
+    // them). Does nothing for a character without stats.
+    public void setEffects(ProfileKey character, List<StatEffect> effects) {
+        CharacterSheet sheet = sheets.get(character);
+        if (sheet == null || sheet.effects().equals(effects)) {
+            return;
+        }
+        Map<StatDefinition, Integer> before = totals(sheet);
+        sheet.setEffects(effects);
+        fitBars(sheet);
+        reportChanges(sheet, before);
+        listener.onTotalsChanged(character);
+    }
+
     // Replaces the Skysong item counts seen in the player's inventory. They are
     // recounted, never saved, and don't fire change events.
     public void setItemCounts(ProfileKey character, Map<ItemTagSource, Integer> counts) {
@@ -210,16 +227,32 @@ public class StatService {
     // Brings capped bars that are above their max (after a modifier or a stat
     // they depend on went down) back to it.
     private void clampBars(CharacterSheet sheet) {
+        Map<StatDefinition, Integer> before = totals(sheet);
+        fitBars(sheet);
+        reportChanges(sheet, before);
+    }
+
+    private void fitBars(CharacterSheet sheet) {
         for (StatDefinition stat : definitions.all()) {
             if (stat.isBar() && !stat.bar().canExceedMax()) {
                 StatCalculator calculator = calculator(sheet);
-                int before = calculator.total(stat);
-                if (before > calculator.max(stat)) {
+                if (calculator.total(stat) > calculator.max(stat)) {
                     change(sheet, stat, calculator.base(stat));
-                    report(sheet, stat, before);
                 }
             }
         }
+    }
+
+    private Map<StatDefinition, Integer> totals(CharacterSheet sheet) {
+        StatCalculator calculator = calculator(sheet);
+        Map<StatDefinition, Integer> totals = new LinkedHashMap<>();
+        definitions.all().forEach(stat -> totals.put(stat, calculator.total(stat)));
+        return totals;
+    }
+
+    // Reports every stat whose total is no longer what it was.
+    private void reportChanges(CharacterSheet sheet, Map<StatDefinition, Integer> before) {
+        before.forEach((stat, total) -> report(sheet, stat, total));
     }
 
     // Saves the starting value of every stat the character has no saved value for:
