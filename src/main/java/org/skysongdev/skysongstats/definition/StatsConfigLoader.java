@@ -95,7 +95,41 @@ public final class StatsConfigLoader {
         BarSettings bar = readType(id, stat);
         return new StatDefinition(id, display, reader.readInt(stat, "baseline", 0), readMin(stat, bar != null),
                 bar, readItemTags(stat), readCommands(stat), readSetup(id, stat, bar != null),
-                readPermissionDefault(stat));
+                readPermissionDefault(stat), readScale(id, stat, bar != null));
+    }
+
+    // Returns the height settings, or null when the stat is not a height.
+    private HeightScale readScale(String id, ConfigurationSection stat, boolean isBar) {
+        ConfigurationSection scale = stat.getConfigurationSection("scale");
+        if (scale == null) {
+            if (stat.contains("scale")) {
+                errors.add(path(id) + ".scale: must be a section with normal, min and max");
+            }
+            return null;
+        }
+        if (isBar) {
+            errors.add(path(id) + ".scale: only plain values can be a height, not bars");
+        }
+        int normal = reader.readRequiredInt(scale, "normal");
+        int min = reader.readRequiredInt(scale, "min");
+        int max = reader.readRequiredInt(scale, "max");
+        String where = scale.getCurrentPath();
+        if (normal <= 0 || min <= 0) {
+            errors.add(where + ": normal and min must be above 0 (they are centimetres)");
+            return null;
+        }
+        if (min > max) {
+            errors.add(where + ": min can't be above max");
+        }
+        if ((double) min / normal < HeightScale.MIN_SCALE || (double) max / normal > HeightScale.MAX_SCALE) {
+            errors.add(where + ": Minecraft scales go from " + HeightScale.MIN_SCALE + " to " + (int) HeightScale.MAX_SCALE
+                    + ", so min must be at least normal / 16 and max at most normal * 16");
+        }
+        int baseline = stat.getInt("baseline", 0);
+        if (baseline < min || baseline > max) {
+            errors.add(path(id) + ".baseline: a height's baseline must be between scale.min and scale.max");
+        }
+        return new HeightScale(normal, min, max);
     }
 
     // Returns the bar settings, or null for a plain value.

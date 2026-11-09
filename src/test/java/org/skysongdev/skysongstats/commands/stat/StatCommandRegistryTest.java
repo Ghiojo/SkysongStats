@@ -22,11 +22,12 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * Registering the command names from stats.yml, and running them like a player
- * would. The default file reproduces today's HP, temp HP, AC and potion commands.
+ * would. The default file reproduces today's HP, temp HP, AC and potion commands,
+ * and adds /height.
  */
 class StatCommandRegistryTest {
     private static final Set<String> TODAYS_COMMANDS = Set.of(
-            "heal", "addhp", "reducehp", "rhp", "damage", "dhp", "temphp", "ac", "potionsickness");
+            "heal", "addhp", "reducehp", "rhp", "damage", "dhp", "temphp", "ac", "potionsickness", "height");
 
     private StatCommandFixture fixture;
     private StatCommandRegistry registry;

@@ -100,7 +100,8 @@ character:
     # 60 characters (one description-line each), then footer.
     # These lines also fill in other plugins' PlaceholderAPI placeholders
     # (%vault_eco_balance%...) for the sheet's player.
-    # {player}, {name}, {age}, {gender}, {pronouns}, {ancestry}
+    # {player}, {name}, {age}, {gender}, {pronouns}, {ancestry}, and the stats.yml
+    # height: {height} in metres and {height_feet} in feet and inches
     header:
       - "<#864811>|====================<<<#63C934>₪<#864811>>>====================|"
       - "                <#F6DA23>{player}' s <#864811>Character Sheet:"
@@ -109,6 +110,7 @@ character:
       - "<#D0530C><bold>Age:</bold> <#f8e886>{age}"
       - "<#D0530C><bold>Gender:</bold> <#f8e886>{gender}<#e7d462>({pronouns})"
       - "<#D0530C><bold>Ancestry:</bold> <#f8e886>{ancestry}"
+      - "<#D0530C><bold>Height:</bold> <#f8e886>{height} m <#e7d462>({height_feet})"
       - "<#D0530C><bold>Description:</bold>"
     # {line}
     description-line: "<#f8e886>{line}"
@@ -331,6 +333,12 @@ stats:
     set:
       player: "{prefix}<green>Your Potion Sickness has been set to {amount}"
       sender: "{prefix}<green>Set {player}'s Potion Sickness to {amount}"
+  # Heights: {amount} {value} {old} are in metres, {amount_feet} {value_feet}
+  # {old_feet} in feet and inches.
+  height:
+    set:
+      player: "{prefix}<green>Your height is now <gold>{value} m <green>({value_feet})"
+      sender: "{prefix}<green>Set {player}'s height to <gold>{value} m <green>({value_feet})"
   errors:
     # {usage}
     usage: "{prefix}<red>Not enough arguments! (Usage: {usage})"
@@ -343,6 +351,14 @@ stats:
     no-shield: "{prefix}<red>{name} can't be damaged, it has no shield. Use reduce instead."
     # {player}
     no-character: "{prefix}<red>{player} has no character with stats."
+    # {input}
+    invalid-height: "{prefix}<red>\"{input}\" is not a height. Use metres (<yellow>1.75<red>) or feet and inches (<yellow>5'9\"<red>)."
+    # {input}: the height was split by a space, as in 5' 10"
+    height-space: "{prefix}<red>Write the height without a space: <yellow>5'10\"<red>, not <yellow>{input}<red>."
+    # {max} in metres, {max_feet}
+    too-tall: "{prefix}<red>A character can't be taller than <yellow>{max} m<red> ({max_feet})."
+    # {min} in metres, {min_feet}
+    too-short: "{prefix}<red>A character can't be shorter than <yellow>{min} m<red> ({min_feet})."
   # /stats view. The lines get {player} and every stat placeholder: {str},
   # {str_base}, {str_modifiers}, {hp}, {max_hp}, {max_hp_base}, {max_hp_modifiers}... (the same
   # names as the PlaceholderAPI ones). A stat these lines never mention gets a
@@ -370,6 +386,10 @@ stats:
     bar: "<#864811><bold>{name}:</bold> <#F6DA23>{value}<#864811>/<#F6DA23>{max}<#864811> ({modifiers}/{max_modifiers})"
   sheet-footer:
     - "<#864811>|====================<<<#63C934>₪<#864811>>>====================|"
+  # Stat ids that never show on this sheet, not even as a sheet-auto line. The
+  # height is on the character sheet (/char view) instead.
+  sheet-hidden:
+    - height
 
 # /modifier add|del|view. The "-max" messages are for modifiers on a bar's max
 # (max_hp...), so they can say "Max HP" in any language.

@@ -151,4 +151,32 @@ class StatPlaceholdersTest {
     void charactersWithoutStatsHaveNoValues() {
         assertTrue(placeholders.resolve(new ProfileKey(UUID.randomUUID(), "main"), "hp").isEmpty());
     }
+
+    @Test
+    void theHeightShowsInMetresFeetAndScale() {
+        StatDefinition height = service.definitions().get("height").orElseThrow();
+        service.apply(ALICE, height, StatAction.SET, 175);
+        service.addModifier(ALICE, "height", 5);
+        assertEquals("1.80", resolve("height"));
+        assertEquals("1.75", resolve("height_base"));
+        assertEquals("5", resolve("height_modifiers"));
+        assertEquals("5'11\"", resolve("height_feet"));
+        assertEquals("5'9\"", resolve("height_feet_base"));
+        assertEquals("1", resolve("height_scale"));
+        assertEquals("1.80", resolve("HEIGHT"));
+    }
+
+    @Test
+    void theHeightScaleStaysWithinTheLimits() {
+        service.addModifier(ALICE, "height", 500);
+        assertEquals("2", resolve("height_scale"));
+        assertEquals("6.80", resolve("height"));
+    }
+
+    @Test
+    void onlyTheHeightHasFeetAndScale() {
+        assertTrue(placeholders.resolve(ALICE, "str_feet").isEmpty());
+        assertTrue(placeholders.resolve(ALICE, "str_scale").isEmpty());
+        assertTrue(placeholders.resolve(ALICE, "height_feet_modifiers").isEmpty());
+    }
 }

@@ -17,6 +17,7 @@ import org.skysongdev.skysongstats.Utils.CharacterManager;
 import org.skysongdev.skysongstats.Utils.ProfileManager;
 import org.skysongdev.skysongstats.database.CharacterProfile;
 import org.skysongdev.skysongstats.database.ProfileIndex;
+import org.skysongdev.skysongstats.storage.ProfileKey;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -42,6 +43,7 @@ class CharacterCommandTest {
         command = plugin.getCommand("char");
         alice = server.addPlayer("Alice");
         String uuid = alice.getUniqueId().toString();
+        plugin.getStatService().ensureCharacter(new ProfileKey(alice.getUniqueId(), "Default"));
         ProfileManager.activeProfiles = new ArrayList<>(List.of(new ProfileIndex(uuid, "Default")));
         CharacterManager.characterProfiles = new ArrayList<>(List.of(new CharacterProfile(
                 uuid, "Default", "<red>Aria", "30", "Female", "Elf", "she/her", "A quiet <bold>mage</bold>")));
@@ -67,6 +69,7 @@ class CharacterCommandTest {
         assertEquals("Age: 30", next());
         assertEquals("Gender: Female(she/her)", next());
         assertEquals("Ancestry: Elf", next());
+        assertEquals("Height: 1.80 m (5'11\")", next());
         assertEquals("Description:", next());
         assertEquals("A quiet mage ", next());
         assertEquals(BORDER, next());

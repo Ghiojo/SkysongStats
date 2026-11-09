@@ -116,7 +116,9 @@ public class StatService {
             default -> throw new IllegalStateException("Unknown action " + action);
         }
         clampBars(sheet);
-        return report(sheet, stat, before);
+        StatChange change = report(sheet, stat, before);
+        listener.onTotalsChanged(character);
+        return change;
     }
 
     // The shield (temp HP for hp) takes the damage first, down to 0; the rest
@@ -150,6 +152,7 @@ public class StatService {
                 report(sheet, stat, before);
             }
         }
+        listener.onTotalsChanged(character);
     }
 
     public StoredModifier addModifier(ProfileKey character, String target, int amount) {
@@ -161,6 +164,7 @@ public class StatService {
         sheet.addModifier(modifier);
         repository.saveModifier(character, modifier);
         clampBars(sheet);
+        listener.onTotalsChanged(character);
         return modifier;
     }
 
@@ -171,6 +175,7 @@ public class StatService {
         }
         repository.deleteModifier(modifierId);
         clampBars(sheet);
+        listener.onTotalsChanged(character);
         return true;
     }
 
@@ -182,14 +187,17 @@ public class StatService {
     // recounted, never saved, and don't fire change events.
     public void setItemCounts(ProfileKey character, Map<ItemTagSource, Integer> counts) {
         require(character).setItemCounts(counts);
+        listener.onTotalsChanged(character);
     }
 
     // Sets a stat's base value, keeping its total within its min and (for capped
-    // bars) its max.
+    // bars) its max. A height's base is kept within its scale's min and max (the
+    // commands refuse heights outside them before getting here).
     private void change(CharacterSheet sheet, StatDefinition stat, int newBase) {
+        int base = stat.isHeight() ? Math.clamp(newBase, stat.scale().min(), stat.scale().max()) : newBase;
         StatCalculator calculator = calculator(sheet);
         int extra = calculator.extra(stat);
-        int total = newBase + extra;
+        int total = base + extra;
         if (stat.isBar() && !stat.bar().canExceedMax()) {
             total = Math.min(total, calculator.max(stat));
         }

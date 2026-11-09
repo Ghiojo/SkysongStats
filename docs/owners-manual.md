@@ -34,7 +34,7 @@ When this manual and the code disagree, the code wins. The last section, [Where 
 
 SkysongStats keeps a roleplay character sheet for every player. A player can have several **profiles** (characters), and each profile has its own:
 
-- **Stats**, from `stats.yml`: plain values such as Strength, and **bars** such as HP that have a current value and a max.
+- **Stats**, from `stats.yml`: plain values such as Strength, **bars** such as HP that have a current value and a max, and a **height** that sets how big the player is in game.
 - **Modifiers** on stats or on bar maximums, added with `/modifier`.
 - **Skills**, from `skills.yml`: XP per skill, which gives a level and LuckPerms nodes.
 - **Proficiencies**, from `proficiencies.yml`: each proficiency belongs to a skill and has a tier (Untrained, Proficient, Adept, Master), trained with points.
@@ -182,6 +182,7 @@ Each key under `stats:` is a stat. The key is its **id**: lowercase letters, dig
 | `commands` | all | Extra command names for this stat's actions (see below). |
 | `permission-default` | all | Who can use this stat's actions without being given the node: `op` (default), `true` (everyone), `false` (nobody), `not op`. |
 | `setup` | value stats | Puts the stat on the /setup point screen (see below). Bars can't be on it. |
+| `scale` | value stats | Makes the stat a **height** that sets the player's Minecraft scale (see [below](#scale-height-and-the-players-size)). Only one stat can have it. |
 
 ### Value stats and bars
 
@@ -231,6 +232,31 @@ Each name becomes a real command: `/heal <amount> [player]` runs `/stats add hp 
 
 Slots 4 (the header) and 22 (the confirm button) are taken. Two stats can't share a slot. Empty slots on the top and bottom rows get a border.
 
+### `scale:` (height and the player's size)
+
+```yaml
+  height:
+    name: "Height"
+    baseline: 180          # centimetres: new characters are 1.80 m
+    permission-default: true
+    commands:
+      set: [height]
+    scale:
+      normal: 180          # the height (cm) that is Minecraft scale 1
+      min: 80              # shortest height commands accept (0.80 m)
+      max: 360             # tallest height commands accept (3.60 m)
+```
+
+A stat with a `scale:` block is a height, kept in **centimetres** (stats are whole numbers, and 1 cm is two decimals of a metre).
+
+- **The scale is linear.** Scale = height ÷ `normal`. A scale-1 player is 1.8 blocks tall, so with `normal: 180` one metre is one block: 3 m is exactly 3 blocks, 3.60 m is scale 2 and 0.80 m is scale 0.44.
+- **Input.** Commands for this stat (`/height`, `/stats set height ...`, and `add`/`reduce` too) read metres (`2`, `1.8`, `1.75`, `1,75`, `1.75m`) or feet and inches (`5'10"`, `5'10''`, `5'10`, `6'`). Any apostrophe or quote mark works (`’ ‘ ′ ” “ ″`...), so heights copied from a phone or a chat still work. Inches go from 0 to 11, and feet are rounded to the nearest centimetre. `5' 10"` with a space can't work, because the space makes `10"` look like a player name; the player is told to remove the space.
+- **Limits.** A height below `min` or above `max` is refused, and the player is told how tall or short a character can be (`stats.errors.too-tall` / `too-short`). The API and the plugin itself keep heights within the limits too.
+- **Modifiers** on the height are in centimetres (`/modifier add height 10` is 10 cm taller). The scale follows the total (base + modifiers), but never goes past `min` or `max`.
+- **When the size changes:** straight away when the height or a modifier on it changes, when a player joins or switches profile, and on `/ssreload` (so a new `normal`, `min` or `max` applies at once). The size is a modifier called `skysongstats:height` on the scale attribute, which *multiplies* whatever scale the player already has, so `/attribute` and other plugins still stack with it. It isn't saved in the player's data: it leaves with the plugin and is put back when they join.
+- Rules the file is checked for: only one stat has `scale:`, it isn't a bar, `normal` and `min` are above 0, `min` ≤ `max`, `min`/`normal` and `max`/`normal` stay within Minecraft's scale limits (0.0625 to 16), and the `baseline` is between `min` and `max`.
+- Remove the `scale:` block and the stat becomes a plain number again; everyone goes back to their normal size after `/ssreload`.
+
 ### What the default file sets up
 
 | Stat | Type | Notes |
@@ -243,6 +269,7 @@ Slots 4 (the header) and 22 (the confirm button) are taken. Two stats can't shar
 | `potion` | bar | Max `9 + {con}`, starts at 0, can exceed max. `/potionsickness`. Everyone may use it (`permission-default: true`). |
 | `arcrot` | bar | Max `35 + {foc} * 2`, starts at 0, can exceed max. Counts `arcrot` items and `charged_arcrot` items that have charges. |
 | `fictis` | bar | Max `10 + {foc}`, starts at 0, can exceed max. Counts `fictis` items. |
+| `height` | value (height) | Baseline 180 cm, `scale:` 180 normal, 80 to 360. `/height <height> [player]`. Everyone may set their own (`permission-default: true`); someone else's needs `skysongstats.stat.height.set.other` (op). Shown on the character sheet, hidden from `/stats`. |
 
 ### Modifiers
 
@@ -449,7 +476,7 @@ Every message players and staff see. Edit the text and run `/ssreload`.
 
 ### Stat action messages
 
-For an action on a stat, the plugin looks for `stats.<stat id>.<action>` first and uses `stats.default.<action>` when it isn't there. `.player` goes to the player whose stat changed; `.sender` goes to whoever ran the command when that is someone else. They all get `{amount} {value} {old} {player} {sender} {name} {stat}`.
+For an action on a stat, the plugin looks for `stats.<stat id>.<action>` first and uses `stats.default.<action>` when it isn't there. `.player` goes to the player whose stat changed; `.sender` goes to whoever ran the command when that is someone else. They all get `{amount} {value} {old} {player} {sender} {name} {stat}`. For the height, `{amount} {value} {old}` are in metres (`1.75`), and `{amount_feet} {value_feet} {old_feet}` give the same in feet and inches (`5'9"`); the default file has its own `stats.height.set` texts.
 
 So to give `/heal` its own text you edit `stats.hp.add.player`; a new stat `mana` uses the default texts until you add `stats.mana.add`, etc.
 
@@ -460,7 +487,8 @@ So to give `/heal` its own text you edit `stats.hp.add.player`; a new stat `mana
 | Stat sheet (`/stats`) | `stats.sheet` | `{player}` and every stat placeholder: `{str}`, `{str_base}`, `{str_modifiers}`, `{hp}`, `{max_hp}`, `{max_hp_base}`, `{max_hp_modifiers}`... (the same names as the PlaceholderAPI ones). |
 | | `stats.sheet-auto` | A stat that `stats.sheet` never mentions (one you just added) gets an automatic line, `value` or `bar`, under the sheet, so new stats always show. Mention the stat in `stats.sheet` to place it yourself. |
 | | `stats.sheet-footer` | Last lines. |
-| Character sheet (`/char`) | `character.view.header`, `description-line`, `footer` | `{player} {name} {age} {gender} {pronouns} {ancestry}`; the description is wrapped into lines of about 60 characters, one `description-line` each. |
+| | `stats.sheet-hidden` | Stat ids that never show on `/stats`, not even as a `sheet-auto` line. The default hides `height`, which is on the character sheet. |
+| Character sheet (`/char`) | `character.view.header`, `description-line`, `footer` | `{player} {name} {age} {gender} {pronouns} {ancestry}`, and `{height}` (metres) / `{height_feet}` from the stat with a `scale:` block (empty when there is none); the description is wrapped into lines of about 60 characters, one `description-line` each. |
 | Proficiency sheet (`/proficiency view`) | `proficiency.sheet` | `{player}`, `{focus}` (a `sheet-focus` or `sheet-no-focus` line), `{proficiencies}` (one `sheet-skill` line per skill, each a list of `sheet-entry` parts joined by `sheet-separator`). |
 | Skills book (`/skills`) | `skills.view.page`, `skill-line` | One page per `book:` page of skills.yml. |
 
@@ -516,6 +544,7 @@ Nothing is applied until the last screen is confirmed. **Closing any screen** ca
 | `/stats` or `/stats view [player]` (also `/sstats`) | `skysongstats.stats`; others: `skysongstats.stats.view.other` (everyone by default) | Shows the stat sheet. |
 | `/stats set\|add\|reduce\|damage <stat> <amount> [player]` | `skysongstats.stat.<stat>.<action>`, or `....other` on someone else | Runs a stat action. `<stat>` is the id or an alias. |
 | `/<name> <amount> [player]` | Same as the action it runs | Every name in a stat's `commands:` (`/heal`, `/damage`, `/temphp`, `/ac`, `/potionsickness`...). |
+| `/height <height> [player]` | `skysongstats.stat.height.set` (everyone); others: `....set.other` (op) | Sets the character's height in metres or feet and inches; changes the player's size. See [`scale:`](#scale-height-and-the-players-size). |
 | `/modifier add <stat\|max_<bar>> <amount> [player]` | `skysongstats.modifier`; others: `skysongstats.modifier.add.other` | Adds a modifier. |
 | `/modifier del <number> [player]` | `skysongstats.modifier`; others: `skysongstats.modifier.del.other` | Removes the modifier with that number in `view`. |
 | `/modifier view [page] [player]` | `skysongstats.modifier`; others: `skysongstats.modifier.view.other` | Lists modifiers, 10 per page. |
@@ -623,6 +652,9 @@ With PlaceholderAPI installed: `%skysongstats_<name>%`, always for the player's 
 | `max_<bar>` | A bar's max **after modifiers** (its formula + the modifiers on `max_<bar>`). |
 | `max_<bar>_base` | A bar's max **before modifiers**: what its `max` formula gives, without the modifiers on `max_<bar>`. E.g. `%skysongstats_max_hp_base%`. |
 | `max_<bar>_modifiers` | Sum of the modifiers on the bar's max. |
+| `<height>` / `<height>_base` | For the stat with a `scale:` block (`height` by default): the height in metres, a bare number like `1.75`, with / before modifiers. |
+| `<height>_feet` / `<height>_feet_base` | The height in feet and inches (`5'9"`), with / before modifiers. |
+| `<height>_scale` | The Minecraft scale the height gives right now (`0.972`), after the limits. |
 
 So every stat can be checked both ways: `<stat>_base` / `<stat>` for a value, and `max_<bar>_base` / `max_<bar>` for a bar's max. The max formula itself reads other stats' totals (after modifiers), so a Con modifier still changes `max_hp_base`; only the modifiers placed on `max_hp` are left out.
 | `<skill>` | XP in that skill, e.g. `%skysongstats_mining%`. |
@@ -781,6 +813,10 @@ Every existing character gets the baseline. It works at once in `/stats set wis 
 
 `/restoremana 5 Steve` and `/spendmana 3` now exist. To give them their own texts, add `stats.mana.add` and `stats.mana.reduce` in messages.yml (copy `stats.hp.add` as a model). For a shield, add `shield: <stat>` and a `damage:` command.
 
+### Change the height limits or the normal height
+
+`stats.yml` → the height stat's `scale:`. For example, to allow up to 4 m: `max: 400`. Heights already set stay as they are; the new limits apply to the next command, and everyone's size is updated on `/ssreload`. To change what new characters start at, change its `baseline` (it must stay within `min` and `max`).
+
 ### Change a formula
 
 Edit the bar's `max:`. For example, to make HP 50 + 12 per Con: `max: "50 + {con} * 12"`. After `/ssreload`, everyone's max changes; anyone now above the new max is brought down to it.
@@ -862,6 +898,7 @@ All code is under `src/main/java/org/skysongdev/skysongstats/`; default files ar
 | LuckPerms skill nodes / proficiency nodes | `skill/`, `proficiency/` |
 | Messages | `messages/Messages.java`, `messages/MessagesFile.java` |
 | Placeholders | `placeholders/` |
+| Height: reading/writing metres and feet, the player's scale | `height/` (`HeightText`, `HeightScaler`), `definition/HeightScale.java` |
 | Public API for other plugins | `api/src/main/java/org/skysongdev/skysongstats/api/` (what other plugins see), `apiimpl/` (how SkysongStats answers it) |
 | Events | `api/src/main/java/org/skysongdev/skysongstats/api/event/` |
 | Database: stat, skill, proficiency tables | `storage/` |

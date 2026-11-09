@@ -11,7 +11,8 @@ import java.util.OptionalInt;
 // One stat from stats.yml. bar is null for plain values, setup is null for stats
 // that don't show in /setup, and min is null when the stat has no floor.
 // permissionDefault is who has the stat's generated command permissions without
-// being granted them.
+// being granted them. scale is null unless the stat is a height (its "scale:"
+// block): then its value is in centimetres and sets the player's scale.
 public record StatDefinition(
         String id,
         StatDisplay display,
@@ -21,7 +22,8 @@ public record StatDefinition(
         List<ItemTagSource> itemTags,
         Map<StatAction, List<String>> commands,
         StatSetup setup,
-        PermissionDefault permissionDefault) {
+        PermissionDefault permissionDefault,
+        HeightScale scale) {
 
     // Bars expose their max under this prefix: bar "hp" has max "max_hp".
     public static final String MAX_PREFIX = "max_";
@@ -48,6 +50,14 @@ public record StatDefinition(
 
     public OptionalInt minimum() {
         return min == null ? OptionalInt.empty() : OptionalInt.of(min);
+    }
+
+    public boolean isHeight() {
+        return scale != null;
+    }
+
+    public Optional<HeightScale> heightScale() {
+        return Optional.ofNullable(scale);
     }
 
     public Optional<StatSetup> setupOptions() {

@@ -59,6 +59,12 @@ public final class StatDefinitions {
         return List.copyOf(byCommand.values());
     }
 
+    // The stat with a "scale:" block, which sets the player's scale. stats.yml has
+    // at most one.
+    public Optional<StatDefinition> height() {
+        return byId.values().stream().filter(StatDefinition::isHeight).findFirst();
+    }
+
     public List<StatDefinition> setupStats() {
         return byId.values().stream().filter(stat -> stat.setup() != null).toList();
     }
