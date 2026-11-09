@@ -7,6 +7,10 @@ import org.skysongdev.skysongstats.character.AfflictionChangeListener;
 import org.skysongdev.skysongstats.character.AfflictionService;
 import org.skysongdev.skysongstats.character.InjuryAward;
 import org.skysongdev.skysongstats.commands.affliction.ConditionCommand;
+import org.skysongdev.skysongstats.commands.affliction.ConditionsMenuCommand;
+import org.skysongdev.skysongstats.commands.affliction.InjuriesMenuCommand;
+import org.skysongdev.skysongstats.menu.AfflictionMenus;
+import org.skysongdev.skysongstats.menu.ListMenuListener;
 import org.skysongdev.skysongstats.commands.affliction.InjuryCommand;
 import org.skysongdev.skysongstats.messages.AfflictionTexts;
 import org.skysongdev.skysongstats.storage.AfflictionRepository;
@@ -285,6 +289,11 @@ public class SkysongStats extends JavaPlugin {
                 afflictionTexts, onlinePlayers, getLogger()::info, changeCauses));
         getCommand("condition").setExecutor(new ConditionCommand(afflictionService, targets, this::getMessages,
                 afflictionTexts, onlinePlayers, getLogger()::info, changeCauses));
+        AfflictionMenus afflictionMenus = new AfflictionMenus(this::getMessages);
+        getCommand("injuries").setExecutor(new InjuriesMenuCommand(afflictionService, targets, this::getMessages,
+                afflictionMenus));
+        getCommand("conditions").setExecutor(new ConditionsMenuCommand(afflictionService, this::getMessages,
+                afflictionMenus));
         getCommand("ssreload").setExecutor(new ReloadCommand());
         getCommand("schar").setExecutor(characterCommand);
         getCommand("char").setExecutor(characterCommand);
@@ -295,6 +304,7 @@ public class SkysongStats extends JavaPlugin {
     public void AssignListeners() {
         getServer().getPluginManager().registerEvents(new PlayerRegisterListener(), this);
         getServer().getPluginManager().registerEvents(new SetupScreenListener(), this);
+        getServer().getPluginManager().registerEvents(new ListMenuListener(), this);
         getServer().getPluginManager().registerEvents(skillLevelSync, this);
         getServer().getPluginManager().registerEvents(proficiencyTierSync, this);
         getServer().getPluginManager().registerEvents(pendingFocusChanges, this);

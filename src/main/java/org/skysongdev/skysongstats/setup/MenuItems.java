@@ -10,8 +10,8 @@ import org.skysongdev.skysongstats.definition.Icon;
 
 import java.util.Optional;
 
-// Item and text helpers shared by the /setup screens.
-final class MenuItems {
+// Item and text helpers shared by the /setup screens and the other menus.
+public final class MenuItems {
     static final MiniMessage MINI_MESSAGE = MiniMessage.miniMessage();
 
     private MenuItems() {
@@ -19,7 +19,7 @@ final class MenuItems {
 
     // The item for an icon from a definition file: its Material, or paper with
     // the item model.
-    static ItemStack icon(Icon icon) {
+    public static ItemStack icon(Icon icon) {
         if (!icon.isModel()) {
             return new ItemStack(Optional.ofNullable(Material.matchMaterial(icon.material())).orElse(Material.BARRIER));
         }
