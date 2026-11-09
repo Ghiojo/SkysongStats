@@ -50,7 +50,7 @@ public final class Messages {
 
     public Messages(ConfigurationSection texts, ConfigurationSection defaults, Consumer<String> warn,
                     ExternalPlaceholders external) {
-        this(texts, defaults, warn, external, SheetTags.NONE);
+        this(texts, defaults, warn, external, SheetTags.none());
     }
 
     public Messages(ConfigurationSection texts, ConfigurationSection defaults, Consumer<String> warn,

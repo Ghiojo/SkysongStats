@@ -45,7 +45,7 @@ class AfflictionListsTest {
 
     @BeforeEach
     void setUp() {
-        messages = bundledMessages(SheetTags.NONE);
+        messages = bundledMessages(SheetTags.none());
         service = new AfflictionService(AfflictionFixtures.conditions(), AfflictionFixtures.injuries(),
                 new UnsavedAfflictionRepository(line -> { }), AfflictionChangeListener.NONE, () -> 1L);
         lists = new AfflictionLists(() -> service, new AfflictionTexts(() -> messages, character -> "Aria"),
