@@ -7,10 +7,12 @@ import org.bukkit.OfflinePlayer;
 import org.bukkit.configuration.InvalidConfigurationException;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.junit.jupiter.api.Test;
+import org.skysongdev.skysongstats.storage.ProfileKey;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -167,4 +169,25 @@ class MessagesTest {
                 TestPlayers.offline("Steve"));
         assertEquals(List.of("Steve", "HP 10"), lines.stream().map(MessagesTest::plain).toList());
     }
+
+    @Test
+    void messagesAboutACharacterWithoutAPlayerKeepOtherPluginsPlaceholders() {
+        Messages messages = withExternalPlaceholders("general:\n  hello: \"Hi %player_name%, {player}\"");
+        SheetText text = messages.about(new ProfileKey(UUID.randomUUID(), "npc"));
+
+        assertEquals("Hi %player_name%, Guard", plain(text.get("general.hello", Map.of("player", "Guard"), Map.of())));
+    }
+
+    @Test
+    void sheetTextRendersLinesThatAreNotInTheFile() {
+        Messages messages = withExternalPlaceholders(DEFAULTS);
+        SheetText text = messages.about(TestPlayers.offline("Steve"));
+
+        List<Component> lines = text.renderLines(List.of("%player_name% {hp}", "{prefix}x"), Map.of("hp", "<b>3"),
+                Map.of());
+
+        assertEquals("Steve <b>3", plain(lines.get(0)));
+        assertEquals(2, lines.size());
+    }
 }
+

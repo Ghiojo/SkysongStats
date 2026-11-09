@@ -1,14 +1,17 @@
 package org.skysongdev.skysongstats.apiimpl;
 
+import net.kyori.adventure.text.Component;
 import org.jetbrains.annotations.NotNull;
 import org.skysongdev.skysongstats.api.CharacterId;
 import org.skysongdev.skysongstats.api.CharacterSheet;
 import org.skysongdev.skysongstats.api.CharacterSheets;
 import org.skysongdev.skysongstats.api.SheetField;
+import org.skysongdev.skysongstats.api.SheetLayout;
 import org.skysongdev.skysongstats.database.CharacterProfile;
 
 import java.sql.SQLException;
 import java.util.EnumMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
@@ -19,6 +22,8 @@ import java.util.function.Function;
 // The sheet fields live in CharacterManager's loaded profiles and the
 // skysong_characters table, the same ones /character set changes.
 final class CharacterSheetsImpl implements CharacterSheets {
+    private static final String CHARACTER = "character";
+    private static final String NAME = "name";
     private static final Map<SheetField, Function<CharacterProfile, String>> GETTERS = new EnumMap<>(Map.of(
             SheetField.NAME, CharacterProfile::getName,
             SheetField.AGE, CharacterProfile::getAge,
@@ -43,18 +48,20 @@ final class CharacterSheetsImpl implements CharacterSheets {
     // (player UUID as text, profile name) -> the loaded profile, or null.
     private final BiFunction<String, String, CharacterProfile> profiles;
     private final SheetStore store;
+    private final SheetRenderer rendering;
     private final MainThread mainThread;
 
     CharacterSheetsImpl(BiFunction<String, String, CharacterProfile> profiles, SheetStore store,
-                        MainThread mainThread) {
+                        SheetRenderer rendering, MainThread mainThread) {
         this.profiles = Objects.requireNonNull(profiles, "profiles");
         this.store = Objects.requireNonNull(store, "store");
+        this.rendering = Objects.requireNonNull(rendering, "rendering");
         this.mainThread = Objects.requireNonNull(mainThread, "mainThread");
     }
 
     @Override
     public @NotNull Optional<CharacterSheet> get(@NotNull CharacterId character) {
-        Objects.requireNonNull(character, "character");
+        Objects.requireNonNull(character, CHARACTER);
         mainThread.check();
         return profile(character).map(profile -> sheet(character, profile));
     }
@@ -62,7 +69,7 @@ final class CharacterSheetsImpl implements CharacterSheets {
     @Override
     public @NotNull Optional<CharacterSheet> set(@NotNull CharacterId character, @NotNull SheetField field,
                                                  @NotNull String value) {
-        Objects.requireNonNull(character, "character");
+        Objects.requireNonNull(character, CHARACTER);
         Objects.requireNonNull(field, "field");
         Objects.requireNonNull(value, "value");
         checkValue(field, value);
@@ -73,6 +80,26 @@ final class CharacterSheetsImpl implements CharacterSheets {
             save(profile, field, before);
             return sheet(character, profile);
         });
+    }
+
+    @Override
+    public @NotNull Optional<List<Component>> render(@NotNull CharacterId character, @NotNull SheetLayout layout,
+                                                     @NotNull String name) {
+        Objects.requireNonNull(character, CHARACTER);
+        Objects.requireNonNull(layout, "layout");
+        Objects.requireNonNull(name, NAME);
+        mainThread.check();
+        return rendering.render(ApiTypes.key(character), layout, name);
+    }
+
+    @Override
+    public @NotNull Optional<List<Component>> render(@NotNull CharacterId character, @NotNull List<String> lines,
+                                                     @NotNull String name) {
+        Objects.requireNonNull(character, CHARACTER);
+        Objects.requireNonNull(name, NAME);
+        List<String> copy = List.copyOf(lines);
+        mainThread.check();
+        return rendering.render(ApiTypes.key(character), copy, name);
     }
 
     private static void checkValue(SheetField field, String value) {

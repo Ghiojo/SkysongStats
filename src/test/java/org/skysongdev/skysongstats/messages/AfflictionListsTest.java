@@ -21,6 +21,7 @@ import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -141,4 +142,14 @@ class AfflictionListsTest {
         AfflictionSheetTags tags = new AfflictionSheetTags(lists, about -> Optional.empty());
         assertEquals(Map.of(), tags.tags(MockBukkit.mock().addPlayer(), "{injuries}"));
     }
+
+    @Test
+    void aCharacterWithoutAPlayerGetsItsOwnTags() {
+        service.awardInjury(CHARACTER, "cut");
+        AfflictionSheetTags tags = new AfflictionSheetTags(lists, about -> Optional.empty());
+
+        assertEquals("Cut", plain(tags.tags(CHARACTER, "{injuries} {other}").get("injuries")));
+        assertEquals(Set.of("injuries"), tags.tags(CHARACTER, "{injuries} {other}").keySet());
+    }
 }
+

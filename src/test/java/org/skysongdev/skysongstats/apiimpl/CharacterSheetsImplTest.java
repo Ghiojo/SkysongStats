@@ -1,5 +1,8 @@
 package org.skysongdev.skysongstats.apiimpl;
 
+import net.kyori.adventure.text.Component;
+import org.skysongdev.skysongstats.api.SheetLayout;
+import org.skysongdev.skysongstats.storage.ProfileKey;
 import org.junit.jupiter.api.Test;
 import org.skysongdev.skysongstats.api.CharacterId;
 import org.skysongdev.skysongstats.api.CharacterSheet;
@@ -21,6 +24,19 @@ class CharacterSheetsImplTest {
     private static final CharacterId MAGE = new CharacterId(PLAYER, "Mage");
     private static final CharacterId NOBODY = new CharacterId(UUID.randomUUID(), "Mage");
 
+    // These tests are about the sheet fields; rendering is tested in SheetRenderingTest.
+    private static final SheetRenderer NO_RENDERING = new SheetRenderer() {
+        @Override
+        public Optional<List<Component>> render(ProfileKey character, SheetLayout layout, String name) {
+            return Optional.empty();
+        }
+
+        @Override
+        public Optional<List<Component>> render(ProfileKey character, List<String> lines, String name) {
+            return Optional.empty();
+        }
+    };
+
     private final CharacterProfile profile = new CharacterProfile(PLAYER.toString(), "Mage", "<red>Aria", "30",
             "Female", "Elf", "she/her", "A quiet mage");
     private final List<CharacterProfile> saved = new ArrayList<>();
@@ -28,7 +44,7 @@ class CharacterSheetsImplTest {
 
     private CharacterSheetsImpl sheets(CharacterSheetsImpl.SheetStore store, java.util.function.BooleanSupplier main) {
         return new CharacterSheetsImpl((uuid, name) -> uuid.equals(profile.getUuid())
-                && name.equals(profile.getProfile()) ? profile : null, store, new MainThread(main));
+                && name.equals(profile.getProfile()) ? profile : null, store, NO_RENDERING, new MainThread(main));
     }
 
     @Test

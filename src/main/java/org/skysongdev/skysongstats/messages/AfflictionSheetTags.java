@@ -14,8 +14,8 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 // The {injuries...} and {conditions...} sheet tags (see AfflictionLists), for
-// the active character of the player a sheet is about. A player with no active
-// character gets none, so the tag shows as written.
+// the character a sheet is about (for a player, their active character). A player
+// with no active character gets none, so the tag shows as written.
 public final class AfflictionSheetTags implements SheetTags {
     private static final Pattern TAG = Pattern.compile("\\{((?:injuries|conditions)[a-z0-9_]*)}");
     private static final MiniMessage MINI_MESSAGE = MiniMessage.miniMessage();
@@ -28,15 +28,20 @@ public final class AfflictionSheetTags implements SheetTags {
         this.activeCharacter = Objects.requireNonNull(activeCharacter, "activeCharacter");
     }
 
+    // A player without an active character gets none.
     @Override
     public Map<String, Component> tags(OfflinePlayer player, String line) {
+        return activeCharacter.apply(player).map(character -> tags(character, line)).orElse(Map.of());
+    }
+
+    @Override
+    public Map<String, Component> tags(ProfileKey character, String line) {
         Map<String, Component> tags = new HashMap<>();
         Matcher matcher = TAG.matcher(line);
         while (matcher.find()) {
             String name = matcher.group(1);
             if (AfflictionLists.isListName(name) && !tags.containsKey(name)) {
-                activeCharacter.apply(player).flatMap(character -> lists.resolve(character, name))
-                        .ifPresent(text -> tags.put(name, MINI_MESSAGE.deserialize(text)));
+                lists.resolve(character, name).ifPresent(text -> tags.put(name, MINI_MESSAGE.deserialize(text)));
             }
         }
         return tags;

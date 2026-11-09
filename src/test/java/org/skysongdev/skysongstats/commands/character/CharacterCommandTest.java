@@ -115,7 +115,7 @@ class CharacterCommandTest {
     @Test
     void wrapsTheDescriptionAtAboutSixtyCharacters() {
         String description = "word ".repeat(30).trim();
-        List<String> lines = ViewCharacter.wrapDescription(description);
+        List<String> lines = CharacterSheetLines.wrapDescription(description);
         assertEquals(3, lines.size());
         assertEquals("word ".repeat(12), lines.get(0));
     }
