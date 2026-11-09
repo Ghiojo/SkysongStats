@@ -1,12 +1,11 @@
 package org.skysongdev.skysongstats.commands.character;
 
-import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.minimessage.MiniMessage;
-import org.skysongdev.skysongstats.character.AfflictionFixtures;
-
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.util.ArrayList;
+import java.util.List;
+import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 import org.bukkit.command.Command;
@@ -21,12 +20,10 @@ import org.skysongdev.skysongstats.OfflineSkysongStats;
 import org.skysongdev.skysongstats.SkysongStats;
 import org.skysongdev.skysongstats.Utils.CharacterManager;
 import org.skysongdev.skysongstats.Utils.ProfileManager;
+import org.skysongdev.skysongstats.character.AfflictionFixtures;
 import org.skysongdev.skysongstats.database.CharacterProfile;
 import org.skysongdev.skysongstats.database.ProfileIndex;
 import org.skysongdev.skysongstats.storage.ProfileKey;
-
-import java.util.ArrayList;
-import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
