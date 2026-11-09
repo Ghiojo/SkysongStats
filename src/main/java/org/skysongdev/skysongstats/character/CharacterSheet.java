@@ -14,8 +14,9 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.OptionalInt;
 
-// One character's stat data: the saved base values by stat id, the modifiers, and
-// the Skysong item counts last seen in the player's inventory (never saved).
+// One character's stat data: the saved base values by stat id, the modifiers, the
+// effects of its injuries and conditions and the Skysong item counts last seen in
+// the player's inventory (those two never saved).
 // Computed values (totals, bar maximums) are never stored here; StatCalculator
 // derives them. Only StatService changes a sheet, so every change is saved.
 public final class CharacterSheet {
@@ -23,6 +24,7 @@ public final class CharacterSheet {
     private final Map<String, Integer> values;
     private final List<StoredModifier> modifiers;
     private final Map<ItemTagSource, Integer> itemCounts = new HashMap<>();
+    private List<StatEffect> effects = List.of();
 
     CharacterSheet(ProfileKey key, StoredStats stored) {
         this.key = Objects.requireNonNull(key, "key");
@@ -63,6 +65,15 @@ public final class CharacterSheet {
 
     boolean removeModifier(String id) {
         return modifiers.removeIf(modifier -> modifier.id().equals(id));
+    }
+
+    // The modifiers of the character's current injuries and conditions (never saved).
+    public List<StatEffect> effects() {
+        return effects;
+    }
+
+    void setEffects(List<StatEffect> effects) {
+        this.effects = List.copyOf(effects);
     }
 
     void setItemCounts(Map<ItemTagSource, Integer> counts) {

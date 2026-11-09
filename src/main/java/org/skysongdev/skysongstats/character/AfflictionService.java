@@ -93,6 +93,7 @@ public class AfflictionService {
         this.conditions = Objects.requireNonNull(conditions, "conditions");
         this.injuries = Objects.requireNonNull(injuries, "injuries");
         before.forEach(this::reportConditions);
+        before.keySet().forEach(listener::onAfflictionsChanged);
     }
 
     // The character's current injuries, oldest first.
@@ -131,6 +132,7 @@ public class AfflictionService {
             listener.onInjuryLearnt(character, injury, LearnSource.AWARD);
         }
         reportConditions(character, before);
+        listener.onAfflictionsChanged(character);
         return award;
     }
 
@@ -144,6 +146,7 @@ public class AfflictionService {
             repository.deleteInjury(character, found.id());
             listener.onInjuryRemoved(character, found);
             reportConditions(character, before);
+            listener.onAfflictionsChanged(character);
         });
         return injury.isPresent();
     }
@@ -217,6 +220,7 @@ public class AfflictionService {
             characters.computeIfAbsent(character, key -> new Afflictions()).conditions.put(id, stored);
             repository.saveCondition(character, id, stored);
             reportConditions(character, before);
+            listener.onAfflictionsChanged(character);
             return condition(character, id);
         });
     }
@@ -238,7 +242,29 @@ public class AfflictionService {
         afflictions.conditions.remove(id);
         repository.deleteCondition(character, id);
         reportConditions(character, before);
+        listener.onAfflictionsChanged(character);
         return condition(character, id).isPresent() ? ConditionRemoval.REMOVED_STILL_GIVEN : ConditionRemoval.REMOVED;
+    }
+
+    // The stat modifiers of the character's current injuries and conditions, in
+    // that order, each condition's per-level ones multiplied by its level.
+    public List<StatEffect> effects(ProfileKey character) {
+        List<StatEffect> effects = new ArrayList<>();
+        for (CharacterInjury current : injuries(character)) {
+            InjuryDefinition injury = current.injury();
+            injury.modifiers().forEach(modifier ->
+                    effects.add(new StatEffect(modifier.target(), modifier.amountAt(1), injury.name())));
+        }
+        for (ActiveCondition condition : conditions(character)) {
+            condition.condition().modifiers().forEach(modifier -> effects.add(new StatEffect(modifier.target(),
+                    modifier.amountAt(condition.level()), condition.condition().name())));
+        }
+        return effects;
+    }
+
+    // Every character that has an injury, condition or known injury.
+    public Set<ProfileKey> characters() {
+        return Set.copyOf(characters.keySet());
     }
 
     // Removes everything of a character, for deleted profiles. Nothing is reported:

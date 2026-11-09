@@ -1,10 +1,12 @@
 package org.skysongdev.skysongstats.commands.stat;
 
+import net.kyori.adventure.text.minimessage.MiniMessage;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabExecutor;
 import org.jetbrains.annotations.NotNull;
 import org.skysongdev.skysongstats.character.CharacterSheet;
+import org.skysongdev.skysongstats.character.StatEffect;
 import org.skysongdev.skysongstats.character.StatService;
 import org.skysongdev.skysongstats.definition.StatDefinition;
 import org.skysongdev.skysongstats.storage.StoredModifier;
@@ -23,7 +25,9 @@ import java.util.stream.Stream;
 // /modifier on the stats from stats.yml:
 //   /modifier add <stat|max_<bar>> <amount> [player]
 //   /modifier del|delete <number> [player]     number as shown by view
-//   /modifier view [page] [player]             10 per page
+//   /modifier view [page] [player]             10 per page; the first page also
+//                                              shows the effects of injuries and
+//                                              conditions, which can't be deleted
 // A modifier targets a stat (by id or alias) or a bar's max, e.g. max_potion.
 // Acting on someone else needs skysongstats.modifier.<add|del|view>.other, as
 // before.
@@ -124,8 +128,9 @@ public final class StatModifierCommand implements TabExecutor {
         List<StoredModifier> modifiers = modifiers(character);
         String player = character.player().getName();
         Map<String, String> pageInfo = Map.of("player", player, "page", Integer.toString(page));
+        List<StatEffect> effects = page == 1 ? effects(character) : List.of();
         messages.send(sender, MODIFIER + "view.header", pageInfo);
-        if (modifiers.isEmpty()) {
+        if (modifiers.isEmpty() && effects.isEmpty()) {
             messages.send(sender, MODIFIER + "view.empty", pageInfo);
         }
         int end = Math.min(page * PAGE_SIZE, modifiers.size());
@@ -133,7 +138,20 @@ public final class StatModifierCommand implements TabExecutor {
             StoredModifier modifier = modifiers.get(i);
             messages.send(sender, key("view.line", modifier.target()), placeholders(modifier, player, i + 1));
         }
+        effects.forEach(effect -> messages.send(sender, key("view.effect-line", effect.target()), placeholders(effect)));
         messages.send(sender, MODIFIER + "view.footer", pageInfo);
+    }
+
+    // Shown on the first page, below the saved modifiers: they can't be deleted here.
+    private List<StatEffect> effects(CommandTargets.Target character) {
+        return stats.sheet(character.character()).map(CharacterSheet::effects).orElse(List.of());
+    }
+
+    // {source} is the injury's or condition's name without its formatting.
+    private Map<String, String> placeholders(StatEffect effect) {
+        return Map.of("target", effect.target(), "name", displayName(effect.target()),
+                "amount", Integer.toString(effect.amount()),
+                "source", MiniMessage.miniMessage().stripTags(effect.source()));
     }
 
     private List<StoredModifier> modifiers(CommandTargets.Target character) {

@@ -6,11 +6,14 @@ import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.skysongdev.skysongstats.character.StatEffect;
 import org.skysongdev.skysongstats.storage.StoredModifier;
 
 import java.util.List;
+import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
@@ -149,6 +152,34 @@ class StatModifierCommandTest {
         assertEquals(List.of("modifier.view.header", "modifier.view.empty", "modifier.view.footer"),
                 fixture.messages.keys());
         assertEquals("Alice", fixture.messages.sent.get(0).placeholders().get("player"));
+    }
+
+    @Test
+    void viewShowsEffectsOnTheFirstPageWithTheirSource() {
+        run(fixture.alice, "add", "str", "1");
+        fixture.stats.setEffects(StatCommandFixture.character(fixture.alice), List.of(
+                new StatEffect("dex", -2, "<red>Broken Leg"), new StatEffect("max_hp", -5, "Bleeding")));
+        fixture.messages.sent.clear();
+
+        run(fixture.alice, "view");
+
+        assertEquals(List.of("modifier.view.header", "modifier.view.line", "modifier.view.effect-line",
+                "modifier.view.effect-line-max", "modifier.view.footer"), fixture.messages.keys());
+        Map<String, String> effect = fixture.messages.sent.get(2).placeholders();
+        assertEquals("-2", effect.get("amount"));
+        assertEquals("Broken Leg", effect.get("source"));
+        assertEquals("dex", effect.get("target"));
+
+        fixture.messages.sent.clear();
+        run(fixture.alice, "view", "2");
+        assertEquals(List.of("modifier.view.header", "modifier.view.footer"), fixture.messages.keys());
+    }
+
+    @Test
+    void effectsAloneAreNotEmpty() {
+        fixture.stats.setEffects(StatCommandFixture.character(fixture.alice), List.of(new StatEffect("dex", 1, "Rage")));
+        run(fixture.alice, "view");
+        assertFalse(fixture.messages.keys().contains("modifier.view.empty"));
     }
 
     @Test

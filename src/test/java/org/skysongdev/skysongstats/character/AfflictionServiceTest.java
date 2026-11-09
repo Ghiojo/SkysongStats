@@ -321,4 +321,37 @@ class AfflictionServiceTest {
         assertEquals(List.of("bruise"), injuriesOf(ALICE, service));
         assertTrue(service.knows(ALICE, "bruise"));
     }
+
+    @Test
+    void effectsComeFromInjuriesAndConditionsAtTheirLevel() {
+        service.awardInjury(ALICE, "broken-leg");
+        service.awardInjury(ALICE, "deep-cut");
+        assertEquals(List.of(new StatEffect("dex", -2, "Broken Leg"), new StatEffect("str", -3, "Bleeding")),
+                service.effects(ALICE));
+
+        service.removeInjury(ALICE, "deep-cut");
+        assertEquals(List.of(new StatEffect("dex", -2, "Broken Leg")), service.effects(ALICE));
+    }
+
+    @Test
+    void everyChangeEndsWithAfflictionsChanged() {
+        List<ProfileKey> changed = new ArrayList<>();
+        AfflictionService watched = new AfflictionService(conditions(), injuries(), repository,
+                new AfflictionChangeListener() {
+                    @Override
+                    public void onAfflictionsChanged(ProfileKey character) {
+                        changed.add(character);
+                    }
+                }, clock::incrementAndGet);
+        watched.awardInjury(ALICE, "cut");
+        watched.removeInjury(ALICE, "cut");
+        watched.awardCondition(ALICE_ALT, "dazed", 1);
+        watched.removeCondition(ALICE_ALT, "dazed");
+        watched.discover(ALICE, "bruise", LearnSource.DISCOVER);
+        assertEquals(List.of(ALICE, ALICE, ALICE_ALT, ALICE_ALT), changed);
+
+        changed.clear();
+        watched.setDefinitions(conditions(), injuries());
+        assertEquals(2, changed.size());
+    }
 }

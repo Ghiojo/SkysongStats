@@ -487,13 +487,25 @@ public class SkysongStats extends JavaPlugin {
                     public void onInjuryAwarded(InjuryAward award) {
                         announceInjury(award);
                     }
+
+                    @Override
+                    public void onAfflictionsChanged(ProfileKey character) {
+                        applyEffects(character);
+                    }
                 }, System::currentTimeMillis);
         try {
             repository.createTables();
             afflictionService.load();
         } catch (StorageException e) {
             getLogger().log(Level.SEVERE, "Unable to load the injuries and conditions from the database", e);
+            return;
         }
+        afflictionService.characters().forEach(this::applyEffects);
+    }
+
+    // What the character's injuries and conditions do to its stats.
+    private void applyEffects(ProfileKey character){
+        statService.setEffects(character, afflictionService.effects(character));
     }
 
     // An injury with a message: tells the injured player, when they are playing

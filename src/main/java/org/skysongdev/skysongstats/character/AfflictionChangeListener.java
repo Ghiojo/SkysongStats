@@ -24,6 +24,12 @@ public interface AfflictionChangeListener {
         // Nothing to do unless overridden.
     }
 
+    // Called last for every change to a character's injuries or conditions, and for
+    // every character after a reload, so the plugin can update what they do to stats.
+    default void onAfflictionsChanged(ProfileKey character) {
+        // Nothing to do unless overridden.
+    }
+
     // Every condition that started, stopped or changed in one change, in
     // conditions.yml order.
     default void onConditionsChanged(ProfileKey character, List<ConditionChange> changes) {
