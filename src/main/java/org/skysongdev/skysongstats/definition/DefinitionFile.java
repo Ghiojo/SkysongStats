@@ -12,7 +12,7 @@ import java.nio.file.Files;
 // Opens a definition file in the plugin folder (stats.yml, skills.yml). The first
 // start writes the plugin's default file. A file that can't be written or read
 // throws a DefinitionException naming it.
-final class DefinitionFile {
+public final class DefinitionFile {
     private DefinitionFile() {
     }
 
@@ -29,7 +29,8 @@ final class DefinitionFile {
         return yaml;
     }
 
-    static boolean isItem(String name) {
+    // True when the name is a Material that can be an item, as an icon must be.
+    public static boolean isItem(String name) {
         Material material = Material.matchMaterial(name);
         return material != null && material.isItem();
     }

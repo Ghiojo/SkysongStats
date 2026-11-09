@@ -114,6 +114,9 @@ downtime:
   global-start: 3
   global-recovery: 3
   global-max: 9
+
+import:
+  chattweaks-folder: "plugins/SkysongChatTweaks"
 ```
 
 ### `database:`
@@ -130,6 +133,10 @@ The MySQL connection. Read **only when the server starts**; `/ssreload` ignores 
 | `global-max` | `/downtime add ... global` and `resetall` never take global downtime above this. A player already above it keeps their value. |
 
 A missing or negative value falls back to the default shown above. Removing downtime always stops at 0. See [downtime commands](#downtime-downtime-alias-dt).
+
+### `import:`
+
+`chattweaks-folder` is where [`/ssimport chattweaks`](#importing-from-skysongchattweaks) looks for SkysongChatTweaks' `config.yml`. A relative path starts at the server folder; an absolute path works too, for importing from a copy. It is read again on every import.
 
 ### `base_stats:` (unused)
 
@@ -521,6 +528,17 @@ When an injury with a `message:` is awarded, the injured player gets that messag
 
 An id removed from either file stays saved on the characters that have it, but is hidden everywhere. Put the id back and it returns. `/ssreload` with changed effects applies them to every character at once.
 
+### Importing from SkysongChatTweaks
+
+`/ssimport chattweaks` (permission `skysongstats.import`, op by default; the console can always run it) copies what SkysongChatTweaks had into SkysongStats once, before SkysongChatTweaks stops keeping injuries. It only reads SkysongChatTweaks' files and database, never changes them, and is safe to run again: nothing is added twice and nothing you edited since is overwritten.
+
+1. It reads `config.yml` from the [`import.chattweaks-folder`](#import) folder.
+2. Every condition and injury there that conditions.yml or injuries.yml doesn't have yet is added, with its `name`, `description`, `item` as `icon` (left out when it isn't an item, so the icon is PAPER) and, for injuries, `severity` (lowercased) and `message: ""`. Nothing gets `effects:`. A severity not in `severities:` is added at the end. Ids the files already have are skipped, and so are ids SkysongStats doesn't allow (uppercase letters, or `_` in a condition id) and injuries without a severity. Comments in the files are kept. Both files are then reloaded as `/ssreload` would; if one has mistakes the import stops there and tells you, before any known injury is imported.
+3. It connects to SkysongChatTweaks' database with the `database:` settings in its config.yml and reads `skysongchat_profiles`. Each permission node stored for a character is matched (in any case) to the injuries whose `permissions:` list held it, and the character learns those injuries, recorded as learnt by import. Importing sends no message and fires no `InjuryDiscoverEvent`.
+4. The reply counts the definitions added and skipped, the known injuries imported (and those already known), and the rows skipped: profiles SkysongStats doesn't have, rows whose uuid isn't one, and nodes that match no injury. The console lists every one of them with the reason.
+
+Current injuries and conditions can't be imported: SkysongChatTweaks never saved them. The LuckPerms nodes it gave stay on players; nothing reads them any more. Only one import runs at a time.
+
 ---
 
 ## messages.yml
@@ -553,6 +571,7 @@ Every message players and staff see. Edit the text and run `/ssreload`.
 | `setup` | `/setup` and its stat point screen |
 | `stats` | Stat actions, `/stats view` sheet |
 | `modifier` | `/modifier` |
+| `import` | `/ssimport chattweaks` and its report |
 
 ### Stat action messages
 
@@ -717,6 +736,7 @@ Downtime commands work on **offline** players too, as long as they have joined b
 |---|---|---|
 | `/setup` | `skysongstats.setup` | See [the /setup flow](#the-setup-flow). |
 | `/ssreload` | `skysongstats.ssreload` **and** `skysongstats.reload` | See [reloading](#what-ssreload-does). |
+| `/ssimport chattweaks` | `skysongstats.import` | See [importing from SkysongChatTweaks](#importing-from-skysongchattweaks). |
 
 ---
 
@@ -742,6 +762,7 @@ Downtime commands work on **offline** players too, as long as they have joined b
 | `skysongstats.injury.award`, `.remove`, `.discover` | op | The staff `/injury` commands (`.discover` also covers `forget`). |
 | `skysongstats.condition.award`, `.remove` | op | The staff `/condition` commands. |
 | `skysongstats.injuries`, `skysongstats.conditions` | everyone | The `/injuries` and `/conditions` menus. |
+| `skysongstats.import` | op | `/ssimport chattweaks`. |
 | `skysongstats.*` | op | Everything above (and the generated nodes below). |
 
 ### Generated nodes (from the config files)
@@ -1036,6 +1057,7 @@ All code is under `src/main/java/org/skysongdev/skysongstats/`; default files ar
 | Injury and condition rules (awards, given conditions, known injuries) | `character/AfflictionService.java`, `character/ConditionResolver.java` |
 | How injuries and conditions are shown (tags, announcement, lists) | `messages/AfflictionTexts.java`, `messages/AfflictionLists.java`, `messages/LineWrapper.java` |
 | /injury, /condition, /injuries, /conditions | `commands/affliction/` (menus drawn by `menu/`) |
+| /ssimport chattweaks | `commands/misc/ImportCommand`, the import itself in `importer/` |
 | Downtime rules | `service/downtime/DowntimeService.java` |
 | Stat commands, /modifier, generated stat commands and permissions | `commands/stat/` |
 | /skills, /proficiency, /downtime, /profile, /char, /setup, /ssreload | `commands/<name>/` |

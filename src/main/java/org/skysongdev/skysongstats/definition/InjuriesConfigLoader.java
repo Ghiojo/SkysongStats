@@ -45,6 +45,11 @@ public final class InjuriesConfigLoader {
         return new InjuriesConfigLoader(stats, conditions, isItemMaterial).read(root);
     }
 
+    // Whether an injury, or a severity, may be called this in injuries.yml.
+    public static boolean isValidId(String id) {
+        return StatsConfigLoader.ID.matcher(id).matches();
+    }
+
     private InjuryDefinitions read(ConfigurationSection root) {
         List<String> severities = readSeverities(root);
         Map<String, InjuryDefinition> injuries = new LinkedHashMap<>();
@@ -70,7 +75,7 @@ public final class InjuriesConfigLoader {
         }
         Set<String> severities = new LinkedHashSet<>();
         for (String severity : ConfigReader.lowercase(root.getStringList("severities"))) {
-            if (!StatsConfigLoader.ID.matcher(severity).matches()) {
+            if (!isValidId(severity)) {
                 errors.add("severities: '" + severity + "' may only use lowercase letters, digits, '_' and '-'");
             } else if (!severities.add(severity)) {
                 errors.add("severities: '" + severity + "' is listed twice");
@@ -86,7 +91,7 @@ public final class InjuriesConfigLoader {
             errors.add(path + ": must be a section with its settings");
             return Optional.empty();
         }
-        if (!StatsConfigLoader.ID.matcher(id).matches()) {
+        if (!isValidId(id)) {
             errors.add(path + ": ids may only use lowercase letters, digits, '_' and '-'");
             return Optional.empty();
         }

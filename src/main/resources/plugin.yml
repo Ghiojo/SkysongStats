@@ -33,6 +33,10 @@ commands:
     description: "View your modifiers"
     usage: "/modifier [player]"
     permission: "skysongstats.modifier"
+  ssimport:
+    description: "Import injuries and conditions from SkysongChatTweaks"
+    usage: "/ssimport chattweaks"
+    permission: "skysongstats.import"
   ssreload:
     description: "Reload the plugin"
     usage: "/ssreload"
@@ -146,6 +150,9 @@ permissions:
   skysongstats.condition.remove:
     description: "Allows you to remove conditions"
     default: op
+  skysongstats.import:
+    description: "Allows you to run /ssimport chattweaks"
+    default: op
   skysongstats.injuries:
     description: "Allows you to open the /injuries menu"
     default: true
@@ -176,5 +183,6 @@ permissions:
         skysongstats.condition.list.other: true
         skysongstats.condition.award: true
         skysongstats.condition.remove: true
+        skysongstats.import: true
         skysongstats.injuries: true
         skysongstats.conditions: true
