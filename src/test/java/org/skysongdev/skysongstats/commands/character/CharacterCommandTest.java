@@ -73,9 +73,8 @@ class CharacterCommandTest {
         Files.writeString(new File(plugin.getDataFolder(), "injuries.yml").toPath(), AfflictionFixtures.INJURIES_FILE);
         plugin.reloadSettings();
         plugin.getAfflictionService().awardInjury(new ProfileKey(alice.getUniqueId(), "Default"), "cut");
-        while (alice.nextComponentMessage() != null) {
-            // The award messages.
-        }
+        // The cut has no award message, so Alice has been sent nothing yet.
+        assertNull(alice.nextComponentMessage());
 
         character.onCommand(alice, command, "char", new String[0]);
         for (int line = 0; line < 8; line++) {
