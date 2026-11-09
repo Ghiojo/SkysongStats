@@ -110,26 +110,28 @@ public final class StatsConfigLoader {
         if (isBar) {
             errors.add(path(id) + ".scale: only plain values can be a height, not bars");
         }
-        int normal = reader.readRequiredInt(scale, "normal");
-        int min = reader.readRequiredInt(scale, "min");
-        int max = reader.readRequiredInt(scale, "max");
-        String where = scale.getCurrentPath();
-        if (normal <= 0 || min <= 0) {
-            errors.add(where + ": normal and min must be above 0 (they are centimetres)");
-            return null;
+        HeightScale height = new HeightScale(reader.readRequiredInt(scale, "normal"),
+                reader.readRequiredInt(scale, "min"), reader.readRequiredInt(scale, "max"));
+        checkScale(scale.getCurrentPath(), height);
+        if (!height.allows(stat.getInt("baseline", 0))) {
+            errors.add(path(id) + ".baseline: a height's baseline must be between scale.min and scale.max");
         }
-        if (min > max) {
+        return height;
+    }
+
+    private void checkScale(String where, HeightScale height) {
+        if (height.normal() <= 0 || height.min() <= 0) {
+            errors.add(where + ": normal and min must be above 0 (they are centimetres)");
+            return;
+        }
+        if (height.min() > height.max()) {
             errors.add(where + ": min can't be above max");
         }
-        if ((double) min / normal < HeightScale.MIN_SCALE || (double) max / normal > HeightScale.MAX_SCALE) {
+        if ((double) height.min() / height.normal() < HeightScale.MIN_SCALE
+                || (double) height.max() / height.normal() > HeightScale.MAX_SCALE) {
             errors.add(where + ": Minecraft scales go from " + HeightScale.MIN_SCALE + " to " + (int) HeightScale.MAX_SCALE
                     + ", so min must be at least normal / 16 and max at most normal * 16");
         }
-        int baseline = stat.getInt("baseline", 0);
-        if (baseline < min || baseline > max) {
-            errors.add(path(id) + ".baseline: a height's baseline must be between scale.min and scale.max");
-        }
-        return new HeightScale(normal, min, max);
     }
 
     // Returns the bar settings, or null for a plain value.

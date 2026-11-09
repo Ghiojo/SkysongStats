@@ -102,12 +102,9 @@ public final class HeightScaler implements Listener {
     // none to give.
     private OptionalDouble scaleOf(Player player) {
         Optional<StatDefinition> height = stats.definitions().height();
-        Optional<ProfileKey> character = activeCharacter.apply(player);
-        if (height.isEmpty() || character.isEmpty()) {
-            return OptionalDouble.empty();
-        }
-        return stats.sheet(character.get())
-                .map(sheet -> OptionalDouble.of(height.get().scale().scaleFor(stats.calculator(sheet).total(height.get()))))
-                .orElse(OptionalDouble.empty());
+        Optional<Double> scale = height.flatMap(stat -> activeCharacter.apply(player)
+                .flatMap(stats::sheet)
+                .map(sheet -> stat.scale().scaleFor(stats.calculator(sheet).total(stat))));
+        return scale.map(OptionalDouble::of).orElse(OptionalDouble.empty());
     }
 }

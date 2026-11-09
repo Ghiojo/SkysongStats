@@ -37,9 +37,7 @@ public final class StatActionRunner {
 
     // targetName is the player typed in the command, or null for the sender.
     public void run(CommandSender sender, StatDefinition stat, StatAction action, String amountText, String targetName) {
-        if (stat.isHeight() && HeightText.isLoneInches(targetName)) {
-            // "/height 5' 10"": the space split the height, so 10" is not a player.
-            messages.send(sender, ERRORS + "height-space", Map.of("input", amountText + " " + targetName));
+        if (isSplitHeight(sender, stat, amountText, targetName)) {
             return;
         }
         Optional<CommandTargets.Target> target = targets.resolve(sender, targetName,
@@ -54,10 +52,19 @@ public final class StatActionRunner {
         }
         CommandTargets.Target resolved = target.orElseThrow();
         int value = amount.getAsInt();
-        if (stat.isHeight() && !isAllowedHeight(sender, resolved, stat, action, value)) {
+        if (!isAllowedHeight(sender, resolved, stat, action, value)) {
             return;
         }
         report(sender, resolved.player(), stats.apply(resolved.character(), stat, action, value), action, value);
+    }
+
+    // "/height 5' 10\"": the space split the height, so 10" is not a player name.
+    private boolean isSplitHeight(CommandSender sender, StatDefinition stat, String amountText, String targetName) {
+        if (!stat.isHeight() || !HeightText.isLoneInches(targetName)) {
+            return false;
+        }
+        messages.send(sender, ERRORS + "height-space", Map.of("input", amountText + " " + targetName));
+        return true;
     }
 
     private OptionalInt amount(CommandSender sender, StatDefinition stat, StatAction action, String text) {
@@ -72,9 +79,12 @@ public final class StatActionRunner {
     }
 
     // Heights outside the stat's scale min and max are refused, so the player
-    // knows how tall or short a character can be.
+    // knows how tall or short a character can be. Other stats are always allowed.
     private boolean isAllowedHeight(CommandSender sender, CommandTargets.Target target, StatDefinition stat,
                                     StatAction action, int amount) {
+        if (!stat.isHeight()) {
+            return true;
+        }
         int base = stats.sheet(target.character()).map(sheet -> stats.calculator(sheet).base(stat)).orElse(stat.baseline());
         int height = switch (action) {
             case ADD -> base + amount;
