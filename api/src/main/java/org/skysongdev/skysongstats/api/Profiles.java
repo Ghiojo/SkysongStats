@@ -13,6 +13,9 @@ import java.util.UUID;
  *
  * <p>Every profile is kept in memory, so these work for offline players too.
  *
+ * <p>Only players' profiles: the characters other plugins own (see {@link Characters}) are
+ * never listed here, and {@link #exists(CharacterId)} is false for them.
+ *
  * <p>Must be called on the server's main thread, and throws {@link IllegalStateException} otherwise.
  *
  * <p>SkysongStats implements this interface; other plugins must not.

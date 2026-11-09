@@ -15,6 +15,7 @@ public final class StatStorage implements CharacterStorage {
     private final SkillRepository skillRepository;
     private final ProficiencyRepository proficiencyRepository;
     private final AfflictionRepository afflictionRepository;
+    private final PluginCharacterRepository pluginCharacterRepository;
 
     StatStorage(HikariDataSource pool, Consumer<String> log) {
         this.pool = pool;
@@ -23,6 +24,8 @@ public final class StatStorage implements CharacterStorage {
         this.skillRepository = new AsyncSkillRepository(new SqlSkillRepository(pool), writer);
         this.proficiencyRepository = new AsyncProficiencyRepository(new SqlProficiencyRepository(pool), writer);
         this.afflictionRepository = new AsyncAfflictionRepository(new SqlAfflictionRepository(pool), writer);
+        this.pluginCharacterRepository = new AsyncPluginCharacterRepository(new SqlPluginCharacterRepository(pool),
+                writer);
     }
 
     // log gets every save that failed. Throws when MySQL can't be reached.
@@ -49,6 +52,11 @@ public final class StatStorage implements CharacterStorage {
     @Override
     public AfflictionRepository afflictionRepository() {
         return afflictionRepository;
+    }
+
+    @Override
+    public PluginCharacterRepository pluginCharacterRepository() {
+        return pluginCharacterRepository;
     }
 
     @Override

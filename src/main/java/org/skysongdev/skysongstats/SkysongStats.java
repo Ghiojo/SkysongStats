@@ -47,6 +47,7 @@ import org.skysongdev.skysongstats.api.event.SkysongStatsReloadEvent;
 import org.skysongdev.skysongstats.apiimpl.ApiTypes;
 import org.skysongdev.skysongstats.apiimpl.SkysongStatsApiImpl;
 import org.skysongdev.skysongstats.character.ChangeCauses;
+import org.skysongdev.skysongstats.character.PluginCharacterService;
 import org.skysongdev.skysongstats.character.ProficiencyChangeListener;
 import org.skysongdev.skysongstats.character.ProficiencyFocusChange;
 import org.skysongdev.skysongstats.character.ProficiencyService;
@@ -119,6 +120,7 @@ import org.skysongdev.skysongstats.skill.SkillLevelSync;
 import org.skysongdev.skysongstats.skill.SkillPermissionRegistry;
 import org.skysongdev.skysongstats.storage.CharacterStorage;
 import org.skysongdev.skysongstats.storage.DatabaseSettings;
+import org.skysongdev.skysongstats.storage.PluginCharacterRepository;
 import org.skysongdev.skysongstats.storage.ProfileKey;
 import org.skysongdev.skysongstats.storage.ProficiencyRepository;
 import org.skysongdev.skysongstats.storage.SkillRepository;
@@ -136,6 +138,7 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import java.util.Set;
 import java.util.UUID;
 import java.util.function.Supplier;
 import java.util.logging.Level;
@@ -169,6 +172,8 @@ public class SkysongStats extends JavaPlugin {
     private ProficiencyTierSync proficiencyTierSync;
     private ProficiencyPermissionRegistry proficiencyPermissions;
     private AfflictionService afflictionService;
+    // Characters other plugins own, such as NPCs (API characters()).
+    private PluginCharacterService pluginCharacterService;
     private final AfflictionTexts afflictionTexts = new AfflictionTexts(this::getMessages, this::characterName);
     // A character's injuries and conditions as text, for placeholders and sheets.
     private final AfflictionLists afflictionLists = new AfflictionLists(this::getAfflictionService, afflictionTexts,
@@ -198,6 +203,7 @@ public class SkysongStats extends JavaPlugin {
     public SkillService getSkillService() { return skillService; }
     public ProficiencyService getProficiencyService() { return proficiencyService; }
     public AfflictionService getAfflictionService() { return afflictionService; }
+    public PluginCharacterService getPluginCharacterService() { return pluginCharacterService; }
     public AfflictionTexts getAfflictionTexts() { return afflictionTexts; }
     public AfflictionLists getAfflictionLists() { return afflictionLists; }
     // Plugins that say injury award messages themselves (API announceAwards).
@@ -272,6 +278,7 @@ public class SkysongStats extends JavaPlugin {
         InitializeSkills(skillsConfig);
         InitializeProficiencies(proficienciesConfig);
         InitializeAfflictions();
+        InitializePluginCharacters();
 
         InitializeCommands();
         AssignListeners();
@@ -541,6 +548,70 @@ public class SkysongStats extends JavaPlugin {
             return;
         }
         afflictionService.characters().forEach(this::applyEffects);
+    }
+
+    // Loads which characters belong to other plugins (NPCs). Their stats, skills
+    // and the rest were loaded with everyone else's.
+    public void InitializePluginCharacters(){
+        PluginCharacterRepository repository = storage.pluginCharacterRepository();
+        pluginCharacterService = new PluginCharacterService(repository, new PluginCharacterService.CharacterLifecycle() {
+            @Override
+            public boolean exists(ProfileKey character) {
+                return isCharacter(character);
+            }
+
+            @Override
+            public void create(ProfileKey character, Map<String, Integer> startingValues) {
+                createPluginCharacter(character, startingValues);
+            }
+
+            @Override
+            public void delete(ProfileKey character) {
+                deletePluginCharacter(character);
+            }
+        });
+        try {
+            repository.createTables();
+            pluginCharacterService.load();
+        } catch (StorageException e) {
+            getLogger().log(Level.SEVERE, "Unable to load the plugin characters from the database", e);
+        }
+    }
+
+    // Whether any part of the plugin knows this id as a character already.
+    private boolean isCharacter(ProfileKey character){
+        return statService.sheet(character).isPresent() || skillService.hasCharacter(character)
+                || ProfileManager.setupProfiles != null && utils.getProfileManager()
+                .findSetupProfile(character.player().toString(), character.profile()) != null;
+    }
+
+    // A plugin character gets what /profile create gives a profile, except the
+    // /setup row and downtime: stats (some at the plugin's values), skills,
+    // proficiencies and a character sheet.
+    private void createPluginCharacter(ProfileKey character, Map<String, Integer> startingValues){
+        statService.createCharacter(character, startingValues);
+        skillService.createCharacter(character);
+        proficiencyService.createCharacter(character);
+        utils.getCharacterManager().addCharacter(
+                new CharacterProfile(character.player().toString(), character.profile()));
+    }
+
+    private void deletePluginCharacter(ProfileKey character){
+        CharacterProfile profile = CharacterManager.characterProfiles == null ? null
+                : utils.getCharacterManager().findCharacterProfile(character.player().toString(), character.profile());
+        if (profile != null) {
+            utils.getCharacterManager().deleteCharacterProfile(profile);
+        }
+        statService.deleteCharacter(character);
+        skillService.deleteCharacter(character);
+        proficiencyService.deleteCharacter(character);
+        afflictionService.deleteCharacter(character);
+    }
+
+    // Every player's profile: the characters with stats that no plugin owns.
+    public Set<ProfileKey> playerCharacters(){
+        Set<ProfileKey> characters = statService.characters();
+        return pluginCharacterService == null ? characters : pluginCharacterService.playerCharacters(characters);
     }
 
     // What the character's injuries and conditions do to its stats.

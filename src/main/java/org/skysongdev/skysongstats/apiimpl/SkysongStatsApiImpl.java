@@ -8,6 +8,7 @@ import org.bukkit.plugin.ServicesManager;
 import org.jetbrains.annotations.NotNull;
 import org.skysongdev.skysongstats.SkysongStats;
 import org.skysongdev.skysongstats.api.CharacterSheets;
+import org.skysongdev.skysongstats.api.Characters;
 import org.skysongdev.skysongstats.api.Conditions;
 import org.skysongdev.skysongstats.api.Downtime;
 import org.skysongdev.skysongstats.api.Injuries;
@@ -25,7 +26,7 @@ import org.skysongdev.skysongstats.api.Stats;
  */
 public final class SkysongStatsApiImpl implements SkysongStatsApi {
     /** The API version this implementation provides. See {@link SkysongStatsApi#apiVersion()}. */
-    public static final String API_VERSION = "1.2.0";
+    public static final String API_VERSION = "1.3.0";
 
     private final Profiles profiles;
     private final Skills skills;
@@ -37,18 +38,19 @@ public final class SkysongStatsApiImpl implements SkysongStatsApi {
     private final ItemSourcesImpl itemSources;
     private final InjuriesImpl injuries;
     private final Conditions conditions;
+    private final Characters characters;
 
     /** An API reading through the plugin's services, guarded to the server's main thread. */
     public SkysongStatsApiImpl(SkysongStats plugin) {
         MainThread mainThread = new MainThread(Bukkit::isPrimaryThread);
         this.profiles = new ProfilesImpl(plugin.getUtils().getProfileManager(),
-                () -> plugin.getStatService().characters(), mainThread);
+                plugin::playerCharacters, mainThread);
         this.skills = new SkillsImpl(plugin.getSkillService(), mainThread, plugin.getChangeCauses());
         this.stats = new StatsImpl(plugin.getStatService(), mainThread, plugin.getChangeCauses());
         this.modifiers = new ModifiersImpl(plugin.getStatService(), mainThread, plugin.getChangeCauses());
         this.proficiencies = new ProficienciesImpl(plugin.getProficiencyService(), plugin.getSkillService(),
                 mainThread, plugin.getChangeCauses());
-        this.downtime = new DowntimeImpl(plugin.getDowntimeService(), () -> plugin.getStatService().characters(),
+        this.downtime = new DowntimeImpl(plugin.getDowntimeService(), plugin::playerCharacters,
                 plugin.getUtils().getProfileManager()::activeProfile, mainThread, plugin.getChangeCauses());
         this.sheets = new CharacterSheetsImpl(plugin.getUtils().getCharacterManager()::findCharacterProfile,
                 profile -> plugin.getDatabase().updateCharacterData(profile), mainThread);
@@ -58,6 +60,8 @@ public final class SkysongStatsApiImpl implements SkysongStatsApi {
                 plugin.getAfflictionTexts(), plugin.getAwardAnnouncers(), mainThread, plugin.getChangeCauses());
         this.conditions = new ConditionsImpl(plugin::getAfflictionService, plugin.getStatService(),
                 plugin.getAfflictionTexts(), mainThread, plugin.getChangeCauses());
+        this.characters = new CharactersImpl(plugin.getPluginCharacterService(),
+                () -> plugin.getStatService().definitions(), mainThread);
     }
 
     @Override
@@ -113,6 +117,11 @@ public final class SkysongStatsApiImpl implements SkysongStatsApi {
     @Override
     public @NotNull Conditions conditions() {
         return conditions;
+    }
+
+    @Override
+    public @NotNull Characters characters() {
+        return characters;
     }
 
     /** Offers this API to other plugins, owned by {@code owner}. */
