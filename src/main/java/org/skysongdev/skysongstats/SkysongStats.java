@@ -1,5 +1,19 @@
 package org.skysongdev.skysongstats;
 
+import net.kyori.adventure.text.Component;
+import org.bukkit.event.Event;
+import org.skysongdev.skysongstats.api.CharacterId;
+import org.skysongdev.skysongstats.api.event.ConditionAwardEvent;
+import org.skysongdev.skysongstats.api.event.ConditionRemoveEvent;
+import org.skysongdev.skysongstats.api.event.InjuryAwardEvent;
+import org.skysongdev.skysongstats.api.event.InjuryDiscoverEvent;
+import org.skysongdev.skysongstats.api.event.InjuryRemoveEvent;
+import org.skysongdev.skysongstats.apiimpl.AfflictionApiTypes;
+import org.skysongdev.skysongstats.character.ActiveCondition;
+import org.skysongdev.skysongstats.character.ConditionChange;
+import org.skysongdev.skysongstats.definition.InjuryDefinition;
+import org.skysongdev.skysongstats.messages.AwardAnnouncers;
+import org.skysongdev.skysongstats.storage.LearnSource;
 import org.skysongdev.skysongstats.database.CharacterProfile;
 import org.skysongdev.skysongstats.Utils.CharacterManager;
 import java.util.Map;
@@ -182,6 +196,9 @@ public class SkysongStats extends JavaPlugin {
     public AfflictionService getAfflictionService() { return afflictionService; }
     public AfflictionTexts getAfflictionTexts() { return afflictionTexts; }
     public AfflictionLists getAfflictionLists() { return afflictionLists; }
+    // Plugins that say injury award messages themselves (API announceAwards).
+    private final AwardAnnouncers awardAnnouncers = new AwardAnnouncers();
+    public AwardAnnouncers getAwardAnnouncers() { return awardAnnouncers; }
 
     // The public API offered to other plugins, null until onEnable finished.
     private SkysongStatsApiImpl api;
@@ -489,17 +506,7 @@ public class SkysongStats extends JavaPlugin {
     public void InitializeAfflictions(){
         AfflictionRepository repository = storage.afflictionRepository();
         afflictionService = new AfflictionService(conditionDefinitions, injuryDefinitions, repository,
-                new AfflictionChangeListener() {
-                    @Override
-                    public void onInjuryAwarded(InjuryAward award) {
-                        announceInjury(award);
-                    }
-
-                    @Override
-                    public void onAfflictionsChanged(ProfileKey character) {
-                        applyEffects(character);
-                    }
-                }, System::currentTimeMillis);
+                afflictionEvents(), System::currentTimeMillis);
         try {
             repository.createTables();
             afflictionService.load();
@@ -515,15 +522,67 @@ public class SkysongStats extends JavaPlugin {
         statService.setEffects(character, afflictionService.effects(character));
     }
 
-    // An injury with a message: tells the injured player, when they are playing
-    // the injured character.
-    private void announceInjury(InjuryAward award){
-        Player player = Bukkit.getPlayer(award.character().player());
-        if (player == null || !utils.getProfileManager().isActive(award.character())) {
+    // Turns injury and condition changes into stat effects, API events and the
+    // award message.
+    private AfflictionChangeListener afflictionEvents(){
+        return new AfflictionChangeListener() {
+            @Override
+            public void onInjuryAwarded(InjuryAward award) {
+                Optional<Component> message = afflictionTexts.announcement(award.character(), award.injury().injury());
+                callEvent(new InjuryAwardEvent(ApiTypes.character(award.character()),
+                        AfflictionApiTypes.injury(award.injury()), award.isNew(),
+                        message.map(AfflictionTexts::miniMessage).orElse(null), changeCauses.current()));
+                message.ifPresent(text -> announceInjury(award.character(), text));
+            }
+
+            @Override
+            public void onInjuryRemoved(ProfileKey character, InjuryDefinition injury) {
+                callEvent(new InjuryRemoveEvent(ApiTypes.character(character), injury.id(), changeCauses.current()));
+            }
+
+            @Override
+            public void onInjuryLearnt(ProfileKey character, InjuryDefinition injury, LearnSource source) {
+                if (source != LearnSource.IMPORT) {
+                    callEvent(new InjuryDiscoverEvent(ApiTypes.character(character), injury.id(), changeCauses.current()));
+                }
+            }
+
+            @Override
+            public void onConditionsChanged(ProfileKey character, List<ConditionChange> changes) {
+                changes.forEach(change -> conditionEvent(character, change));
+            }
+
+            @Override
+            public void onAfflictionsChanged(ProfileKey character) {
+                applyEffects(character);
+            }
+        };
+    }
+
+    // A condition that stopped, or started or changed level; a change of only what
+    // gives it fires nothing.
+    private void conditionEvent(ProfileKey character, ConditionChange change){
+        CharacterId id = ApiTypes.character(character);
+        if (change.stopped()) {
+            callEvent(new ConditionRemoveEvent(id, change.before().orElseThrow().id(), changeCauses.current()));
+        } else if (change.levelChanged()) {
+            callEvent(new ConditionAwardEvent(id, AfflictionApiTypes.condition(change.after().orElseThrow()),
+                    change.before().map(ActiveCondition::level).orElse(null), changeCauses.current()));
+        }
+    }
+
+    private static void callEvent(Event event){
+        Bukkit.getPluginManager().callEvent(event);
+    }
+
+    // The award message goes to the injured player, when they are playing the
+    // injured character and no other plugin announces awards.
+    private void announceInjury(ProfileKey character, Component message){
+        Player player = Bukkit.getPlayer(character.player());
+        if (player == null || awardAnnouncers.anyone() || !utils.getProfileManager().isActive(character)) {
             return;
         }
-        afflictionTexts.announcement(award.character(), award.injury().injury()).ifPresent(message ->
-                messages.send(player, "injury.award.announcement", Map.of(), Map.of("message", message)));
+        messages.send(player, "injury.award.announcement", Map.of(), Map.of("message", message));
     }
 
     // The name on the character's sheet, or the player's name when it has none.

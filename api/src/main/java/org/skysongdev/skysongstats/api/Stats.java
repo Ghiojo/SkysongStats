@@ -55,6 +55,16 @@ public interface Stats {
     @NotNull Optional<StatChange> apply(@NotNull CharacterId character, @NotNull Stat stat,
                                         @NotNull StatAction action, int amount);
 
+    /**
+     * The stat modifiers a character has from its current injuries and conditions, injuries
+     * first, the same list {@code /modifier view} shows below the saved modifiers. They count
+     * in {@link #get(CharacterId, Stat)}'s totals and modifiers like saved ones do.
+     *
+     * @return the effects, empty when the character has none or doesn't exist
+     * @since 1.2.0
+     */
+    @NotNull List<Effect> effects(@NotNull CharacterId character);
+
     /** Same as {@link #get(CharacterId, Stat)}, with the stat's id or alias. */
     default @NotNull Optional<StatValues> get(@NotNull CharacterId character, @NotNull String statIdOrAlias) {
         return find(statIdOrAlias).flatMap(stat -> get(character, stat));

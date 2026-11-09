@@ -6,6 +6,7 @@ import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.skysongdev.skysongstats.api.EffectSource;
 import org.skysongdev.skysongstats.character.StatEffect;
 import org.skysongdev.skysongstats.storage.StoredModifier;
 
@@ -158,7 +159,7 @@ class StatModifierCommandTest {
     void viewShowsEffectsOnTheFirstPageWithTheirSource() {
         run(fixture.alice, "add", "str", "1");
         fixture.stats.setEffects(StatCommandFixture.character(fixture.alice), List.of(
-                new StatEffect("dex", -2, "<red>Broken Leg"), new StatEffect("max_hp", -5, "Bleeding")));
+                new StatEffect("dex", -2, EffectSource.INJURY, "test", "<red>Broken Leg"), new StatEffect("max_hp", -5, EffectSource.INJURY, "test", "Bleeding")));
         fixture.messages.sent.clear();
 
         run(fixture.alice, "view");
@@ -177,7 +178,7 @@ class StatModifierCommandTest {
 
     @Test
     void effectsAloneAreNotEmpty() {
-        fixture.stats.setEffects(StatCommandFixture.character(fixture.alice), List.of(new StatEffect("dex", 1, "Rage")));
+        fixture.stats.setEffects(StatCommandFixture.character(fixture.alice), List.of(new StatEffect("dex", 1, EffectSource.INJURY, "test", "Rage")));
         run(fixture.alice, "view");
         assertFalse(fixture.messages.keys().contains("modifier.view.empty"));
     }

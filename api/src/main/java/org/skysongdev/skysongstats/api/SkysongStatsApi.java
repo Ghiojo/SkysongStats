@@ -84,4 +84,18 @@ public interface SkysongStatsApi {
      * @since 1.1.0
      */
     @NotNull ItemSources itemSources();
+
+    /**
+     * The injuries of injuries.yml, what characters have, and what they know.
+     *
+     * @since 1.2.0
+     */
+    @NotNull Injuries injuries();
+
+    /**
+     * The conditions of conditions.yml, and what characters have.
+     *
+     * @since 1.2.0
+     */
+    @NotNull Conditions conditions();
 }

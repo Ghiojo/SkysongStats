@@ -3,6 +3,7 @@ package org.skysongdev.skysongstats.character;
 import org.h2.jdbcx.JdbcDataSource;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.skysongdev.skysongstats.api.EffectSource;
 import org.skysongdev.skysongstats.definition.ConditionDefinitions;
 import org.skysongdev.skysongstats.definition.InjuryDefinition;
 import org.skysongdev.skysongstats.storage.LearnSource;
@@ -326,11 +327,11 @@ class AfflictionServiceTest {
     void effectsComeFromInjuriesAndConditionsAtTheirLevel() {
         service.awardInjury(ALICE, "broken-leg");
         service.awardInjury(ALICE, "deep-cut");
-        assertEquals(List.of(new StatEffect("dex", -2, "Broken Leg"), new StatEffect("str", -3, "Bleeding")),
+        assertEquals(List.of(new StatEffect("dex", -2, EffectSource.INJURY, "broken-leg", "Broken Leg"), new StatEffect("str", -3, EffectSource.CONDITION, "bleeding", "Bleeding")),
                 service.effects(ALICE));
 
         service.removeInjury(ALICE, "deep-cut");
-        assertEquals(List.of(new StatEffect("dex", -2, "Broken Leg")), service.effects(ALICE));
+        assertEquals(List.of(new StatEffect("dex", -2, EffectSource.INJURY, "broken-leg", "Broken Leg")), service.effects(ALICE));
     }
 
     @Test

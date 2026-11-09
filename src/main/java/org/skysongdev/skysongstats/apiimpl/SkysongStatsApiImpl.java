@@ -8,7 +8,9 @@ import org.bukkit.plugin.ServicesManager;
 import org.jetbrains.annotations.NotNull;
 import org.skysongdev.skysongstats.SkysongStats;
 import org.skysongdev.skysongstats.api.CharacterSheets;
+import org.skysongdev.skysongstats.api.Conditions;
 import org.skysongdev.skysongstats.api.Downtime;
+import org.skysongdev.skysongstats.api.Injuries;
 import org.skysongdev.skysongstats.api.ItemSources;
 import org.skysongdev.skysongstats.api.Modifiers;
 import org.skysongdev.skysongstats.api.Proficiencies;
@@ -23,7 +25,7 @@ import org.skysongdev.skysongstats.api.Stats;
  */
 public final class SkysongStatsApiImpl implements SkysongStatsApi {
     /** The API version this implementation provides. See {@link SkysongStatsApi#apiVersion()}. */
-    public static final String API_VERSION = "1.1.0";
+    public static final String API_VERSION = "1.2.0";
 
     private final Profiles profiles;
     private final Skills skills;
@@ -33,6 +35,8 @@ public final class SkysongStatsApiImpl implements SkysongStatsApi {
     private final Downtime downtime;
     private final CharacterSheets sheets;
     private final ItemSourcesImpl itemSources;
+    private final InjuriesImpl injuries;
+    private final Conditions conditions;
 
     /** An API reading through the plugin's services, guarded to the server's main thread. */
     public SkysongStatsApiImpl(SkysongStats plugin) {
@@ -50,6 +54,10 @@ public final class SkysongStatsApiImpl implements SkysongStatsApi {
                 profile -> plugin.getDatabase().updateCharacterData(profile), mainThread);
         this.itemSources = new ItemSourcesImpl(plugin.getItemSourceRegistry(), plugin.getItemTagListener()::recount,
                 Bukkit::getOnlinePlayers, mainThread);
+        this.injuries = new InjuriesImpl(plugin::getAfflictionService, plugin.getStatService(),
+                plugin.getAfflictionTexts(), plugin.getAwardAnnouncers(), mainThread, plugin.getChangeCauses());
+        this.conditions = new ConditionsImpl(plugin::getAfflictionService, plugin.getStatService(),
+                plugin.getAfflictionTexts(), mainThread, plugin.getChangeCauses());
     }
 
     @Override
@@ -97,10 +105,22 @@ public final class SkysongStatsApiImpl implements SkysongStatsApi {
         return itemSources;
     }
 
+    @Override
+    public @NotNull Injuries injuries() {
+        return injuries;
+    }
+
+    @Override
+    public @NotNull Conditions conditions() {
+        return conditions;
+    }
+
     /** Offers this API to other plugins, owned by {@code owner}. */
     public void register(ServicesManager services, Plugin owner) {
         // Removes a plugin's item sources when it disables.
         owner.getServer().getPluginManager().registerEvents(itemSources, owner);
+        // And its award announcers.
+        owner.getServer().getPluginManager().registerEvents(injuries, owner);
         services.register(SkysongStatsApi.class, this, owner, ServicePriority.Normal);
     }
 
@@ -108,5 +128,6 @@ public final class SkysongStatsApiImpl implements SkysongStatsApi {
     public void unregister(ServicesManager services) {
         services.unregister(SkysongStatsApi.class, this);
         HandlerList.unregisterAll(itemSources);
+        HandlerList.unregisterAll(injuries);
     }
 }
