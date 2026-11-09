@@ -15,6 +15,7 @@ import java.io.Reader;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -53,7 +54,8 @@ class DefaultStatsFileTest {
 
     @Test
     void hasTodaysStats() {
-        assertEquals(List.of("str", "dex", "con", "foc", "spd", "hp", "temphp", "ac", "potion", "arcrot", "fictis"),
+        assertEquals(List.of("str", "dex", "con", "foc", "spd", "hp", "temphp", "ac", "potion", "arcrot", "fictis",
+                        "height"),
                 config.stats().all().stream().map(StatDefinition::id).toList());
     }
 
@@ -135,7 +137,8 @@ class DefaultStatsFileTest {
                 "heal", "hp add", "addhp", "hp add",
                 "reducehp", "hp reduce", "rhp", "hp reduce",
                 "damage", "hp damage", "dhp", "hp damage",
-                "temphp", "temphp set", "ac", "ac set", "potionsickness", "potion set");
+                "temphp", "temphp set", "ac", "ac set", "potionsickness", "potion set",
+                "height", "height set");
         assertEquals(expected.size(), config.stats().commands().size());
         expected.forEach((label, target) -> {
             CommandBinding binding = config.stats().findCommand(label).orElseThrow(() -> new AssertionError(label));
@@ -144,11 +147,20 @@ class DefaultStatsFileTest {
     }
 
     @Test
-    void everyoneCanSetPotionSicknessLikeTodayAndOnlyOpsTheRest() {
+    void everyoneCanSetPotionSicknessLikeTodayAndTheirHeightAndOnlyOpsTheRest() {
+        Set<String> everyone = Set.of("potion", "height");
         for (StatDefinition stat : config.stats().all()) {
-            PermissionDefault expected = "potion".equals(stat.id()) ? PermissionDefault.TRUE : PermissionDefault.OP;
+            PermissionDefault expected = everyone.contains(stat.id()) ? PermissionDefault.TRUE : PermissionDefault.OP;
             assertEquals(expected, stat.permissionDefault(), stat.id());
         }
+    }
+
+    @Test
+    void heightIsTheOnlyStatThatSetsTheScaleFrom80cmTo360cm() {
+        assertEquals(new HeightScale(180, 80, 360), stat("height").scale());
+        assertEquals(180, stat("height").baseline());
+        assertEquals("height", config.stats().height().orElseThrow().id());
+        assertEquals(1, config.stats().all().stream().filter(StatDefinition::isHeight).count());
     }
 
     @Test

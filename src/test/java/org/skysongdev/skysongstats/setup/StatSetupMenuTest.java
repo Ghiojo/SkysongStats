@@ -184,7 +184,7 @@ class StatSetupMenuTest {
     void anItemModelIconIsShownOnPaper() {
         StatDefinition luck = new StatDefinition("luck", new StatDisplay("Luck", "", List.of()), 0, null, null,
                 List.of(), Map.of(), new StatSetup(Icon.parse("model:skysong:clover"), 10, 0, 1, List.of()),
-                PermissionDefault.OP);
+                PermissionDefault.OP, null);
         StatSetupMenu modelMenu = new StatSetupMenu(List.of(luck), new SetupRules(1, 0), KEYS, (who, values) -> { });
         ItemStack icon = modelMenu.getInventory().getItem(10);
         assertEquals(Material.PAPER, icon.getType());

@@ -8,11 +8,17 @@ import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.skysongdev.skysongstats.database.CharacterProfile;
+import org.skysongdev.skysongstats.character.StatService;
+import org.skysongdev.skysongstats.definition.StatDefinition;
 import org.skysongdev.skysongstats.messages.Messages;
+import org.skysongdev.skysongstats.placeholders.StatPlaceholders;
+import org.skysongdev.skysongstats.storage.ProfileKey;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import static org.skysongdev.skysongstats.SkysongStats.getPlugin;
 
@@ -44,7 +50,9 @@ public class ViewCharacter implements TabExecutor {
     // Other plugins' %placeholders% in the sheet's lines are filled in for its player.
     private static void showSheet(CommandSender viewer, Player player, CharacterProfile profile) {
         Messages messages = getPlugin().getMessages();
-        messages.send(viewer, "character.view.header", Map.of("player", player.getName()), Map.of(
+        Map<String, String> placeholders = new HashMap<>(height(player));
+        placeholders.put("player", player.getName());
+        messages.send(viewer, "character.view.header", placeholders, Map.of(
                 "name", Messages.playerStyledText(profile.getName()),
                 "age", Messages.playerStyledText(profile.getAge()),
                 "gender", Messages.playerStyledText(profile.getGender()),
@@ -54,6 +62,19 @@ public class ViewCharacter implements TabExecutor {
             messages.send(viewer, "character.view.description-line", Map.of(), Map.of("line", Messages.playerStyledText(line)), player);
         }
         messages.send(viewer, "character.view.footer", Map.of(), Map.of(), player);
+    }
+
+    // {height} in metres and {height_feet}, from the stats.yml stat with a "scale:"
+    // block; empty when there is none or the player has no character with stats.
+    private static Map<String, String> height(Player player) {
+        StatService stats = getPlugin().getStatService();
+        Optional<StatDefinition> height = stats.definitions().height();
+        Optional<ProfileKey> character = getPlugin().getUtils().getProfileManager().activeCharacter(player);
+        StatPlaceholders placeholders = new StatPlaceholders(stats);
+        String metres = height.flatMap(stat -> character.flatMap(key -> placeholders.resolve(key, stat.id()))).orElse("");
+        String feet = height.flatMap(stat -> character.flatMap(key -> placeholders.resolve(key, stat.id() + "_feet")))
+                .orElse("");
+        return Map.of("height", metres, "height_feet", feet);
     }
 
     /** Splits the description into lines of about 60 characters, between words. */

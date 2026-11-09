@@ -150,6 +150,7 @@ class StatServiceTest {
         Map<String, Integer> expected = new HashMap<>(Map.of("str", 0, "dex", 0, "con", 0, "foc", 0, "spd", 6,
                 "hp", 60, "temphp", 0, "ac", 0, "potion", 0, "arcrot", 0));
         expected.put("fictis", 0);
+        expected.put("height", 180);
         assertEquals(expected, repository.values.get(ALICE));
     }
 
@@ -421,5 +422,36 @@ class StatServiceTest {
         odd.createCharacter(ALICE);
         assertEquals(5, odd.value(ALICE, "a").orElseThrow());
         assertEquals(10, odd.value(ALICE, "max_a").orElseThrow());
+    }
+
+    @Test
+    void heightsSetThroughTheServiceStayWithinTheirScaleLimits() {
+        service.apply(ALICE, stat("height"), StatAction.SET, 1000);
+        assertEquals(360, service.value(ALICE, "height").orElseThrow());
+        service.apply(ALICE, stat("height"), StatAction.SET, 1);
+        assertEquals(80, service.value(ALICE, "height").orElseThrow());
+    }
+
+    @Test
+    void reportsEverythingThatCanChangeACharactersTotals() {
+        List<ProfileKey> updated = new ArrayList<>();
+        StatService watched = new StatService(defaultStats, repository, new StatChangeListener() {
+            @Override
+            public void onChange(StatChange change) {
+            }
+
+            @Override
+            public void onTotalsChanged(ProfileKey character) {
+                updated.add(character);
+            }
+        });
+        watched.createCharacter(ALICE);
+        assertEquals(List.of(), updated);
+        watched.apply(ALICE, stat("height"), StatAction.SET, 200);
+        StoredModifier modifier = watched.addModifier(ALICE, "height", 5);
+        watched.removeModifier(ALICE, modifier.id());
+        watched.setItemCounts(ALICE, Map.of());
+        watched.fillBarsThatStartFull(ALICE);
+        assertEquals(List.of(ALICE, ALICE, ALICE, ALICE, ALICE), updated);
     }
 }

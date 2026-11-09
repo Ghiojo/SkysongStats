@@ -8,6 +8,7 @@ import org.skysongdev.skysongstats.placeholders.StatPlaceholders;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
@@ -19,13 +20,15 @@ import java.util.stream.Stream;
 // where {player} and the stat placeholders ({str}, {str_base}, {str_modifiers},
 // {hp}, {max_hp}, {max_hp_base}...) are filled in. A stat the lines never mention, such as one
 // just added to stats.yml, still shows: it gets a stats.sheet-auto line after
-// them. stats.sheet-footer closes the sheet. Other plugins' %placeholders%
+// them, unless stats.sheet-hidden lists its id (the height, which shows on the
+// character sheet instead). stats.sheet-footer closes the sheet. Other plugins' %placeholders%
 // (PlaceholderAPI) in any of these lines are filled in for the sheet's player.
 public final class StatSheet {
     static final String SHEET = "stats.sheet";
     static final String AUTO_VALUE = "stats.sheet-auto.value";
     static final String AUTO_BAR = "stats.sheet-auto.bar";
     static final String FOOTER = "stats.sheet-footer";
+    static final String HIDDEN = "stats.sheet-hidden";
     private static final String BASE = "_base";
     private static final String MODIFIERS = "_modifiers";
     // The same placeholder names messages.yml fills in.
@@ -43,8 +46,9 @@ public final class StatSheet {
         Map<String, String> values = values(target);
         messages.send(to, SHEET, values, target.player());
         Set<String> shown = mentioned(messages.lines(SHEET));
+        Set<String> hidden = hidden();
         for (StatDefinition stat : stats.definitions().all()) {
-            if (names(stat).noneMatch(shown::contains)) {
+            if (!hidden.contains(stat.id()) && names(stat).noneMatch(shown::contains)) {
                 messages.send(to, stat.isBar() ? AUTO_BAR : AUTO_VALUE, autoLine(stat, values), target.player());
             }
         }
@@ -80,6 +84,12 @@ public final class StatSheet {
     private static Stream<String> names(StatDefinition stat) {
         Stream<String> own = Stream.of(stat.id(), stat.id() + BASE, stat.id() + MODIFIERS);
         return Stream.concat(own, stat.maxId().stream().flatMap(max -> Stream.of(max, max + BASE, max + MODIFIERS)));
+    }
+
+    private Set<String> hidden() {
+        Set<String> ids = new HashSet<>();
+        messages.lines(HIDDEN).forEach(id -> ids.add(id.trim().toLowerCase(Locale.ROOT)));
+        return ids;
     }
 
     private static Set<String> mentioned(List<String> lines) {

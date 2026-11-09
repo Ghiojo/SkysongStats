@@ -21,6 +21,13 @@
 #   permission-default    who can use this stat's commands without being granted
 #                         skysongstats.stat.<id>.<action>[.other]: op (default),
 #                         true (everyone), false (nobody) or not op
+#   scale                 makes the stat a height in centimetres that sets the player's
+#                         Minecraft scale (only one stat can have it, not bars):
+#                         normal is the height that is scale 1 (a normal player is
+#                         1.8 blocks tall, so 180), and the scale is linear (360 is
+#                         scale 2). min and max are the shortest and tallest heights
+#                         commands accept. Commands take metres (1.75) or feet and
+#                         inches (5'9"); modifiers on it are in centimetres.
 #   setup                 shows the stat in /setup: icon (a Material or
 #                         model:<namespace:id>), slot (0-26), how far below (min) and
 #                         above (max) the baseline it can go, and lore lines.
@@ -160,3 +167,16 @@ stats:
     can-exceed-max: true
     item-tags:
       - tag: fictis
+
+  height:
+    name: "Height"
+    baseline: 180
+    # Everyone can set their own height; another player's needs
+    # skysongstats.stat.height.set.other (op).
+    permission-default: true
+    commands:
+      set: [height]
+    scale:
+      normal: 180
+      min: 80
+      max: 360

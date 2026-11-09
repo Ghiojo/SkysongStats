@@ -22,6 +22,8 @@ import org.skysongdev.skysongstats.character.ProficiencyService;
 import org.skysongdev.skysongstats.character.ProficiencyTierChange;
 import org.skysongdev.skysongstats.character.SkillChange;
 import org.skysongdev.skysongstats.character.SkillService;
+import org.skysongdev.skysongstats.character.StatChange;
+import org.skysongdev.skysongstats.character.StatChangeListener;
 import org.skysongdev.skysongstats.character.StatService;
 import org.skysongdev.skysongstats.commands.character.CharacterCommand;
 import org.skysongdev.skysongstats.commands.downtime.DowntimeCommand;
@@ -52,6 +54,7 @@ import org.skysongdev.skysongstats.definition.SkillsConfig;
 import org.skysongdev.skysongstats.definition.SkillsConfigFile;
 import org.skysongdev.skysongstats.definition.StatsConfig;
 import org.skysongdev.skysongstats.definition.StatsConfigFile;
+import org.skysongdev.skysongstats.height.HeightScaler;
 import org.skysongdev.skysongstats.items.ItemSourceRegistry;
 import org.skysongdev.skysongstats.items.ItemTagListener;
 import org.skysongdev.skysongstats.items.ItemTagReader;
@@ -155,6 +158,8 @@ public class SkysongStats extends JavaPlugin {
     public ItemSourceRegistry getItemSourceRegistry() { return itemSourceRegistry; }
     private ItemTagListener itemTagListener;
     public ItemTagListener getItemTagListener() { return itemTagListener; }
+    // Keeps players' Minecraft scale on their character's height.
+    private HeightScaler heightScaler;
 
     @Override
     public void onEnable() {
@@ -251,6 +256,7 @@ public class SkysongStats extends JavaPlugin {
         getServer().getPluginManager().registerEvents(proficiencyTierSync, this);
         getServer().getPluginManager().registerEvents(pendingFocusChanges, this);
         getServer().getPluginManager().registerEvents(new PlayerShiftRightClickListener(), this);
+        getServer().getPluginManager().registerEvents(heightScaler, this);
         itemSourceRegistry = new ItemSourceRegistry(getLogger()::warning);
         itemTagListener = new ItemTagListener(statService, utils.getProfileManager()::activeCharacter, itemTagReader(),
                 itemSourceRegistry::items);
@@ -302,6 +308,9 @@ public class SkysongStats extends JavaPlugin {
         if (itemSourceRegistry != null) {
             itemSourceRegistry.clear();
         }
+        if (heightScaler != null) {
+            Bukkit.getOnlinePlayers().forEach(heightScaler::remove);
+        }
         if (statCommands != null) {
             statCommands.unregisterAll();
             statPermissions.unregisterAll();
@@ -321,9 +330,18 @@ public class SkysongStats extends JavaPlugin {
     // before the stat tables existed get their stats at the stats.yml start values.
     public void InitializeStats(){
         StatRepository repository = storage.repository();
-        statService = new StatService(statsConfig.stats(), repository,
-                change -> Bukkit.getPluginManager().callEvent(
-                        new StatChangeEvent(ApiTypes.statChange(change), changeCauses.current())));
+        statService = new StatService(statsConfig.stats(), repository, new StatChangeListener() {
+            @Override
+            public void onChange(StatChange change) {
+                Bukkit.getPluginManager().callEvent(new StatChangeEvent(ApiTypes.statChange(change), changeCauses.current()));
+            }
+
+            @Override
+            public void onTotalsChanged(ProfileKey character) {
+                heightScaler.refresh(character);
+            }
+        });
+        heightScaler = new HeightScaler(statService, utils.getProfileManager()::activeCharacter, Bukkit::getPlayer);
         try {
             repository.createTables();
             statService.load();
@@ -475,6 +493,8 @@ public class SkysongStats extends JavaPlugin {
         if (statService != null) {
             statService.setDefinitions(statsConfig.stats());
             registerStatCommands();
+            // A changed or removed scale: block applies at once.
+            Bukkit.getOnlinePlayers().forEach(heightScaler::refresh);
         }
         return true;
     }

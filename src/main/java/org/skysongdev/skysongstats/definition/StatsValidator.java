@@ -28,6 +28,7 @@ final class StatsValidator {
         checkNames();
         checkCommands();
         checkSetupSlots();
+        checkOneHeight();
         for (StatDefinition stat : stats.values()) {
             if (stat.isBar()) {
                 checkFormula(stat);
@@ -85,6 +86,15 @@ final class StatsValidator {
             if (owner != null) {
                 errors.add(path(stat) + ".setup.slot: slot " + stat.setup().slot() + " is already used by stat '" + owner + "'");
             }
+        }
+    }
+
+    // A player has one scale, so only one stat can set it.
+    private void checkOneHeight() {
+        List<String> heights = stats.values().stream().filter(StatDefinition::isHeight).map(StatDefinition::id).toList();
+        if (heights.size() > 1) {
+            errors.add("stats: only one stat can have a 'scale:' block (a player has one scale), found "
+                    + String.join(", ", heights));
         }
     }
 

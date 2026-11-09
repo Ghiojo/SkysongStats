@@ -95,7 +95,43 @@ public final class StatsConfigLoader {
         BarSettings bar = readType(id, stat);
         return new StatDefinition(id, display, reader.readInt(stat, "baseline", 0), readMin(stat, bar != null),
                 bar, readItemTags(stat), readCommands(stat), readSetup(id, stat, bar != null),
-                readPermissionDefault(stat));
+                readPermissionDefault(stat), readScale(id, stat, bar != null));
+    }
+
+    // Returns the height settings, or null when the stat is not a height.
+    private HeightScale readScale(String id, ConfigurationSection stat, boolean isBar) {
+        ConfigurationSection scale = stat.getConfigurationSection("scale");
+        if (scale == null) {
+            if (stat.contains("scale")) {
+                errors.add(path(id) + ".scale: must be a section with normal, min and max");
+            }
+            return null;
+        }
+        if (isBar) {
+            errors.add(path(id) + ".scale: only plain values can be a height, not bars");
+        }
+        HeightScale height = new HeightScale(reader.readRequiredInt(scale, "normal"),
+                reader.readRequiredInt(scale, "min"), reader.readRequiredInt(scale, "max"));
+        checkScale(scale.getCurrentPath(), height);
+        if (!height.allows(stat.getInt("baseline", 0))) {
+            errors.add(path(id) + ".baseline: a height's baseline must be between scale.min and scale.max");
+        }
+        return height;
+    }
+
+    private void checkScale(String where, HeightScale height) {
+        if (height.normal() <= 0 || height.min() <= 0) {
+            errors.add(where + ": normal and min must be above 0 (they are centimetres)");
+            return;
+        }
+        if (height.min() > height.max()) {
+            errors.add(where + ": min can't be above max");
+        }
+        if ((double) height.min() / height.normal() < HeightScale.MIN_SCALE
+                || (double) height.max() / height.normal() > HeightScale.MAX_SCALE) {
+            errors.add(where + ": Minecraft scales go from " + HeightScale.MIN_SCALE + " to " + (int) HeightScale.MAX_SCALE
+                    + ", so min must be at least normal / 16 and max at most normal * 16");
+        }
     }
 
     // Returns the bar settings, or null for a plain value.
