@@ -87,17 +87,19 @@ public final class AncestryChoicesMenu implements SetupScreen {
             onBack.get().accept(player);
             return;
         }
-        int choiceIndex = slot / ROW - 1;
-        int itemIndex = slot % ROW - 1;
-        if (choiceIndex < 0 || choiceIndex >= ancestry.choices().size() || itemIndex < 0) {
-            return;
-        }
-        AncestryChoice choice = ancestry.choices().get(choiceIndex);
-        boolean changed = choice instanceof StatPickChoice stats ? toggleStat(choiceIndex, stats, itemIndex)
-                : togglePackage(choiceIndex, (PackageChoice) choice, itemIndex);
-        if (changed) {
+        if (toggle(slot / ROW - 1, slot % ROW - 1)) {
             draw();
         }
+    }
+
+    // A click on a choice's row: picks or un-picks that item. False when nothing changed.
+    private boolean toggle(int choiceIndex, int itemIndex) {
+        if (choiceIndex < 0 || choiceIndex >= ancestry.choices().size() || itemIndex < 0) {
+            return false;
+        }
+        AncestryChoice choice = ancestry.choices().get(choiceIndex);
+        return choice instanceof StatPickChoice stats ? toggleStat(choiceIndex, stats, itemIndex)
+                : togglePackage(choiceIndex, (PackageChoice) choice, itemIndex);
     }
 
     @Override

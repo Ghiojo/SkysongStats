@@ -47,7 +47,6 @@ class AncestryMenusTest {
     private static final StatDefinitions STATS = SetupTestData.defaultConfig().stats();
     private static final AncestryDefinitions ANCESTRIES = SetupTestData.defaultAncestries();
 
-    private ServerMock server;
     private PlayerMock player;
     private final List<AncestryDefinition> picked = new ArrayList<>();
     private final List<AncestryPicks> confirmed = new ArrayList<>();
@@ -55,7 +54,7 @@ class AncestryMenusTest {
 
     @BeforeEach
     void setUp() {
-        server = MockBukkit.mock();
+        ServerMock server = MockBukkit.mock();
         server.getPluginManager().registerEvents(new SetupScreenListener(), MockBukkit.createMockPlugin());
         player = server.addPlayer("Alice");
     }
