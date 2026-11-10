@@ -1,5 +1,6 @@
 package org.skysongdev.skysongstats;
 
+import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 import org.bukkit.event.HandlerList;
 import org.bukkit.event.inventory.ClickType;
@@ -196,8 +197,10 @@ class AncestrySetupTest {
         alice.performCommand("setup");
         screen(AncestrySetupMenu.class).click(alice, 10, ClickType.LEFT);
         finishStatsAndSkills();
-        while (alice.nextComponentMessage() != null) {
-            // Skip the setup messages.
+        // Skip the setup messages.
+        Component skipped = alice.nextComponentMessage();
+        while (skipped != null) {
+            skipped = alice.nextComponentMessage();
         }
 
         alice.performCommand("char set ancestry Elf");
