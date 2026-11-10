@@ -73,6 +73,9 @@ commands:
   condition:
     description: "Look through every condition, and manage characters' conditions"
     usage: "/condition [list|search <text>|award|remove]"
+  ancestry:
+    description: "Make your character's ancestry choices, and manage characters' ancestries"
+    usage: "/ancestry [choose|set <player> <ancestry>|rechoose <player>|remove <player>]"
 permissions:
   # The stat command nodes (skysongstats.stat.<stat>.<action>[.other]) are made
   # from stats.yml when the plugin starts and on /ssreload.
@@ -142,6 +145,18 @@ permissions:
   skysongstats.conditions:
     description: "Allows you to open the /condition list and /condition search menus"
     default: true
+  skysongstats.ancestry.choose:
+    description: "Allows you to make your character's pending ancestry choices with /ancestry choose"
+    default: true
+  skysongstats.ancestry.set:
+    description: "Allows you to give characters an ancestry with /ancestry set"
+    default: op
+  skysongstats.ancestry.rechoose:
+    description: "Allows you to let characters make their ancestry choices again with /ancestry rechoose"
+    default: op
+  skysongstats.ancestry.remove:
+    description: "Allows you to take characters' ancestry away with /ancestry remove"
+    default: op
   skysongstats.*:
     description: "Wildcard permission"
     default: op
@@ -166,3 +181,7 @@ permissions:
         skysongstats.injuries: true
         skysongstats.injuries.all: true
         skysongstats.conditions: true
+        skysongstats.ancestry.choose: true
+        skysongstats.ancestry.set: true
+        skysongstats.ancestry.rechoose: true
+        skysongstats.ancestry.remove: true

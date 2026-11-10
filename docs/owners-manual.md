@@ -548,7 +548,7 @@ Current injuries and conditions can't be imported: SkysongChatTweaks never saved
 
 The ancestries a player will pick from at the start of `/setup` (Dwarf, Elf...), each giving a few + and − to the stats of the [/setup point screen](#setup-a-stat-on-the-setup-point-screen). An ancestry only changes stats: no actions or traits. The file ships with one example ancestry for each way of adjusting stats (`dwarf`, `elf`, `human`, `goblin`, `orc`, `giant`, `dragonborn`); replace them with your own. `ancestries: {}` means no ancestries.
 
-Picking an ancestry in `/setup` adds its adjustments to the character's **base** stats (so they show in the `_base` placeholders too, and not in `/modifier view`) and fills the character's ancestry field with its name. From then on the player can't change that field with `/char set ancestry`. What the ancestry gave is saved on its own as well, so it can be taken off again exactly. Editing `ancestries.yml` never changes characters that already have the ancestry.
+Picking an ancestry in `/setup` adds its adjustments to the character's **base** stats (so they show in the `_base` placeholders too, and not in `/modifier view`) and fills the character's ancestry field with its name. From then on the player can't change that field with `/char set ancestry`. What the ancestry gave is saved on its own as well, so it can be taken off again exactly. Editing `ancestries.yml` never changes characters that already have the ancestry. To put an ancestry's new version on a character, or change its ancestry, use [`/ancestry set`](#ancestries-ancestry).
 
 ```yaml
 ancestries:
@@ -623,6 +623,7 @@ Every message players and staff see. Edit the text and run `/ssreload`.
 | `injury` | `/injury`, its menu (`injury.menu`), how an injury is shown everywhere (`injury.tag`: its name with the description on hover), the award announcement |
 | `placeholders` | The separator and "None" text of the injury and condition lists (placeholders and sheet tags) |
 | `condition` | `/condition`, its menu (`condition.menu`), how a condition is shown (`condition.tag`, `given-tag`, `level-format`, `level-in-description`) |
+| `ancestry` | `/ancestry` (`ancestry.command`) and the pending choices prompt (`ancestry.choices-pending`) |
 | `setup` | `/setup`, its stat point screen, the ancestry list (`setup.ancestry`) and the ancestry choices page (`setup.ancestry-choices`) |
 | `stats` | Stat actions, `/stats view` sheet |
 | `modifier` | `/modifier` |
@@ -766,6 +767,19 @@ A character's **current** injuries and conditions are on its stat sheet (`/stats
 
 Injuries and conditions are named by their id from the files, in any case. The player must be online. Staff changes are logged in the console.
 
+### Ancestries (`/ancestry`)
+
+| Command | Permission | What it does |
+|---|---|---|
+| `/ancestry choose` | `skysongstats.ancestry.choose` (everyone) | Opens the choices page of your character's ancestry, when it has choices to make (see below). Like the /setup page, without Back. Confirming makes them. |
+| `/ancestry set <player> <ancestry>` | `skysongstats.ancestry.set` (ops) | Gives the character that ancestry: everything the old one gave is taken off, the new one's `stats:` are put on, and its choices (if any) are left for the player to make. Ignores the ancestry's `permission:`. Setting the ancestry the character already has puts its current version from `ancestries.yml` on. |
+| `/ancestry rechoose <player>` | `skysongstats.ancestry.rechoose` (ops) | Takes off what the ancestry's choices gave (its `stats:` stay) and lets the player choose again. |
+| `/ancestry remove <player>` | `skysongstats.ancestry.remove` (ops) | Takes off everything the ancestry gave. The character has no ancestry, and its ancestry field is `[Not Set]` again (free to `/char set`). |
+
+Staff commands work on the player's **active** character, online or offline (as long as they joined before). Ancestries are named by their id, in any case. Staff changes are logged in the console, and an online player is told.
+
+**Pending choices.** After `/ancestry set` (of an ancestry with choices) or `/ancestry rechoose`, the character has choices to make. Its player gets `ancestry.choices-pending`, with a **[Choose]** button that runs `/ancestry choose`: right away if they are playing the character, and again every time they join or switch to it, until the choices are made. The page outside /setup doesn't check the /setup stat ranges. If the ancestry has left `ancestries.yml`, there is nothing to choose: staff can `/ancestry set` another one.
+
 ### Downtime (`/downtime`, alias `/dt`)
 
 | Command | Permission | What it does |
@@ -784,7 +798,7 @@ Downtime commands work on **offline** players too, as long as they have joined b
 |---|---|---|
 | `/profile create\|switch\|delete\|view [name]` | `skysongstats.profile` | See [profiles](#profiles-and-characters). Players only. |
 | `/char [view] [player]` (also `/schar`) | `skysongstats.char` / `skysongstats.schar` | Shows an online player's character sheet. **Shift + right click** on a player shows theirs too. |
-| `/char set <field> <value>` | same | Sets your own `name` (100 chars), `age` (20), `gender` (20), `pronouns` (20), `ancestry` (50) or `description` (stored up to 500). `ancestry` is refused (`character.set.ancestry-locked`) once the character has an ancestry from `/setup`: the field then follows the ancestry. |
+| `/char set <field> <value>` | same | Sets your own `name` (100 chars), `age` (20), `gender` (20), `pronouns` (20), `ancestry` (50) or `description` (stored up to 500). `ancestry` is refused (`character.set.ancestry-locked`) once the character has an ancestry (from `/setup` or `/ancestry set`): the field then follows the ancestry. |
 
 ### Setup and reload
 
@@ -818,6 +832,8 @@ Downtime commands work on **offline** players too, as long as they have joined b
 | `skysongstats.injuries`, `skysongstats.conditions` | everyone | The `/injury list`/`search` and `/condition list`/`search` menus. |
 | `skysongstats.injuries.all` | op | `/injury list` shows every injury, not only the known ones. |
 | `skysongstats.import` | op | `/ssimport chattweaks`. |
+| `skysongstats.ancestry.choose` | everyone | `/ancestry choose`. |
+| `skysongstats.ancestry.set`, `.rechoose`, `.remove` | op | The staff `/ancestry` commands. |
 | `skysongstats.*` | op | Everything above (and the generated nodes below). |
 
 ### Generated nodes (from the config files)
@@ -1120,6 +1136,7 @@ All code is under `src/main/java/org/skysongdev/skysongstats/`; default files ar
 | The /setup ancestry list and choices page | `setup/AncestrySetupMenu.java`, `setup/AncestryChoicesMenu.java`, `setup/AncestryTexts.java`; the flow in `commands/setup/SetupCommand.java` |
 | How injuries and conditions are shown (tags, announcement, lists) | `messages/AfflictionTexts.java`, `messages/AfflictionLists.java`, `messages/LineWrapper.java` |
 | /injury, /condition | `commands/affliction/` (menus drawn by `menu/`) |
+| /ancestry and the pending choices prompt | `commands/ancestry/AncestryCommand.java`, `commands/ancestry/AncestryPrompt.java` |
 | /ssimport chattweaks | `commands/misc/ImportCommand`, the import itself in `importer/` |
 | Downtime rules | `service/downtime/DowntimeService.java` |
 | Stat commands, /modifier, generated stat commands and permissions | `commands/stat/` |
