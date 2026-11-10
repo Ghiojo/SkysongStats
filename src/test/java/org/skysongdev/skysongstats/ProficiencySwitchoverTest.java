@@ -144,7 +144,8 @@ class ProficiencySwitchoverTest {
     void proficienciesOfASkillThatLeftSkillsYmlAreNotReloaded() throws IOException {
         File skills = new File(plugin.getDataFolder(), "skills.yml");
         String text = Files.readString(skills.toPath());
-        Files.writeString(skills.toPath(), text.replace("  medical:\n", "  healing:\n").replace(" medical,", " healing,"));
+        // (?m)$ also matches before \r\n, so this works on Windows checkouts too.
+        Files.writeString(skills.toPath(), text.replaceAll("(?m)^  medical:$", "  healing:").replace(" medical,", " healing,"));
 
         reload();
 
