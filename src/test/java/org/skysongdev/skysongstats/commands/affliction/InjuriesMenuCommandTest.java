@@ -9,6 +9,7 @@ import org.skysongdev.skysongstats.storage.LearnSource;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -49,6 +50,31 @@ class InjuriesMenuCommandTest extends AfflictionCommandFixture {
         run(alice);
         assertEquals("Known Injuries", title());
         assertEquals(List.of("Broken Leg", "Cut"), shown());
+    }
+
+    @Test
+    void theSeeAllPermissionShowsEveryInjury() {
+        know("cut");
+        alice.addAttachment(plugin, InjuriesMenuCommand.SEE_ALL_PERMISSION, true);
+        run(alice);
+        assertEquals(List.of("Broken Leg", "Cut", "Deep Cut", "Bruise"), shown());
+        assertEquals(Set.of("cut"), afflictions.known(character(alice)), "seeing teaches nothing");
+    }
+
+    @Test
+    void theSeeAllPermissionKeepsTheFilters() {
+        alice.addAttachment(plugin, InjuriesMenuCommand.SEE_ALL_PERMISSION, true);
+        run(alice, "view", "minor");
+        assertEquals(List.of("Cut", "Bruise"), shown());
+        run(alice, "search", "cut");
+        assertEquals(List.of("Cut", "Deep Cut"), shown());
+    }
+
+    @Test
+    void theSeeAllPermissionIsForOpsByDefault() {
+        assertFalse(alice.hasPermission(InjuriesMenuCommand.SEE_ALL_PERMISSION));
+        alice.setOp(true);
+        assertTrue(alice.hasPermission(InjuriesMenuCommand.SEE_ALL_PERMISSION));
     }
 
     @Test

@@ -697,6 +697,8 @@ Staff changes are logged in the console.
 | `/injuries` (also `/injuries view`) | `skysongstats.injuries` (everyone) | A menu of the injuries your character knows, in `injuries.yml` order: icon, name, description, id and severity. 27 per page, arrows turn pages. |
 | `/injuries view <severity>` | same | Only known injuries of that severity. Tab completion offers the severities at least one injury uses. |
 | `/injuries search <text>` | same | Only known injuries whose name contains the text (ignoring case and formatting). Says so when nothing matches. |
+
+With `skysongstats.injuries.all` (op by default), all three show **every** injury of `injuries.yml`, known or not, with the same severity and search filters. It only changes what the menu shows: the character doesn't learn anything, and chat tags still need the injury to be known. Without it, ops see only what their character knows, like everyone else.
 | `/conditions` | `skysongstats.conditions` (everyone) | A menu of every condition in `conditions.yml` (conditions aren't learnt). A description's `$` shows as `condition.menu.level` (`[value]`). |
 | `/conditions search <text>` | same | Only conditions whose name contains the text. |
 
@@ -764,6 +766,7 @@ Downtime commands work on **offline** players too, as long as they have joined b
 | `skysongstats.injury.award`, `.remove`, `.discover` | op | The staff `/injury` commands (`.discover` also covers `forget`). |
 | `skysongstats.condition.award`, `.remove` | op | The staff `/condition` commands. |
 | `skysongstats.injuries`, `skysongstats.conditions` | everyone | The `/injuries` and `/conditions` menus. |
+| `skysongstats.injuries.all` | op | `/injuries` shows every injury, not only the known ones. |
 | `skysongstats.import` | op | `/ssimport chattweaks`. |
 | `skysongstats.*` | op | Everything above (and the generated nodes below). |
 

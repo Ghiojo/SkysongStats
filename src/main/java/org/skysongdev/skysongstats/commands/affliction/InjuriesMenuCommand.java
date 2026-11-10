@@ -25,8 +25,12 @@ import java.util.stream.Stream;
 //   /injuries                    all of them
 //   /injuries view [severity]    only those of one severity
 //   /injuries search <text>      only those whose name contains the text
+// With skysongstats.injuries.all the menu holds every injury of injuries.yml,
+// known or not, with the same filters. It changes only what the menu shows: the
+// character learns nothing.
 public final class InjuriesMenuCommand implements TabExecutor {
     static final String PERMISSION = "skysongstats.injuries";
+    static final String SEE_ALL_PERMISSION = PERMISSION + ".all";
     private static final String KEYS = "injury.menu.";
 
     private final AfflictionService afflictions;
@@ -89,8 +93,9 @@ public final class InjuriesMenuCommand implements TabExecutor {
         }
         targets.resolve(sender, null, PERMISSION, null).ifPresent(target -> {
             Set<String> known = afflictions.known(target.character());
+            boolean seesAll = sender.hasPermission(SEE_ALL_PERMISSION);
             List<InjuryDefinition> injuries = afflictions.injuryDefinitions().all().stream()
-                    .filter(injury -> known.contains(injury.id())).filter(shown).toList();
+                    .filter(injury -> seesAll || known.contains(injury.id())).filter(shown).toList();
             if (injuries.isEmpty() && emptyIsMessage) {
                 send(sender, "no-results", placeholders);
                 return;
