@@ -97,7 +97,9 @@ public class SqlAncestryRepository implements AncestryRepository {
     @Override
     public void save(ProfileKey character, StoredAncestry ancestry) {
         inTransaction("save the ancestry of " + character, connection -> {
-            delete(connection, DELETE_ADJUSTMENTS, character);
+            try (PreparedStatement statement = connection.prepareStatement(DELETE_ADJUSTMENTS)) {
+                deleteCharacter(statement, character);
+            }
             try (PreparedStatement statement = connection.prepareStatement(SAVE_ANCESTRY)) {
                 bindCharacter(statement, character);
                 statement.setString(3, ancestry.ancestry());
@@ -122,8 +124,12 @@ public class SqlAncestryRepository implements AncestryRepository {
     @Override
     public void delete(ProfileKey character) {
         inTransaction("delete the ancestry of " + character, connection -> {
-            delete(connection, DELETE_ADJUSTMENTS, character);
-            delete(connection, DELETE_ANCESTRY, character);
+            try (PreparedStatement statement = connection.prepareStatement(DELETE_ADJUSTMENTS)) {
+                deleteCharacter(statement, character);
+            }
+            try (PreparedStatement statement = connection.prepareStatement(DELETE_ANCESTRY)) {
+                deleteCharacter(statement, character);
+            }
         });
     }
 
@@ -149,11 +155,10 @@ public class SqlAncestryRepository implements AncestryRepository {
         }
     }
 
-    private static void delete(Connection connection, String sql, ProfileKey character) throws SQLException {
-        try (PreparedStatement statement = connection.prepareStatement(sql)) {
-            bindCharacter(statement, character);
-            statement.executeUpdate();
-        }
+    // The SQL is always one of the constants above, prepared by the caller.
+    private static void deleteCharacter(PreparedStatement statement, ProfileKey character) throws SQLException {
+        bindCharacter(statement, character);
+        statement.executeUpdate();
     }
 
     private static void bindCharacter(PreparedStatement statement, ProfileKey character) throws SQLException {
