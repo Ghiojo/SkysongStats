@@ -15,6 +15,7 @@ import org.skysongdev.skysongstats.database.ProfileIndex;
 import org.skysongdev.skysongstats.database.SetupProfile;
 import org.skysongdev.skysongstats.definition.StatSetup;
 import org.skysongdev.skysongstats.setup.SkillSetupMenu;
+import org.skysongdev.skysongstats.setup.AncestrySetupMenu;
 import org.skysongdev.skysongstats.setup.StatSetupMenu;
 import org.skysongdev.skysongstats.storage.ProfileKey;
 
@@ -67,6 +68,14 @@ class StatSwitchoverTest {
         return plugin.getStatService().value(character, stat).orElseThrow();
     }
 
+    // The shipped ancestries.yml has ancestries, so /setup opens with them: the
+    // dwarf (slot 10) has no choices and goes straight to the stat screen.
+    private void pickDwarf() {
+        AncestrySetupMenu ancestries = assertInstanceOf(AncestrySetupMenu.class,
+                alice.getOpenInventory().getTopInventory().getHolder());
+        ancestries.click(alice, 10, ClickType.LEFT);
+    }
+
     @Test
     void theCommandNamesInStatsYmlAreRegistered() {
         for (String label : List.of("heal", "addhp", "damage", "dhp", "reducehp", "rhp", "temphp", "ac", "potionsickness")) {
@@ -111,6 +120,7 @@ class StatSwitchoverTest {
     @Test
     void setupOpensTheStatScreenAndConfirmingMovesToTheSkillPicker() {
         alice.performCommand("setup");
+        pickDwarf();
         StatSetupMenu menu = assertInstanceOf(StatSetupMenu.class, alice.getOpenInventory().getTopInventory().getHolder());
         for (int i = 0; i < 4; i++) {
             menu.click(alice, 9, ClickType.LEFT);
@@ -126,7 +136,7 @@ class StatSwitchoverTest {
     @Test
     void finishingSetupSetsTheChosenStats() {
         setup.setChosenStats(Map.of("str", 4, "spd", 9, "removed", 3));
-        setup.applyChosenStats(plugin.getStatService());
+        setup.applyChosenStats(plugin.getStatService(), plugin.getAncestryService());
         assertEquals(4, value("str"));
         assertEquals(9, value("spd"));
     }
@@ -134,7 +144,7 @@ class StatSwitchoverTest {
     @Test
     void finishingSetupFillsHpToTheMaxTheChosenConstitutionGives() {
         setup.setChosenStats(Map.of("con", 3));
-        setup.applyChosenStats(plugin.getStatService());
+        setup.applyChosenStats(plugin.getStatService(), plugin.getAncestryService());
         assertEquals(90, value("max_hp"));
         assertEquals(90, value("hp"));
     }

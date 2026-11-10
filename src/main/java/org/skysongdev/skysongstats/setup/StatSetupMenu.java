@@ -24,7 +24,8 @@ import java.util.function.BiConsumer;
 // the confirm button. Left click raises a stat, right click lowers it (see
 // PointAllocation). Confirming with every point spent passes the chosen values,
 // by stat id, to onConfirm. Closing the screen without confirming starts over.
-// Its text is the setup.* keys of messages.yml.
+// Its text is the setup.* keys of messages.yml. With an ancestry picked first,
+// each stat starts at its baseline plus what the ancestry gives it.
 public final class StatSetupMenu implements SetupScreen {
     public static final int SIZE = 27;
     private static final String SETUP = "setup.";
@@ -34,12 +35,23 @@ public final class StatSetupMenu implements SetupScreen {
     private final Map<Integer, StatDefinition> statsBySlot = new HashMap<>();
     private final MenuTexts texts;
     private final BiConsumer<Player, Map<String, Integer>> onConfirm;
+    private final String ancestryName;
 
     public StatSetupMenu(List<StatDefinition> stats, SetupRules rules, MenuTexts texts,
                          BiConsumer<Player, Map<String, Integer>> onConfirm) {
+        this(stats, rules, "", Map.of(), texts, onConfirm);
+    }
+
+    // ancestryName and ancestry: the picked ancestry's name and what it gives each
+    // stat by id ("" and none without an ancestry). onConfirm gets the values
+    // without the ancestry (see PointAllocation.values()).
+    public StatSetupMenu(List<StatDefinition> stats, SetupRules rules, String ancestryName,
+                         Map<String, Integer> ancestry, MenuTexts texts,
+                         BiConsumer<Player, Map<String, Integer>> onConfirm) {
         this.texts = Objects.requireNonNull(texts, "texts");
         this.onConfirm = Objects.requireNonNull(onConfirm, "onConfirm");
-        this.allocation = new PointAllocation(stats, rules);
+        this.ancestryName = Objects.requireNonNull(ancestryName, "ancestryName");
+        this.allocation = new PointAllocation(stats, rules, ancestry);
         stats.forEach(stat -> statsBySlot.put(stat.setup().slot(), stat));
         this.inventory = Bukkit.createInventory(this, SIZE, text("title"));
         drawFrame();
@@ -114,7 +126,8 @@ public final class StatSetupMenu implements SetupScreen {
     private void drawHeader() {
         Map<String, String> points = Map.of(
                 "points", Integer.toString(allocation.points()),
-                "negative-points", Integer.toString(allocation.negativePoints()));
+                "negative-points", Integer.toString(allocation.negativePoints()),
+                "ancestry", ancestryName);
         ItemStack header = new ItemStack(Material.NETHER_STAR);
         header.editMeta(meta -> {
             meta.displayName(texts.line(SETUP + "header.name", points));
@@ -124,15 +137,21 @@ public final class StatSetupMenu implements SetupScreen {
     }
 
     private void drawStat(StatDefinition stat) {
+        int ancestry = allocation.ancestry(stat);
         Map<String, String> values = Map.of(
                 "name", stat.display().name(),
                 "value", Integer.toString(allocation.value(stat)),
-                "min", Integer.toString(stat.baseline() + stat.setup().min()),
-                "max", Integer.toString(stat.baseline() + stat.setup().max()));
+                "min", Integer.toString(allocation.start(stat) + stat.setup().min()),
+                "max", Integer.toString(allocation.start(stat) + stat.setup().max()),
+                "ancestry", ancestryName,
+                "ancestry_amount", AncestryTexts.signed(ancestry));
         ItemStack item = MenuItems.icon(stat.setup().icon());
         item.editMeta(meta -> {
             meta.displayName(MenuItems.colored(stat.display().color(), texts.line(SETUP + "stat.name", values)));
             List<Component> lore = new ArrayList<>(texts.lines(SETUP + "stat.lore", values));
+            if (ancestry != 0) {
+                lore.add(texts.line(SETUP + "stat.ancestry", values));
+            }
             stat.setup().lore().forEach(line -> lore.add(MenuItems.MINI_MESSAGE.deserialize(line)));
             meta.lore(lore);
         });

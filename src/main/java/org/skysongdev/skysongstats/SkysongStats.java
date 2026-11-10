@@ -87,6 +87,7 @@ import org.skysongdev.skysongstats.definition.ConditionDefinitions;
 import org.skysongdev.skysongstats.definition.ConditionsConfigFile;
 import org.skysongdev.skysongstats.definition.DefinitionException;
 import org.skysongdev.skysongstats.definition.AncestriesConfigFile;
+import org.skysongdev.skysongstats.definition.AncestryDefinition;
 import org.skysongdev.skysongstats.definition.AncestryDefinitions;
 import org.skysongdev.skysongstats.definition.StatAction;
 import org.skysongdev.skysongstats.definition.InjuriesConfigFile;
@@ -600,12 +601,31 @@ public class SkysongStats extends JavaPlugin {
     public void InitializeAncestries(){
         AncestryRepository repository = storage.ancestryRepository();
         ancestryService = new AncestryService(ancestryDefinitions, repository, this::adjustBaseValue,
-                change -> { });
+                this::onAncestryChanged);
         try {
             repository.createTables();
             ancestryService.load();
         } catch (StorageException e) {
             getLogger().log(Level.SEVERE, "Unable to load the ancestries from the database", e);
+        }
+    }
+
+    // The character's ancestry field follows its ancestry: the ancestry's name, or
+    // back to "[Not Set]" (free text again) when it has none.
+    private void onAncestryChanged(AncestryService.AncestryChange change){
+        ProfileKey character = change.character();
+        CharacterProfile profile = CharacterManager.characterProfiles == null ? null
+                : utils.getCharacterManager().findCharacterProfile(character.player().toString(), character.profile());
+        if (profile == null) {
+            return;
+        }
+        String name = change.after().map(after -> ancestryDefinitions.get(after.ancestry())
+                .map(AncestryDefinition::name).orElse(after.ancestry())).orElse(CharacterProfile.NOT_SET);
+        profile.setAncestry(name);
+        try {
+            database.updateCharacterData(profile);
+        } catch (SQLException e) {
+            getLogger().log(Level.WARNING, "Could not save the ancestry field of " + character, e);
         }
     }
 

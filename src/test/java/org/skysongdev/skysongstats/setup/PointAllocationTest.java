@@ -135,4 +135,48 @@ class PointAllocationTest {
     void statsWithoutSetupAreRefused() {
         assertThrows(IllegalArgumentException.class, () -> allocation.value(stat("hp")));
     }
+
+    // A dwarf: con +1, spd -1.
+    private PointAllocation dwarf() {
+        return new PointAllocation(stats.setupStats(), SetupTestData.defaultConfig().setupRules(),
+                Map.of("con", 1, "spd", -1));
+    }
+
+    @Test
+    void theAncestryMovesWhereStatsStart() {
+        PointAllocation dwarf = dwarf();
+        assertEquals(1, dwarf.value(stat("con")));
+        assertEquals(1, dwarf.start(stat("con")));
+        assertEquals(1, dwarf.ancestry(stat("con")));
+        assertEquals(5, dwarf.value(stat("spd")));
+        assertEquals(0, dwarf.ancestry(stat("str")));
+        assertEquals(7, dwarf.points());
+        assertEquals(3, dwarf.negativePoints());
+    }
+
+    @Test
+    void theRangeMovesWithTheAncestry() {
+        PointAllocation dwarf = dwarf();
+        repeat(4, () -> assertTrue(dwarf.raise(stat("con"))));
+        assertFalse(dwarf.raise(stat("con")));
+        assertEquals(5, dwarf.value(stat("con")));
+        repeat(7, () -> dwarf.lower(stat("con")));
+        assertEquals(-2, dwarf.value(stat("con")));
+    }
+
+    @Test
+    void negativePointsCountFromTheAncestryStart() {
+        PointAllocation dwarf = dwarf();
+        // spd starts at 5: going to 4 uses a negative point, 5 itself is free.
+        assertTrue(dwarf.lower(stat("spd")));
+        assertEquals(2, dwarf.negativePoints());
+        assertEquals(4, dwarf.value(stat("spd")));
+    }
+
+    @Test
+    void theChosenValuesLeaveTheAncestryOut() {
+        PointAllocation dwarf = dwarf();
+        dwarf.raise(stat("con"));
+        assertEquals(Map.of("str", 0, "dex", 0, "con", 1, "foc", 0, "spd", 6), dwarf.values());
+    }
 }

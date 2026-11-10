@@ -548,7 +548,7 @@ Current injuries and conditions can't be imported: SkysongChatTweaks never saved
 
 The ancestries a player will pick from at the start of `/setup` (Dwarf, Elf...), each giving a few + and − to the stats of the [/setup point screen](#setup-a-stat-on-the-setup-point-screen). An ancestry only changes stats: no actions or traits. The file ships with one example ancestry for each way of adjusting stats (`dwarf`, `elf`, `human`, `goblin`, `orc`, `giant`, `dragonborn`); replace them with your own. `ancestries: {}` means no ancestries.
 
-> The `/setup` screens that use this file are not in the plugin yet. Until then the file is only read and checked.
+Picking an ancestry in `/setup` adds its adjustments to the character's **base** stats (so they show in the `_base` placeholders too, and not in `/modifier view`) and fills the character's ancestry field with its name. From then on the player can't change that field with `/char set ancestry`. What the ancestry gave is saved on its own as well, so it can be taken off again exactly. Editing `ancestries.yml` never changes characters that already have the ancestry.
 
 ```yaml
 ancestries:
@@ -623,7 +623,7 @@ Every message players and staff see. Edit the text and run `/ssreload`.
 | `injury` | `/injury`, its menu (`injury.menu`), how an injury is shown everywhere (`injury.tag`: its name with the description on hover), the award announcement |
 | `placeholders` | The separator and "None" text of the injury and condition lists (placeholders and sheet tags) |
 | `condition` | `/condition`, its menu (`condition.menu`), how a condition is shown (`condition.tag`, `given-tag`, `level-format`, `level-in-description`) |
-| `setup` | `/setup` and its stat point screen |
+| `setup` | `/setup`, its stat point screen, the ancestry list (`setup.ancestry`) and the ancestry choices page (`setup.ancestry-choices`) |
 | `stats` | Stat actions, `/stats view` sheet |
 | `modifier` | `/modifier` |
 | `import` | `/ssimport chattweaks` and its report |
@@ -684,12 +684,14 @@ Every change (a stat, a modifier, XP, a tier, a focus, a field) is saved as it h
 
 `/setup` is **per profile**: each new profile can run it once, and a profile that finished it can never run it again (`setup.already-set-up`). There is no permission check inside the command beyond the command's own `skysongstats.setup`.
 
-1. **Stat screen** (`stats.yml` → `setup:`). Left click raises a stat, right click lowers it. Point for point, as described in [stats.yml](#setup-the-setup-point-buy). Confirm when every point is spent.
-2. **Skill screen** (`skills.yml` → `setup:`). Left click picks a skill, right click un-picks it; picked skills glow. Confirm when every pick is used.
-3. **Proficiency screen** (`proficiencies.yml` → `setup:`). Same clicks. The header lists the picks left per skill. Confirm when every pick is used, except picks of a skill that has nothing left to pick. Skipped when there is nothing to show.
-4. **Finish:** the chosen stats are set, bars that start full (HP) are filled to their **new** max, picked skills get the `picked-level` XP, trained and picked proficiencies become Proficient (LuckPerms nodes and events follow), and the profile is marked as set up.
+1. **Ancestry screen** (`ancestries.yml`). The ancestries the player may pick (those without `permission:`, and those whose node they have), each with lore saying what it gives. Clicking one picks it. Skipped when there are none to pick.
+2. **Ancestry choices page**, only for an ancestry with `choices:`. One row per choice: its first item explains it, the rest are what it can pick (stat icons from `stats.yml`, or the packages). Click to pick or un-pick; with one pick, clicking another stat swaps it. Picks the no-stacking rule forbids say so and can't be clicked. **Confirm** (top right) works once every choice is complete, otherwise it names the choice to finish. **Back** (top left) returns to the ancestry list.
+3. **Stat screen** (`stats.yml` → `setup:`). Each stat starts at its baseline **plus what the ancestry gives it**, and its range moves with it (a +1 Constitution dwarf can go from −2 to 5). The ancestry costs no points and its − uses no negative point. Left click raises a stat, right click lowers it. Point for point, as described in [stats.yml](#setup-the-setup-point-buy). Confirm when every point is spent.
+4. **Skill screen** (`skills.yml` → `setup:`). Left click picks a skill, right click un-picks it; picked skills glow. Confirm when every pick is used.
+5. **Proficiency screen** (`proficiencies.yml` → `setup:`). Same clicks. The header lists the picks left per skill. Confirm when every pick is used, except picks of a skill that has nothing left to pick. Skipped when there is nothing to show.
+6. **Finish:** the chosen stats are set, the ancestry's adjustments are added to them (and saved, see [ancestries.yml](#ancestriesyml)), the character's ancestry field is set to the ancestry's name, bars that start full (HP) are filled to their **new** max, picked skills get the `picked-level` XP, trained and picked proficiencies become Proficient (LuckPerms nodes and events follow), and the profile is marked as set up.
 
-Nothing is applied until the last screen is confirmed. **Closing any screen** cancels: the player starts over from the stat screen with the next `/setup`.
+Nothing is applied until the last screen is confirmed. **Closing any screen** cancels: the player starts over from the first screen with the next `/setup`.
 
 ---
 
@@ -782,7 +784,7 @@ Downtime commands work on **offline** players too, as long as they have joined b
 |---|---|---|
 | `/profile create\|switch\|delete\|view [name]` | `skysongstats.profile` | See [profiles](#profiles-and-characters). Players only. |
 | `/char [view] [player]` (also `/schar`) | `skysongstats.char` / `skysongstats.schar` | Shows an online player's character sheet. **Shift + right click** on a player shows theirs too. |
-| `/char set <field> <value>` | same | Sets your own `name` (100 chars), `age` (20), `gender` (20), `pronouns` (20), `ancestry` (50) or `description` (stored up to 500). |
+| `/char set <field> <value>` | same | Sets your own `name` (100 chars), `age` (20), `gender` (20), `pronouns` (20), `ancestry` (50) or `description` (stored up to 500). `ancestry` is refused (`character.set.ancestry-locked`) once the character has an ancestry from `/setup`: the field then follows the ancestry. |
 
 ### Setup and reload
 
@@ -1115,6 +1117,7 @@ All code is under `src/main/java/org/skysongdev/skysongstats/`; default files ar
 | Proficiency rules (focus, training, tiers) | `character/ProficiencyService.java` |
 | Injury and condition rules (awards, given conditions, known injuries) | `character/AfflictionService.java`, `character/ConditionResolver.java` |
 | Ancestries: putting their adjustments on and taking them off, the no-stacking rule | `character/AncestryService.java`, `character/AncestryRules.java`; saved by `storage/SqlAncestryRepository.java` |
+| The /setup ancestry list and choices page | `setup/AncestrySetupMenu.java`, `setup/AncestryChoicesMenu.java`, `setup/AncestryTexts.java`; the flow in `commands/setup/SetupCommand.java` |
 | How injuries and conditions are shown (tags, announcement, lists) | `messages/AfflictionTexts.java`, `messages/AfflictionLists.java`, `messages/LineWrapper.java` |
 | /injury, /condition | `commands/affliction/` (menus drawn by `menu/`) |
 | /ssimport chattweaks | `commands/misc/ImportCommand`, the import itself in `importer/` |

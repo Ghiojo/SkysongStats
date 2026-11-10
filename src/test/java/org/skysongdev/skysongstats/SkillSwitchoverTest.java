@@ -19,6 +19,7 @@ import org.skysongdev.skysongstats.definition.SkillDefinition;
 import org.skysongdev.skysongstats.definition.StatSetup;
 import org.skysongdev.skysongstats.placeholders.StatsExpansion;
 import org.skysongdev.skysongstats.setup.SkillSetupMenu;
+import org.skysongdev.skysongstats.setup.AncestrySetupMenu;
 import org.skysongdev.skysongstats.setup.StatSetupMenu;
 import org.skysongdev.skysongstats.storage.ProfileKey;
 import org.skysongdev.skysongstats.storage.SqlSkillRepository;
@@ -82,9 +83,18 @@ class SkillSwitchoverTest {
         return skills.xp(key, skill(id)).orElseThrow();
     }
 
+    // The shipped ancestries.yml has ancestries, so /setup opens with them: the
+    // dwarf (slot 10) has no choices and goes straight to the stat screen.
+    private void pickDwarf() {
+        AncestrySetupMenu ancestries = assertInstanceOf(AncestrySetupMenu.class,
+                alice.getOpenInventory().getTopInventory().getHolder());
+        ancestries.click(alice, 10, ClickType.LEFT);
+    }
+
     @Test
     void setupGivesThePickedSkillsTheNoviceXp() {
         alice.performCommand("setup");
+        pickDwarf();
         StatSetupMenu stats = assertInstanceOf(StatSetupMenu.class, alice.getOpenInventory().getTopInventory().getHolder());
         // Spend the points: 4 on the first stat, 3 on the last.
         for (int i = 0; i < 4; i++) {
@@ -117,6 +127,7 @@ class SkillSwitchoverTest {
 
         ProfileManager.activeProfiles.get(0).setProfile("Second");
         alice.performCommand("setup");
+        pickDwarf();
         assertInstanceOf(StatSetupMenu.class, alice.getOpenInventory().getTopInventory().getHolder());
     }
 

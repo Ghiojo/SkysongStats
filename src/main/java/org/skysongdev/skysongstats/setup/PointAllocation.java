@@ -9,20 +9,28 @@ import java.util.Map;
 import java.util.Objects;
 
 // The point rules of /setup, for the stats that have a setup: section in
-// stats.yml. Each stat starts at its baseline and moves between baseline + min
-// and baseline + max. Raising a stat costs a point. Taking a stat below its
-// baseline gives a point back but uses up one of the negative points; raising it
-// back towards the baseline returns that negative point.
+// stats.yml. Each stat starts at its baseline plus what the picked ancestry gives
+// it, and moves between that start + min and start + max: the range moves with
+// the ancestry. Raising a stat costs a point. Taking a stat below its start gives
+// a point back but uses up one of the negative points; raising it back towards
+// the start returns that negative point. The ancestry itself costs nothing.
 public final class PointAllocation {
     private final List<StatDefinition> stats;
     private final SetupRules rules;
+    private final Map<String, Integer> ancestry;
     private final Map<String, Integer> offsets = new LinkedHashMap<>();
     private int points;
     private int negativePoints;
 
     public PointAllocation(List<StatDefinition> stats, SetupRules rules) {
+        this(stats, rules, Map.of());
+    }
+
+    // ancestry: what the picked ancestry adds to each stat, by id; missing is 0.
+    public PointAllocation(List<StatDefinition> stats, SetupRules rules, Map<String, Integer> ancestry) {
         this.stats = List.copyOf(stats);
         this.rules = Objects.requireNonNull(rules, "rules");
+        this.ancestry = Map.copyOf(ancestry);
         reset();
     }
 
@@ -72,14 +80,28 @@ public final class PointAllocation {
         return points == 0 && negativePoints != 1;
     }
 
+    // What the stat shows on the screen: baseline, ancestry and points.
     public int value(StatDefinition stat) {
-        return stat.baseline() + offset(stat);
+        return start(stat) + offset(stat);
     }
 
-    // The chosen value of every stat, by id, in stats.yml order.
+    // Where the stat starts on the screen, before any point is spent.
+    public int start(StatDefinition stat) {
+        offset(stat);
+        return stat.baseline() + ancestry(stat);
+    }
+
+    // What the ancestry gives the stat, 0 when nothing.
+    public int ancestry(StatDefinition stat) {
+        return ancestry.getOrDefault(stat.id(), 0);
+    }
+
+    // The value of every stat from its baseline and the points spent, by id, in
+    // stats.yml order. The ancestry is left out: it is saved and put on with the
+    // ancestry itself, so it can be taken off again.
     public Map<String, Integer> values() {
         Map<String, Integer> values = new LinkedHashMap<>();
-        stats.forEach(stat -> values.put(stat.id(), value(stat)));
+        stats.forEach(stat -> values.put(stat.id(), stat.baseline() + offset(stat)));
         return values;
     }
 

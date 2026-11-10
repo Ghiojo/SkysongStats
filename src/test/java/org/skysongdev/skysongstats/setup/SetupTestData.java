@@ -1,6 +1,8 @@
 package org.skysongdev.skysongstats.setup;
 
 import org.bukkit.configuration.file.YamlConfiguration;
+import org.skysongdev.skysongstats.definition.AncestriesConfigLoader;
+import org.skysongdev.skysongstats.definition.AncestryDefinitions;
 import org.skysongdev.skysongstats.definition.SkillsConfig;
 import org.skysongdev.skysongstats.definition.SkillsConfigLoader;
 import org.skysongdev.skysongstats.definition.StatsConfig;
@@ -14,7 +16,7 @@ import java.io.UncheckedIOException;
 import java.nio.charset.StandardCharsets;
 
 /**
- * The default stats.yml and skills.yml, for the /setup tests.
+ * The default stats.yml, ancestries.yml and skills.yml, for the /setup tests.
  */
 final class SetupTestData {
     private SetupTestData() {
@@ -22,6 +24,10 @@ final class SetupTestData {
 
     static StatsConfig defaultConfig() {
         return StatsConfigLoader.load(bundled("stats.yml"), name -> true);
+    }
+
+    static AncestryDefinitions defaultAncestries() {
+        return AncestriesConfigLoader.load(bundled("ancestries.yml"), defaultConfig().stats(), name -> true);
     }
 
     static SkillsConfig defaultSkills() {
