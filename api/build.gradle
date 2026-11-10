@@ -8,7 +8,11 @@ plugins {
 
 // Not org.skysongdev: SkysongItems publishes its own API as org.skysongdev:api, and the
 // two must never be mistaken for each other in a local Maven repository.
-group = 'org.skysongdev.skysongstats'
+// JitPack sets JITPACK and VERSION; local builds keep the org.skysongdev group.
+// Without a version JitPack sees the module as "api:unspecified", cannot match it to the
+// git tag, and publishes nothing but an empty root pom.
+group = System.getenv('JITPACK') ? 'com.github.Ghiojo.SkysongStats' : 'org.skysongdev.skysongstats'
+version = System.getenv('VERSION') ?: '1.3.0'
 
 repositories {
     mavenCentral()
