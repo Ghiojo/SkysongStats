@@ -31,6 +31,8 @@ import org.skysongdev.skysongstats.messages.AfflictionLists;
 import org.skysongdev.skysongstats.messages.AfflictionSheetTags;
 import org.skysongdev.skysongstats.messages.AfflictionTexts;
 import org.skysongdev.skysongstats.storage.AfflictionRepository;
+import org.skysongdev.skysongstats.storage.AncestryRepository;
+import org.skysongdev.skysongstats.character.AncestryService;
 import net.luckperms.api.LuckPerms;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
@@ -86,6 +88,7 @@ import org.skysongdev.skysongstats.definition.ConditionsConfigFile;
 import org.skysongdev.skysongstats.definition.DefinitionException;
 import org.skysongdev.skysongstats.definition.AncestriesConfigFile;
 import org.skysongdev.skysongstats.definition.AncestryDefinitions;
+import org.skysongdev.skysongstats.definition.StatAction;
 import org.skysongdev.skysongstats.definition.InjuriesConfigFile;
 import org.skysongdev.skysongstats.definition.InjuryDefinitions;
 import org.skysongdev.skysongstats.definition.ProficienciesConfig;
@@ -179,6 +182,7 @@ public class SkysongStats extends JavaPlugin {
     private AfflictionService afflictionService;
     // Characters other plugins own, such as NPCs (API characters()).
     private PluginCharacterService pluginCharacterService;
+    private AncestryService ancestryService;
     private final AfflictionTexts afflictionTexts = new AfflictionTexts(this::getMessages, this::characterName);
     // A character's injuries and conditions as text, for placeholders and sheets.
     private final AfflictionLists afflictionLists = new AfflictionLists(this::getAfflictionService, afflictionTexts,
@@ -210,6 +214,7 @@ public class SkysongStats extends JavaPlugin {
     public ProficiencyService getProficiencyService() { return proficiencyService; }
     public AfflictionService getAfflictionService() { return afflictionService; }
     public PluginCharacterService getPluginCharacterService() { return pluginCharacterService; }
+    public AncestryService getAncestryService() { return ancestryService; }
     public AfflictionTexts getAfflictionTexts() { return afflictionTexts; }
     public AfflictionLists getAfflictionLists() { return afflictionLists; }
     // Plugins that say injury award messages themselves (API announceAwards).
@@ -292,6 +297,7 @@ public class SkysongStats extends JavaPlugin {
         InitializeProficiencies(proficienciesConfig);
         InitializeAfflictions();
         InitializePluginCharacters();
+        InitializeAncestries();
 
         InitializeCommands();
         AssignListeners();
@@ -589,6 +595,30 @@ public class SkysongStats extends JavaPlugin {
         }
     }
 
+    // Loads every character's ancestry. Its adjustments are already in the saved
+    // base values; the service only moves them when the ancestry changes.
+    public void InitializeAncestries(){
+        AncestryRepository repository = storage.ancestryRepository();
+        ancestryService = new AncestryService(ancestryDefinitions, repository, this::adjustBaseValue,
+                change -> { });
+        try {
+            repository.createTables();
+            ancestryService.load();
+        } catch (StorageException e) {
+            getLogger().log(Level.SEVERE, "Unable to load the ancestries from the database", e);
+        }
+    }
+
+    // Adds delta to a stat's base value the way /stats add or reduce would, so bars
+    // are capped and the stat events fire. A stat that left stats.yml is skipped.
+    private void adjustBaseValue(ProfileKey character, String statId, int delta){
+        if (delta == 0 || statService.sheet(character).isEmpty()) {
+            return;
+        }
+        statService.definitions().get(statId).ifPresent(stat -> statService.apply(character, stat,
+                delta > 0 ? StatAction.ADD : StatAction.REDUCE, Math.abs(delta)));
+    }
+
     // Whether any part of the plugin knows this id as a character already.
     private boolean isCharacter(ProfileKey character){
         return statService.sheet(character).isPresent() || skillService.hasCharacter(character)
@@ -617,6 +647,7 @@ public class SkysongStats extends JavaPlugin {
         skillService.deleteCharacter(character);
         proficiencyService.deleteCharacter(character);
         afflictionService.deleteCharacter(character);
+        ancestryService.deleteCharacter(character);
     }
 
     // Every player's profile: the characters with stats that no plugin owns.
@@ -755,6 +786,8 @@ public class SkysongStats extends JavaPlugin {
         }
         if (!reloadAncestriesConfig()) {
             notReloaded.add(AncestriesConfigFile.FILE_NAME);
+        } else if (ancestryService != null) {
+            ancestryService.setDefinitions(ancestryDefinitions);
         }
         if (!reloadSkillsConfig()) {
             notReloaded.add(SkillsConfigFile.FILE_NAME);

@@ -45,6 +45,7 @@ public class DeleteProfile implements TabExecutor {
         getPlugin().getSkillService().deleteCharacter(new ProfileKey(player.getUniqueId(), targetProfile));
         getPlugin().getProficiencyService().deleteCharacter(new ProfileKey(player.getUniqueId(), targetProfile));
         getPlugin().getAfflictionService().deleteCharacter(new ProfileKey(player.getUniqueId(), targetProfile));
+        getPlugin().getAncestryService().deleteCharacter(new ProfileKey(player.getUniqueId(), targetProfile));
 
         getPlugin().getUtils().getProfileManager().findAllProfiles(player.getUniqueId().toString()).remove(strings[0]);
 
