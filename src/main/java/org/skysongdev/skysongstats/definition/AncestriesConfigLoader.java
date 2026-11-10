@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.OptionalInt;
 import java.util.Set;
 import java.util.function.Predicate;
 
@@ -208,23 +209,44 @@ public final class AncestriesConfigLoader {
 
     private Optional<AncestryChoice> readStatPickChoice(String where, String name, Map<String, Object> choice,
                                                         boolean stack, List<AncestryAdjustment> fixed) {
-        Object amount = choice.get("amount");
-        if (!(amount instanceof Integer number) || number == 0) {
-            errors.add(where + ".amount: " + (amount == null ? "missing" : "'" + amount + "'")
-                    + ", must be a whole number other than 0 (negative takes off)");
-            return Optional.empty();
-        }
-        Object picksValue = choice.getOrDefault("picks", 1);
-        if (!(picksValue instanceof Integer picks) || picks < 1) {
-            errors.add(where + ".picks: '" + picksValue + "' must be a whole number of at least 1");
+        OptionalInt amount = readAmount(where, choice.get("amount"));
+        OptionalInt picks = amount.isPresent() ? readPicks(where, choice.getOrDefault("picks", 1)) : OptionalInt.empty();
+        if (picks.isEmpty()) {
             return Optional.empty();
         }
         Object from = choice.get("from");
         boolean anyStat = from instanceof String text && text.trim().equalsIgnoreCase(ANY);
         List<String> picked = anyStat ? stats.setupStats().stream().map(StatDefinition::id).toList()
                 : readFrom(where + ".from", from);
-        if (picked.isEmpty()) {
+        if (!fitsPickedStats(where, picked, picks.getAsInt())) {
             return Optional.empty();
+        }
+        checkCompletable(where, picked, picks.getAsInt(), amount.getAsInt(), stack, fixed);
+        return Optional.of(new StatPickChoice(name, amount.getAsInt(), picks.getAsInt(), picked, anyStat, stack));
+    }
+
+    private OptionalInt readAmount(String where, Object amount) {
+        if (amount instanceof Integer number && number != 0) {
+            return OptionalInt.of(number);
+        }
+        errors.add(where + ".amount: " + (amount == null ? "missing" : "'" + amount + "'")
+                + ", must be a whole number other than 0 (negative takes off)");
+        return OptionalInt.empty();
+    }
+
+    private OptionalInt readPicks(String where, Object picks) {
+        if (picks instanceof Integer number && number >= 1) {
+            return OptionalInt.of(number);
+        }
+        errors.add(where + ".picks: '" + picks + "' must be a whole number of at least 1");
+        return OptionalInt.empty();
+    }
+
+    // False when the choice can't be used: no stats, or fewer than it picks. Too
+    // many stats for a row is reported but kept, so later checks still run.
+    private boolean fitsPickedStats(String where, List<String> picked, int picks) {
+        if (picked.isEmpty()) {
+            return false;
         }
         if (picked.size() > MAX_CHOICE_ITEMS) {
             errors.add(where + ".from: has " + picked.size() + " stats, at most " + MAX_CHOICE_ITEMS
@@ -232,14 +254,20 @@ public final class AncestriesConfigLoader {
         }
         if (picks > picked.size()) {
             errors.add(where + ".picks: " + picks + " is more than the " + picked.size() + " stats it picks from");
-            return Optional.empty();
+            return false;
         }
-        long open = picked.stream().filter(stat -> stack || !movesSameWay(fixed, stat, number)).count();
+        return true;
+    }
+
+    // Without stacking, the stats the ancestry's stats: already move the same way
+    // can't be picked; there must still be enough left.
+    private void checkCompletable(String where, List<String> picked, int picks, int amount, boolean stack,
+                                  List<AncestryAdjustment> fixed) {
+        long open = picked.stream().filter(stat -> stack || !movesSameWay(fixed, stat, amount)).count();
         if (open < picks) {
             errors.add(where + ": can never be completed, only " + open + " of its stats aren't already "
-                    + (number > 0 ? "raised" : "lowered") + " by this ancestry's stats: (add stack: true to allow it)");
+                    + (amount > 0 ? "raised" : "lowered") + " by this ancestry's stats: (add stack: true to allow it)");
         }
-        return Optional.of(new StatPickChoice(name, number, picks, picked, anyStat, stack));
     }
 
     private List<String> readFrom(String where, Object from) {
