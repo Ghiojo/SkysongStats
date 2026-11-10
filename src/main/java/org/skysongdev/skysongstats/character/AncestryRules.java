@@ -14,7 +14,6 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
@@ -62,19 +61,20 @@ public final class AncestryRules {
             return false;
         }
         boolean boost = amount > 0;
-        if (ancestry.adjustments().stream().anyMatch(fixed -> fixed.stat().equals(stat) && fixed.isBoost() == boost)) {
-            return true;
-        }
-        for (Map.Entry<Integer, Pick> other : picks.all().entrySet()) {
-            int index = other.getKey();
-            if (index != choice && index >= 0 && index < ancestry.choices().size()
-                    && !ancestry.choices().get(index).stack()
-                    && adjustments(ancestry.choices().get(index), other.getValue()).stream()
-                    .anyMatch(given -> given.stat().equals(stat) && given.isBoost() == boost)) {
-                return true;
-            }
-        }
-        return false;
+        return ancestry.adjustments().stream().anyMatch(fixed -> movesSameWay(fixed, stat, boost))
+                || picks.all().entrySet().stream()
+                .filter(other -> other.getKey() != choice && countsForStacking(ancestry, other.getKey()))
+                .flatMap(other -> adjustments(ancestry.choices().get(other.getKey()), other.getValue()).stream())
+                .anyMatch(given -> movesSameWay(given, stat, boost));
+    }
+
+    // Another choice's picks count for the no stacking rule unless it may stack.
+    private static boolean countsForStacking(AncestryDefinition ancestry, int index) {
+        return index >= 0 && index < ancestry.choices().size() && !ancestry.choices().get(index).stack();
+    }
+
+    private static boolean movesSameWay(AncestryAdjustment adjustment, String stat, boolean boost) {
+        return adjustment.stat().equals(stat) && adjustment.isBoost() == boost;
     }
 
     // The ancestry's fixed stats: as saved adjustments.
