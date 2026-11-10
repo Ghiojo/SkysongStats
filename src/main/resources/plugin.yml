@@ -68,19 +68,11 @@ commands:
     aliases:
       - dt
   injury:
-    description: "View and manage characters' injuries"
-    usage: "/injury [list|award|remove|discover|forget]"
+    description: "Look through the injuries your character knows, and manage characters' injuries"
+    usage: "/injury [list [severity]|search <text>|award|remove|discover|forget]"
   condition:
-    description: "View and manage characters' conditions"
-    usage: "/condition [list|award|remove]"
-  injuries:
-    description: "Look through the injuries your character knows"
-    usage: "/injuries [view [severity]|search <text>]"
-    permission: "skysongstats.injuries"
-  conditions:
-    description: "Look through every condition"
-    usage: "/conditions [search <text>]"
-    permission: "skysongstats.conditions"
+    description: "Look through every condition, and manage characters' conditions"
+    usage: "/condition [list|search <text>|award|remove]"
 permissions:
   # The stat command nodes (skysongstats.stat.<stat>.<action>[.other]) are made
   # from stats.yml when the plugin starts and on /ssreload.
@@ -123,12 +115,6 @@ permissions:
   skysongstats.proficiencies.manage:
     description: "Allows you to add, remove and set proficiency points and tiers"
     default: op
-  skysongstats.injury.list:
-    description: "Allows you to list your injuries"
-    default: true
-  skysongstats.injury.list.other:
-    description: "Allows you to list other players' injuries"
-    default: op
   skysongstats.injury.award:
     description: "Allows you to give injuries"
     default: op
@@ -137,12 +123,6 @@ permissions:
     default: op
   skysongstats.injury.discover:
     description: "Allows you to teach and unteach injuries"
-    default: op
-  skysongstats.condition.list:
-    description: "Allows you to list your conditions"
-    default: true
-  skysongstats.condition.list.other:
-    description: "Allows you to list other players' conditions"
     default: op
   skysongstats.condition.award:
     description: "Allows you to give conditions"
@@ -154,13 +134,13 @@ permissions:
     description: "Allows you to run /ssimport chattweaks"
     default: op
   skysongstats.injuries:
-    description: "Allows you to open the /injuries menu"
+    description: "Allows you to open the /injury list and /injury search menus"
     default: true
   skysongstats.injuries.all:
-    description: "Shows every injury in the /injuries menu, not only the ones your character knows"
+    description: "Shows every injury in the /injury list menu, not only the ones your character knows"
     default: op
   skysongstats.conditions:
-    description: "Allows you to open the /conditions menu"
+    description: "Allows you to open the /condition list and /condition search menus"
     default: true
   skysongstats.*:
     description: "Wildcard permission"
@@ -177,13 +157,9 @@ permissions:
         skysongstats.proficiencies.view.other: true
         skysongstats.proficiencies.focus: true
         skysongstats.proficiencies.manage: true
-        skysongstats.injury.list: true
-        skysongstats.injury.list.other: true
         skysongstats.injury.award: true
         skysongstats.injury.remove: true
         skysongstats.injury.discover: true
-        skysongstats.condition.list: true
-        skysongstats.condition.list.other: true
         skysongstats.condition.award: true
         skysongstats.condition.remove: true
         skysongstats.import: true

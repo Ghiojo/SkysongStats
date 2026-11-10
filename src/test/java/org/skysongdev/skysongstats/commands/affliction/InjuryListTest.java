@@ -13,11 +13,11 @@ import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-/** /injuries on the shared affliction fixtures. Alice knows the cut and the broken leg. */
-class InjuriesMenuCommandTest extends AfflictionCommandFixture {
+/** /injury list and /injury search on the shared affliction fixtures. */
+class InjuryListTest extends AfflictionCommandFixture {
     @Override
     protected String commandName() {
-        return "injuries";
+        return "injury";
     }
 
     private void know(String... ids) {
@@ -47,7 +47,7 @@ class InjuriesMenuCommandTest extends AfflictionCommandFixture {
     @Test
     void showsTheKnownInjuriesInFileOrder() {
         know("cut", "broken-leg");
-        run(alice);
+        run(alice, "list");
         assertEquals("Known Injuries", title());
         assertEquals(List.of("Broken Leg", "Cut"), shown());
     }
@@ -55,16 +55,16 @@ class InjuriesMenuCommandTest extends AfflictionCommandFixture {
     @Test
     void theSeeAllPermissionShowsEveryInjury() {
         know("cut");
-        alice.addAttachment(plugin, InjuriesMenuCommand.SEE_ALL_PERMISSION, true);
-        run(alice);
+        alice.addAttachment(plugin, InjuryMenu.SEE_ALL_PERMISSION, true);
+        run(alice, "list");
         assertEquals(List.of("Broken Leg", "Cut", "Deep Cut", "Bruise"), shown());
         assertEquals(Set.of("cut"), afflictions.known(character(alice)), "seeing teaches nothing");
     }
 
     @Test
     void theSeeAllPermissionKeepsTheFilters() {
-        alice.addAttachment(plugin, InjuriesMenuCommand.SEE_ALL_PERMISSION, true);
-        run(alice, "view", "minor");
+        alice.addAttachment(plugin, InjuryMenu.SEE_ALL_PERMISSION, true);
+        run(alice, "list", "minor");
         assertEquals(List.of("Cut", "Bruise"), shown());
         run(alice, "search", "cut");
         assertEquals(List.of("Cut", "Deep Cut"), shown());
@@ -72,15 +72,15 @@ class InjuriesMenuCommandTest extends AfflictionCommandFixture {
 
     @Test
     void theSeeAllPermissionIsForOpsByDefault() {
-        assertFalse(alice.hasPermission(InjuriesMenuCommand.SEE_ALL_PERMISSION));
+        assertFalse(alice.hasPermission(InjuryMenu.SEE_ALL_PERMISSION));
         alice.setOp(true);
-        assertTrue(alice.hasPermission(InjuriesMenuCommand.SEE_ALL_PERMISSION));
+        assertTrue(alice.hasPermission(InjuryMenu.SEE_ALL_PERMISSION));
     }
 
     @Test
     void eachItemShowsTheDescriptionIdAndSeverity() {
         know("broken-leg");
-        run(alice);
+        run(alice, "list");
         List<Component> lore = alice.getOpenInventory().getTopInventory().getItem(9).getItemMeta().lore();
         assertEquals(List.of("Snapped", "ID: broken-leg", "Severity: severe"), lore.stream().map(AfflictionCommandFixture::plain).toList());
     }
@@ -88,14 +88,14 @@ class InjuriesMenuCommandTest extends AfflictionCommandFixture {
     @Test
     void viewFiltersBySeverity() {
         know("cut", "broken-leg", "bruise");
-        run(alice, "view", "MINOR");
+        run(alice, "list", "MINOR");
         assertEquals("Known Injuries: minor", title());
         assertEquals(List.of("Cut", "Bruise"), shown());
     }
 
     @Test
     void anUnknownSeverityIsRefused() {
-        run(alice, "view", "deadly");
+        run(alice, "list", "deadly");
         assertEquals("[SkysongStats] There is no injury severity called deadly!", next(alice));
     }
 
@@ -116,12 +116,32 @@ class InjuriesMenuCommandTest extends AfflictionCommandFixture {
 
     @Test
     void theConsoleCantOpenIt() {
-        assertEquals("[SkysongStats] Only players can use this command!", console());
+        assertEquals("[SkysongStats] Only players can use this command!", console("list"));
+    }
+
+    @Test
+    void noArgumentsOpenTheMenuToo() {
+        know("cut");
+        run(alice);
+        assertEquals(List.of("Cut"), shown());
+    }
+
+    @Test
+    void aSearchNeedsText() {
+        run(alice, "search");
+        assertEquals("[SkysongStats] Usage: /injury search (text)", next(alice));
+    }
+
+    @Test
+    void theMenuNeedsItsPermission() {
+        alice.addAttachment(plugin, InjuryMenu.PERMISSION, false);
+        run(alice, "list");
+        assertEquals("[SkysongStats] You don't have permission to use this command!", next(alice));
     }
 
     @Test
     void tabCompletesOnlyUsedSeverities() {
-        assertEquals(List.of("view", "search"), complete(alice, ""));
-        assertEquals(List.of("minor", "severe"), complete(alice, "view", ""));
+        assertEquals(List.of("minor", "severe"), complete(alice, "list", ""));
+        assertEquals(List.of(), complete(alice, "search", ""));
     }
 }

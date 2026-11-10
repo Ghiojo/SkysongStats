@@ -1,17 +1,17 @@
 # The injuries characters can have: broken bones, burns, bruised ribs...
 # Staff give them with /injury award. A character also learns every injury it gets,
-# and /injuries lists the injuries a character knows.
+# and /injury list shows the injuries a character knows.
 # Changes apply with /ssreload. A file with mistakes is not reloaded: the console
 # lists every mistake and the injuries from before stay in use.
 
-# Every severity an injury may have, in the order /injuries view lists them.
+# Every severity an injury may have, in the order /injury list tab-completes them.
 # Each injury picks one. A severity no injury uses is fine.
 severities: [minor, moderate, severe, permanent]
 
 # Each injury, under its id (lowercase letters, digits, '_' and '-'):
 #   name:        shown everywhere. MiniMessage. Default: the id.
-#   description: shown on hover and in /injuries. MiniMessage. Default: none.
-#   icon:        the /injuries menu item: a Material (BONE) or model:<namespace:id>.
+#   description: shown on hover and in /injury list. MiniMessage. Default: none.
+#   icon:        the /injury list menu item: a Material (BONE) or model:<namespace:id>.
 #                Default: PAPER.
 #   severity:    one of severities above. Required.
 #   message:     said when the injury is awarded. {character} is the character's

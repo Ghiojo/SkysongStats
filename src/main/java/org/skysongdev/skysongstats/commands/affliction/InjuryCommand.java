@@ -8,7 +8,6 @@ import org.jetbrains.annotations.NotNull;
 import org.skysongdev.skysongstats.api.event.ChangeCause;
 import org.skysongdev.skysongstats.character.AfflictionService;
 import org.skysongdev.skysongstats.character.ChangeCauses;
-import org.skysongdev.skysongstats.character.CharacterInjury;
 import org.skysongdev.skysongstats.commands.stat.CommandTargets;
 import org.skysongdev.skysongstats.definition.InjuryDefinition;
 import org.skysongdev.skysongstats.messages.AfflictionTexts;
@@ -25,20 +24,21 @@ import java.util.function.Supplier;
 import java.util.stream.Stream;
 
 // /injury, on the injuries from injuries.yml:
-//   /injury list [player]               the character's current injuries
+//   /injury list [severity]             the menu of the injuries you know (InjuryMenu)
+//   /injury search <text>               the same menu, only names containing the text
 //   /injury award <player> <injury>     gives it, and teaches it (staff)
 //   /injury remove <player> <injury>    takes it away; still known (staff)
 //   /injury discover <player> <injury>  teaches it without giving it (staff)
 //   /injury forget <player> <injury>    undoes a discover (staff)
-// An injury is named by its id, in any case.
+// An injury is named by its id, in any case. A character's current injuries are
+// on the /stats sheet.
 public final class InjuryCommand implements TabExecutor {
     static final String KEYS = "injury.";
-    static final String LIST = "skysongstats.injury.list";
-    static final String LIST_OTHER = LIST + ".other";
     private static final String STAFF_PERMISSION = "skysongstats.injury.";
     private static final List<String> STAFF = List.of("award", "remove", "discover", "forget");
 
     private final AfflictionService afflictions;
+    private final InjuryMenu menu;
     private final CommandTargets targets;
     private final Supplier<Messages> messages;
     private final AfflictionTexts texts;
@@ -47,10 +47,11 @@ public final class InjuryCommand implements TabExecutor {
     private final ChangeCauses causes;
 
     // log gets a line for every change staff make, so the console sees who changed what.
-    public InjuryCommand(AfflictionService afflictions, CommandTargets targets, Supplier<Messages> messages,
-                         AfflictionTexts texts, Supplier<List<String>> onlinePlayers, Consumer<String> log,
-                         ChangeCauses causes) {
+    public InjuryCommand(AfflictionService afflictions, InjuryMenu menu, CommandTargets targets,
+                         Supplier<Messages> messages, AfflictionTexts texts, Supplier<List<String>> onlinePlayers,
+                         Consumer<String> log, ChangeCauses causes) {
         this.afflictions = Objects.requireNonNull(afflictions, "afflictions");
+        this.menu = Objects.requireNonNull(menu, "menu");
         this.targets = Objects.requireNonNull(targets, "targets");
         this.messages = Objects.requireNonNull(messages, "messages");
         this.texts = Objects.requireNonNull(texts, "texts");
@@ -64,7 +65,9 @@ public final class InjuryCommand implements TabExecutor {
                              @NotNull String[] args) {
         String sub = args.length > 0 ? args[0].toLowerCase(Locale.ROOT) : "list";
         if ("list".equals(sub)) {
-            list(sender, args.length > 1 ? args[1] : null);
+            list(sender, args);
+        } else if ("search".equals(sub)) {
+            search(sender, args);
         } else if (STAFF.contains(sub)) {
             staff(sender, sub, args);
         } else {
@@ -73,17 +76,20 @@ public final class InjuryCommand implements TabExecutor {
         return true;
     }
 
-    private void list(CommandSender sender, String targetName) {
-        targets.resolve(sender, targetName, LIST, LIST_OTHER).ifPresent(target -> {
-            List<CharacterInjury> current = afflictions.injuries(target.character());
-            Map<String, String> player = Map.of("player", target.player().getName());
-            if (current.isEmpty()) {
-                send(sender, "list.none", player);
-                return;
-            }
-            send(sender, "list.header", player);
-            current.forEach(injury -> send(sender, "list.entry", Map.of(), injury.injury()));
-        });
+    private void list(CommandSender sender, String... args) {
+        if (args.length > 1) {
+            menu.openSeverity(sender, args[1]);
+        } else {
+            menu.openAll(sender);
+        }
+    }
+
+    private void search(CommandSender sender, String... args) {
+        if (args.length < 2) {
+            send(sender, "search-usage", Map.of());
+            return;
+        }
+        menu.openSearch(sender, String.join(" ", List.of(args).subList(1, args.length)));
     }
 
     private void staff(CommandSender sender, String sub, String... args) {
@@ -190,10 +196,13 @@ public final class InjuryCommand implements TabExecutor {
     private Stream<String> suggestions(CommandSender sender, String... args) {
         if (args.length == 1) {
             Stream<String> staff = STAFF.stream().filter(sub -> sender.hasPermission(permission(sub)));
-            return Stream.concat(Stream.of("list"), staff);
+            return Stream.concat(Stream.of("list", "search"), staff);
         }
         boolean staff = STAFF.contains(args[0].toLowerCase(Locale.ROOT));
-        if (args.length == 2 && (staff || "list".equalsIgnoreCase(args[0]))) {
+        if (args.length == 2 && "list".equalsIgnoreCase(args[0])) {
+            return menu.severities().stream();
+        }
+        if (args.length == 2 && staff) {
             return onlinePlayers.get().stream();
         }
         if (args.length == 3 && staff) {

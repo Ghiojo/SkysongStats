@@ -565,9 +565,9 @@ Every message players and staff see. Edit the text and run `/ssreload`.
 | `character` | `/char`, `/schar` and the character sheet layout |
 | `skills` | `/skills`, the skills book, the /setup skill screen (`skills.choice`) |
 | `proficiency` | `/proficiency`, its sheet, the /setup proficiency screen (`proficiency.choice`) |
-| `injury` | `/injury`, the `/injuries` menu (`injury.menu`), how an injury is shown everywhere (`injury.tag`: its name with the description on hover), the award announcement |
+| `injury` | `/injury`, its menu (`injury.menu`), how an injury is shown everywhere (`injury.tag`: its name with the description on hover), the award announcement |
 | `placeholders` | The separator and "None" text of the injury and condition lists (placeholders and sheet tags) |
-| `condition` | `/condition`, the `/conditions` menu (`condition.menu`), how a condition is shown (`condition.tag`, `level-format`, `level-in-description`) |
+| `condition` | `/condition`, its menu (`condition.menu`), how a condition is shown (`condition.tag`, `given-tag`, `level-format`, `level-in-description`) |
 | `setup` | `/setup` and its stat point screen |
 | `stats` | Stat actions, `/stats view` sheet |
 | `modifier` | `/modifier` |
@@ -593,7 +593,7 @@ So to give `/heal` its own text you edit `stats.hp.add.player`; a new stat `mana
 
 #### Injuries and conditions on the sheets
 
-Every sheet (the character sheet, `stats.sheet`, `proficiency.sheet`, and the lines that go with them) can show the character's injuries and conditions with the same names as the placeholders, as `{tags}`: `{injuries}`, `{injuries_hover}`, `{injuries_50}`, `{injuries_hover_50}`, `{injuries_count}`, and the same for `{conditions...}`. They need no PlaceholderAPI. The default character sheet has `Injuries:` and `Conditions:` lines after the height, with `{injuries_hover_50}` and `{conditions_hover_50}`; change their colours or remove them as you like. The separator and the "None" text are in the `placeholders:` section at the end of messages.yml.
+Every sheet (the character sheet, `stats.sheet`, `proficiency.sheet`, and the lines that go with them) can show the character's injuries and conditions with the same names as the placeholders, as `{tags}`: `{injuries}`, `{injuries_hover}`, `{injuries_50}`, `{injuries_hover_50}`, `{injuries_count}`, and the same for `{conditions...}`. They need no PlaceholderAPI. The default stat sheet (`stats.sheet`) has `Injuries:` and `Conditions:` lines at the end of its Afflictions part, with `{injuries_hover_50}` and `{conditions_hover_50}`; change their colours, move them to another sheet or remove them as you like. In the `_hover` lists, a condition that an injury or another condition gives uses `condition.given-tag`, whose hover adds "From:" and their names (`{from}`). The separator and the "None" text are in the `placeholders:` section at the end of messages.yml.
 
 #### Other plugins' placeholders on the sheets
 
@@ -684,33 +684,28 @@ Staff changes are logged in the console.
 
 | Command | Permission | What it does |
 |---|---|---|
-| `/injury [list] [player]` | `skysongstats.injury.list` (everyone); others: `....list.other` (ops) | Lists the character's current injuries, oldest first. |
+| `/injury` or `/injury list` | `skysongstats.injuries` (everyone) | A menu of the injuries your character knows, in `injuries.yml` order: icon, name, description, id and severity. 27 per page, arrows turn pages. |
+| `/injury list <severity>` | same | Only known injuries of that severity. Tab completion offers the severities at least one injury uses. |
+| `/injury search <text>` | same | Only known injuries whose name contains the text (ignoring case and formatting). Says so when nothing matches. |
 | `/injury award <player> <injury>` | `skysongstats.injury.award` (ops) | Gives the injury and teaches it. Sends the injury's message to the player. |
 | `/injury remove <player> <injury>` | `skysongstats.injury.remove` (ops) | Takes it away, with its conditions. The character still knows it. |
 | `/injury discover <player> <injury>` | `skysongstats.injury.discover` (ops) | Teaches the injury without giving it. |
 | `/injury forget <player> <injury>` | `...discover` | Undoes a discover. Refused while the character has the injury. |
 
-### Injury and condition menus (`/injuries`, `/conditions`)
-
-| Command | Permission | What it does |
-|---|---|---|
-| `/injuries` (also `/injuries view`) | `skysongstats.injuries` (everyone) | A menu of the injuries your character knows, in `injuries.yml` order: icon, name, description, id and severity. 27 per page, arrows turn pages. |
-| `/injuries view <severity>` | same | Only known injuries of that severity. Tab completion offers the severities at least one injury uses. |
-| `/injuries search <text>` | same | Only known injuries whose name contains the text (ignoring case and formatting). Says so when nothing matches. |
-
-With `skysongstats.injuries.all` (op by default), all three show **every** injury of `injuries.yml`, known or not, with the same severity and search filters. It only changes what the menu shows: the character doesn't learn anything, and chat tags still need the injury to be known. Without it, ops see only what their character knows, like everyone else.
-| `/conditions` | `skysongstats.conditions` (everyone) | A menu of every condition in `conditions.yml` (conditions aren't learnt). A description's `$` shows as `condition.menu.level` (`[value]`). |
-| `/conditions search <text>` | same | Only conditions whose name contains the text. |
-
-Nothing can be taken out of the menus. Titles, arrows and lore lines are under `injury.menu` and `condition.menu` in messages.yml.
+With `skysongstats.injuries.all` (op by default), the menu shows **every** injury of `injuries.yml`, known or not, with the same severity and search filters. It only changes what the menu shows: the character doesn't learn anything, and chat tags still need the injury to be known. Without it, ops see only what their character knows, like everyone else.
 
 ### Conditions (`/condition`)
 
 | Command | Permission | What it does |
 |---|---|---|
-| `/condition [list] [player]` | `skysongstats.condition.list` (everyone); others: `....list.other` (ops) | Lists the character's current conditions, and what gives the ones it wasn't given directly. |
+| `/condition` or `/condition list` | `skysongstats.conditions` (everyone) | A menu of every condition in `conditions.yml` (conditions aren't learnt). A description's `$` shows as `condition.menu.level` (`[value]`). |
+| `/condition search <text>` | same | Only conditions whose name contains the text. |
 | `/condition award <player> <condition> [level]` | `skysongstats.condition.award` (ops) | Gives it directly, at level 1 or the level given. Again changes the level. |
 | `/condition remove <player> <condition>` | `skysongstats.condition.remove` (ops) | Takes back a direct award. |
+
+Nothing can be taken out of the menus. Titles, arrows and lore lines are under `injury.menu` and `condition.menu` in messages.yml.
+
+A character's **current** injuries and conditions are on its stat sheet (`/stats`, and `/stats view <player>` for staff), on the "Injuries:" and "Conditions:" lines under Afflictions. Each shows its description on hover; a condition that an injury or another condition gives also says "From: ..." on hover.
 
 Injuries and conditions are named by their id from the files, in any case. The player must be online. Staff changes are logged in the console.
 
@@ -761,12 +756,10 @@ Downtime commands work on **offline** players too, as long as they have joined b
 | `skysongstats.proficiencies.view.other` | op | Others' proficiency sheets. |
 | `skysongstats.proficiencies.focus` | everyone | `/proficiency focus`. |
 | `skysongstats.proficiencies.manage` | op | Training and staff proficiency commands. |
-| `skysongstats.injury.list`, `skysongstats.condition.list` | everyone | `/injury list`, `/condition list` for yourself. |
-| `skysongstats.injury.list.other`, `skysongstats.condition.list.other` | op | The same for someone else. |
 | `skysongstats.injury.award`, `.remove`, `.discover` | op | The staff `/injury` commands (`.discover` also covers `forget`). |
 | `skysongstats.condition.award`, `.remove` | op | The staff `/condition` commands. |
-| `skysongstats.injuries`, `skysongstats.conditions` | everyone | The `/injuries` and `/conditions` menus. |
-| `skysongstats.injuries.all` | op | `/injuries` shows every injury, not only the known ones. |
+| `skysongstats.injuries`, `skysongstats.conditions` | everyone | The `/injury list`/`search` and `/condition list`/`search` menus. |
+| `skysongstats.injuries.all` | op | `/injury list` shows every injury, not only the known ones. |
 | `skysongstats.import` | op | `/ssimport chattweaks`. |
 | `skysongstats.*` | op | Everything above (and the generated nodes below). |
 
@@ -1065,7 +1058,7 @@ All code is under `src/main/java/org/skysongdev/skysongstats/`; default files ar
 | Proficiency rules (focus, training, tiers) | `character/ProficiencyService.java` |
 | Injury and condition rules (awards, given conditions, known injuries) | `character/AfflictionService.java`, `character/ConditionResolver.java` |
 | How injuries and conditions are shown (tags, announcement, lists) | `messages/AfflictionTexts.java`, `messages/AfflictionLists.java`, `messages/LineWrapper.java` |
-| /injury, /condition, /injuries, /conditions | `commands/affliction/` (menus drawn by `menu/`) |
+| /injury, /condition | `commands/affliction/` (menus drawn by `menu/`) |
 | /ssimport chattweaks | `commands/misc/ImportCommand`, the import itself in `importer/` |
 | Downtime rules | `service/downtime/DowntimeService.java` |
 | Stat commands, /modifier, generated stat commands and permissions | `commands/stat/` |

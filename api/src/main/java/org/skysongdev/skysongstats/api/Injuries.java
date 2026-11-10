@@ -10,7 +10,7 @@ import java.util.Set;
 
 /**
  * The injuries of injuries.yml, what each character has now, and which injuries each
- * character knows (what {@code /injuries} shows).
+ * character knows (what {@code /injury list} shows).
  *
  * <p>An injury is found by its id, ignoring case. The methods about injuries.yml itself
  * ({@link #types()}, {@link #type(String)}, {@link #severities()}, {@link #tag(String)}) are

@@ -84,13 +84,23 @@ class SheetRenderingTest {
     }
 
     @Test
-    void theCharacterSheetShowsItsFieldsAndInjuries() {
+    void theCharacterSheetShowsItsFields() {
         api.injuries().award(guard, "broken-leg");
 
         String sheet = rendered(SheetLayout.CHARACTER);
 
-        assertTrue(sheet.contains("Broken Leg"), sheet);
         assertTrue(sheet.contains("[Not Set]"), sheet);
+        assertFalse(sheet.contains("Broken Leg"), "afflictions are on the stat sheet: " + sheet);
+    }
+
+    @Test
+    void theStatSheetShowsTheAfflictions() {
+        api.injuries().award(guard, "broken-leg");
+
+        String sheet = rendered(SheetLayout.STATS);
+
+        assertTrue(sheet.contains("Injuries: [Broken Leg]"), sheet);
+        assertTrue(sheet.contains("Conditions: [Weakened], [Dazed 2]"), sheet);
     }
 
     @Test

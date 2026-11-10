@@ -21,7 +21,7 @@ class ConditionCommandTest extends AfflictionCommandFixture {
 
     @Test
     void unknownSubcommand() {
-        assertEquals(PREFIX + "Incorrect Arguments! Usage: /condition (list/award/remove)", console("nope"));
+        assertEquals(PREFIX + "Incorrect Arguments! Usage: /condition (list/search/award/remove)", console("nope"));
     }
 
     @Test
@@ -73,23 +73,6 @@ class ConditionCommandTest extends AfflictionCommandFixture {
     }
 
     @Test
-    void theListShowsWhereGivenConditionsComeFrom() {
-        afflictions.awardInjury(character(alice), "broken-leg");
-        afflictions.awardCondition(character(alice), "bleeding", 2);
-        all(alice);
-
-        run(alice, "list");
-        assertEquals(List.of(PREFIX + "Alice's conditions:", " - [Bleeding 2]", " - [Weakened] (from Broken Leg)",
-                " - [Dazed 2] (from Weakened)"), all(alice));
-    }
-
-    @Test
-    void anEmptyList() {
-        run(alice);
-        assertEquals(PREFIX + "Alice has no conditions.", next(alice));
-    }
-
-    @Test
     void playersCantAwardWithoutPermission() {
         run(alice, "award", "Alice", "bleeding");
         assertEquals(PREFIX + "You don't have permission to use this command!", next(alice));
@@ -97,8 +80,8 @@ class ConditionCommandTest extends AfflictionCommandFixture {
 
     @Test
     void tabCompletesSubcommandsByPermissionAndConditionIds() {
-        assertEquals(List.of("list"), complete(alice, ""));
-        assertEquals(List.of("list", "award", "remove"), complete(console, ""));
+        assertEquals(List.of("list", "search"), complete(alice, ""));
+        assertEquals(List.of("list", "search", "award", "remove"), complete(console, ""));
         assertEquals(List.of("dazed"), complete(console, "award", "Alice", "d"));
     }
 }

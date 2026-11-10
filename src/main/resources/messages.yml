@@ -113,8 +113,6 @@ character:
       - "<#D0530C><bold>Gender:</bold> <#f8e886>{gender}<#e7d462>({pronouns})"
       - "<#D0530C><bold>Ancestry:</bold> <#f8e886>{ancestry}"
       - "<#D0530C><bold>Height:</bold> <#f8e886>{height} m <#e7d462>({height_feet})"
-      - "<#B1262C><bold>Injuries:</bold> <#f8e886>{injuries_hover_50}"
-      - "<#D4992C><bold>Conditions:</bold> <#f8e886>{conditions_hover_50}"
       - "<#D0530C><bold>Description:</bold>"
     # {line}
     description-line: "<#f8e886>{line}"
@@ -273,7 +271,8 @@ proficiency:
 # and an injury's message are MiniMessage from those files.
 injury:
   usage: "{prefix}<red>Usage: /injury (award/remove/discover/forget) (player) (injury)"
-  unknown-subcommand: "{prefix}<red>Incorrect Arguments! Usage: /injury (list/award/remove/discover/forget)"
+  unknown-subcommand: "{prefix}<red>Incorrect Arguments! Usage: /injury (list/search/award/remove/discover/forget)"
+  search-usage: "{prefix}<red>Usage: /injury search (text)"
   # {injury} as typed
   unknown-injury: "{prefix}<red>There is no injury called {injury}!"
   # How an injury looks wherever {injury} is shown in this file. {name} and
@@ -300,14 +299,9 @@ injury:
     success: "{prefix}<green>{player} no longer knows {injury}."
     not-known: "{prefix}<red>{player} doesn't know {injury}."
     still-injured: "{prefix}<red>{player} has {injury} right now, remove it first."
-  # /injury list. {player}; entry has {injury}.
-  list:
-    header: "{prefix}<gold>{player}'s injuries:"
-    entry: "<gray> - {injury}"
-    none: "{prefix}<gray>{player} has no injuries."
-  # /injuries, the menu of the injuries your character knows.
+  # /injury list [severity] and /injury search, the menu of the injuries your
+  # character knows.
   menu:
-    usage: "{prefix}<red>Usage: /injuries [view [severity] | search (text)]"
     title: "<dark_red>Known Injuries"
     # {severity}
     severity-title: "<dark_red>Known Injuries: {severity}"
@@ -322,7 +316,8 @@ injury:
     next-page: "<gray>Next Page"
 condition:
   usage: "{prefix}<red>Usage: /condition (award/remove) (player) (condition) [level]"
-  unknown-subcommand: "{prefix}<red>Incorrect Arguments! Usage: /condition (list/award/remove)"
+  unknown-subcommand: "{prefix}<red>Incorrect Arguments! Usage: /condition (list/search/award/remove)"
+  search-usage: "{prefix}<red>Usage: /condition search (text)"
   # {condition} as typed
   unknown-condition: "{prefix}<red>There is no condition called {condition}!"
   # {level} as typed
@@ -331,6 +326,10 @@ condition:
   # its name (with level-format when above level 1), {description} its
   # description with each $ shown as level-in-description.
   tag: "<hover:show_text:'{description}'><dark_gray>[</dark_gray><white>{name}</white><dark_gray>]</dark_gray></hover>"
+  # The tag of a condition an injury or another condition gives, in the
+  # {conditions_hover...} lists of the sheets and placeholders. {from} is their
+  # names, joined by commas.
+  given-tag: "<hover:show_text:'{description}<newline><gray>From: {from}'><dark_gray>[</dark_gray><white>{name}</white><dark_gray>]</dark_gray></hover>"
   # {name} {level}
   level-format: "{name} {level}"
   # {level}
@@ -348,16 +347,8 @@ condition:
     not-direct: "{prefix}<red>{player} wasn't given {condition} directly; it comes and goes with what gives it."
     # Sent to the player who lost it, when someone else removed it.
     lost: "{prefix}<green>You no longer have {condition}."
-  # /condition list. {player}; the entries have {condition}, entry-given also
-  # {from}: the injuries and conditions that give it.
-  list:
-    header: "{prefix}<gold>{player}'s conditions:"
-    entry: "<gray> - {condition}"
-    entry-given: "<gray> - {condition} <dark_gray>(from {from})"
-    none: "{prefix}<gray>{player} has no conditions."
-  # /conditions, the menu of every condition.
+  # /condition list and /condition search, the menu of every condition.
   menu:
-    usage: "{prefix}<red>Usage: /conditions [search (text)]"
     title: "<gold>Conditions"
     # {search}
     search-title: "<gold>Conditions matching {search}"
@@ -483,6 +474,8 @@ stats:
     - "<#D0530C><bold>Afflictions</bold>"
     - "<#21ABA5><bold>Arcrot:</bold> <#21ABA5>{arcrot}<#0D5653>/<#21ABA5>{max_arcrot}<#2d6765> ({arcrot_modifiers}/{max_arcrot_modifiers}) <#864811>| <#2EB12C><bold>Potion Sickness:</bold> <#2EB12C>{potion}<#094C08>/<#2EB12C>{max_potion}<#3c733b> ({max_potion_modifiers})"
     - "<#710E86><bold>Fictis Apotheosis:</bold> <#710E86>{fictis}<#410F4C>/<#710E86>{max_fictis}<#422947> ({fictis_modifiers}/{max_fictis_modifiers})"
+    - "<#B1262C><bold>Injuries:</bold> <#f8e886>{injuries_hover_50}"
+    - "<#D4992C><bold>Conditions:</bold> <#f8e886>{conditions_hover_50}"
   sheet-auto:
     # {name} {stat} {value} {base} {modifiers}, and for bars {max} {max_base} {max_modifiers}
     value: "<#864811><bold>{name}:</bold> <#F6DA23>{value}<#864811> ({modifiers})"
@@ -524,15 +517,15 @@ modifier:
     footer: "<#864811>|====================<<<#63C934>₪<#864811>>>====================|"
 
 # A character's current injuries and conditions as one text, for the PlaceholderAPI
-# placeholders and the sheet tags. Every sheet in this file (the character sheet,
-# stats.sheet, proficiency.sheet) can use them as tags:
+# placeholders and the sheet tags. stats.sheet shows them; every sheet in this file
+# (the character sheet, stats.sheet, proficiency.sheet) can use them as tags:
 #   {injuries}            names, joined by separator
 #   {injuries_hover}      each name as its injury.tag, the description on hover
 #   {injuries_50}         broken into lines of at most 50 characters (any number);
 #   {injuries_hover_50}   lines break only between words, colours and hovers don't count
 #   {injuries_count}      how many
-# and the same for {conditions...} (condition.tag; a level above 1 follows the
-# name). The placeholders are the same names: %skysongstats_injuries_hover_50%...
+# and the same for {conditions...} (condition.tag, or condition.given-tag for one an
+# injury or another condition gives; a level above 1 follows the name). The placeholders are the same names: %skysongstats_injuries_hover_50%...
 # /ssimport chattweaks, the one-off import from SkysongChatTweaks.
 import:
   usage: "{prefix}<red>Usage: /ssimport chattweaks"
