@@ -18,7 +18,8 @@ import java.util.function.Supplier;
 //   injury tag      injury.tag in messages.yml: the name with the description on
 //                   hover, what [injury_x] shows in chat
 //   condition tag   condition.tag: the same for a condition at a level, its
-//                   description's $ shown as the level
+//                   description's $ shown as the level; condition.given-tag also
+//                   names what gives it
 //   announcement    an injury's message: with {character} and {injury} filled in
 // Owner-written texts (names, descriptions, messages) are MiniMessage. A
 // character's name keeps every format its player gave it, as on the sheets.
@@ -46,6 +47,15 @@ public final class AfflictionTexts {
         return messages.get().get("condition.tag", Map.of(), Map.of(
                 "name", conditionName(condition, level),
                 "description", conditionDescription(condition, level)));
+    }
+
+    // condition.given-tag: the tag, and from (the names of the injuries and
+    // conditions that give it) for its hover.
+    public Component givenConditionTag(ConditionDefinition condition, int level, Component from) {
+        return messages.get().get("condition.given-tag", Map.of(), Map.of(
+                "name", conditionName(condition, level),
+                "description", conditionDescription(condition, level),
+                "from", from));
     }
 
     // The condition's name, with its level after it when above 1 (condition.level-format).

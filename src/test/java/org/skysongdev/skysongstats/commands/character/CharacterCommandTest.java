@@ -1,8 +1,5 @@
 package org.skysongdev.skysongstats.commands.character;
 
-import java.io.File;
-import java.io.IOException;
-import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.List;
 import net.kyori.adventure.text.Component;
@@ -20,14 +17,12 @@ import org.skysongdev.skysongstats.OfflineSkysongStats;
 import org.skysongdev.skysongstats.SkysongStats;
 import org.skysongdev.skysongstats.Utils.CharacterManager;
 import org.skysongdev.skysongstats.Utils.ProfileManager;
-import org.skysongdev.skysongstats.character.AfflictionFixtures;
 import org.skysongdev.skysongstats.database.CharacterProfile;
 import org.skysongdev.skysongstats.database.ProfileIndex;
 import org.skysongdev.skysongstats.storage.ProfileKey;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /** /char messages come from messages.yml; character fields keep their colours. */
 class CharacterCommandTest {
@@ -36,13 +31,12 @@ class CharacterCommandTest {
     private ServerMock server;
     private CharacterCommand character;
     private Command command;
-    private SkysongStats plugin;
     private PlayerMock alice;
 
     @BeforeEach
     void setUp() {
         server = MockBukkit.mock();
-        plugin = OfflineSkysongStats.load();
+        SkysongStats plugin = OfflineSkysongStats.load();
         HandlerList.unregisterAll(plugin);
         character = new CharacterCommand();
         command = plugin.getCommand("char");
@@ -65,25 +59,6 @@ class CharacterCommandTest {
     }
 
     @Test
-    void theSheetListsInjuriesAndConditionsWithTheirDescriptionOnHover() throws IOException {
-        Files.writeString(new File(plugin.getDataFolder(), "conditions.yml").toPath(), AfflictionFixtures.CONDITIONS_FILE);
-        Files.writeString(new File(plugin.getDataFolder(), "injuries.yml").toPath(), AfflictionFixtures.INJURIES_FILE);
-        plugin.reloadSettings();
-        plugin.getAfflictionService().awardInjury(new ProfileKey(alice.getUniqueId(), "Default"), "cut");
-        // The cut has no award message, so Alice has been sent nothing yet.
-        assertNull(alice.nextComponentMessage());
-
-        character.onCommand(alice, command, "char", new String[0]);
-        for (int line = 0; line < 8; line++) {
-            alice.nextComponentMessage();
-        }
-        Component injuries = alice.nextComponentMessage();
-        assertEquals("Injuries: [Cut]", PlainTextComponentSerializer.plainText().serialize(injuries));
-        assertTrue(MiniMessage.miniMessage().serialize(injuries).contains("<hover:show_text:"));
-        assertEquals("Conditions: [Bleeding 2]", next());
-    }
-
-    @Test
     void showsTheCharacterSheet() {
         character.onCommand(alice, command, "char", new String[0]);
         assertEquals(BORDER, next());
@@ -94,8 +69,6 @@ class CharacterCommandTest {
         assertEquals("Gender: Female(she/her)", next());
         assertEquals("Ancestry: Elf", next());
         assertEquals("Height: 1.80 m (5'11\")", next());
-        assertEquals("Injuries: None", next());
-        assertEquals("Conditions: None", next());
         assertEquals("Description:", next());
         assertEquals("A quiet mage ", next());
         assertEquals(BORDER, next());

@@ -22,8 +22,8 @@ import org.skysongdev.skysongstats.character.AfflictionChangeListener;
 import org.skysongdev.skysongstats.character.AfflictionService;
 import org.skysongdev.skysongstats.character.InjuryAward;
 import org.skysongdev.skysongstats.commands.affliction.ConditionCommand;
-import org.skysongdev.skysongstats.commands.affliction.ConditionsMenuCommand;
-import org.skysongdev.skysongstats.commands.affliction.InjuriesMenuCommand;
+import org.skysongdev.skysongstats.commands.affliction.ConditionMenu;
+import org.skysongdev.skysongstats.commands.affliction.InjuryMenu;
 import org.skysongdev.skysongstats.menu.AfflictionMenus;
 import org.skysongdev.skysongstats.menu.ListMenuListener;
 import org.skysongdev.skysongstats.commands.affliction.InjuryCommand;
@@ -320,15 +320,13 @@ public class SkysongStats extends JavaPlugin {
                 onlinePlayers, getLogger()::info));
         getCommand("proficiency").setExecutor(new ProficiencyCommand(proficiencyService, skillService, targets, texts,
                 new ProficiencySheet(this::getMessages), pendingFocusChanges, onlinePlayers, getLogger()::info, changeCauses));
-        getCommand("injury").setExecutor(new InjuryCommand(afflictionService, targets, this::getMessages,
-                afflictionTexts, onlinePlayers, getLogger()::info, changeCauses));
-        getCommand("condition").setExecutor(new ConditionCommand(afflictionService, targets, this::getMessages,
-                afflictionTexts, onlinePlayers, getLogger()::info, changeCauses));
         AfflictionMenus afflictionMenus = new AfflictionMenus(this::getMessages);
-        getCommand("injuries").setExecutor(new InjuriesMenuCommand(afflictionService, targets, this::getMessages,
-                afflictionMenus));
-        getCommand("conditions").setExecutor(new ConditionsMenuCommand(afflictionService, this::getMessages,
-                afflictionMenus));
+        getCommand("injury").setExecutor(new InjuryCommand(afflictionService,
+                new InjuryMenu(afflictionService, targets, this::getMessages, afflictionMenus), targets,
+                this::getMessages, afflictionTexts, onlinePlayers, getLogger()::info, changeCauses));
+        getCommand("condition").setExecutor(new ConditionCommand(afflictionService,
+                new ConditionMenu(afflictionService, this::getMessages, afflictionMenus), targets,
+                this::getMessages, afflictionTexts, onlinePlayers, getLogger()::info, changeCauses));
         getCommand("ssimport").setExecutor(new ImportCommand(chatTweaksImporter(), this::getMessages));
         getCommand("ssreload").setExecutor(new ReloadCommand());
         getCommand("schar").setExecutor(characterCommand);

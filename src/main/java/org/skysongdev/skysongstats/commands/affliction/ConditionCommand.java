@@ -1,19 +1,15 @@
 package org.skysongdev.skysongstats.commands.affliction;
 
 import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.JoinConfiguration;
-import net.kyori.adventure.text.minimessage.MiniMessage;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabExecutor;
 import org.jetbrains.annotations.NotNull;
 import org.skysongdev.skysongstats.api.event.ChangeCause;
-import org.skysongdev.skysongstats.character.ActiveCondition;
 import org.skysongdev.skysongstats.character.AfflictionService;
 import org.skysongdev.skysongstats.character.ChangeCauses;
 import org.skysongdev.skysongstats.commands.stat.CommandTargets;
 import org.skysongdev.skysongstats.definition.ConditionDefinition;
-import org.skysongdev.skysongstats.definition.InjuryDefinition;
 import org.skysongdev.skysongstats.messages.AfflictionTexts;
 import org.skysongdev.skysongstats.messages.Messages;
 
@@ -29,22 +25,22 @@ import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
 // /condition, on the conditions from conditions.yml:
-//   /condition list [player]                       the character's current conditions
+//   /condition list                                the menu of every condition (ConditionMenu)
+//   /condition search <text>                       the same menu, only names containing the text
 //   /condition award <player> <condition> [level]  gives it directly, at level 1 when
 //                                                  none is given; again changes the level
 //   /condition remove <player> <condition>         takes back a direct award
 // Conditions an injury or another condition gives come and go with what gives
-// them. A condition is named by its id, in any case.
+// them. A condition is named by its id, in any case. A character's current
+// conditions are on the /stats sheet.
 public final class ConditionCommand implements TabExecutor {
     static final String KEYS = "condition.";
-    static final String LIST = "skysongstats.condition.list";
-    static final String LIST_OTHER = LIST + ".other";
     static final String AWARD = "skysongstats.condition.award";
     static final String REMOVE = "skysongstats.condition.remove";
     private static final Pattern LEVEL = Pattern.compile("\\d{1,9}");
-    private static final MiniMessage MINI_MESSAGE = MiniMessage.miniMessage();
 
     private final AfflictionService afflictions;
+    private final ConditionMenu menu;
     private final CommandTargets targets;
     private final Supplier<Messages> messages;
     private final AfflictionTexts texts;
@@ -53,10 +49,11 @@ public final class ConditionCommand implements TabExecutor {
     private final ChangeCauses causes;
 
     // log gets a line for every change staff make, so the console sees who changed what.
-    public ConditionCommand(AfflictionService afflictions, CommandTargets targets, Supplier<Messages> messages,
-                            AfflictionTexts texts, Supplier<List<String>> onlinePlayers, Consumer<String> log,
-                            ChangeCauses causes) {
+    public ConditionCommand(AfflictionService afflictions, ConditionMenu menu, CommandTargets targets,
+                            Supplier<Messages> messages, AfflictionTexts texts, Supplier<List<String>> onlinePlayers,
+                            Consumer<String> log, ChangeCauses causes) {
         this.afflictions = Objects.requireNonNull(afflictions, "afflictions");
+        this.menu = Objects.requireNonNull(menu, "menu");
         this.targets = Objects.requireNonNull(targets, "targets");
         this.messages = Objects.requireNonNull(messages, "messages");
         this.texts = Objects.requireNonNull(texts, "texts");
@@ -70,7 +67,8 @@ public final class ConditionCommand implements TabExecutor {
                              @NotNull String[] args) {
         String sub = args.length > 0 ? args[0].toLowerCase(Locale.ROOT) : "list";
         switch (sub) {
-            case "list" -> list(sender, args.length > 1 ? args[1] : null);
+            case "list" -> menu.openAll(sender);
+            case "search" -> search(sender, args);
             case "award" -> award(sender, args);
             case "remove" -> remove(sender, args);
             default -> send(sender, "unknown-subcommand", Map.of());
@@ -78,38 +76,12 @@ public final class ConditionCommand implements TabExecutor {
         return true;
     }
 
-    private void list(CommandSender sender, String targetName) {
-        targets.resolve(sender, targetName, LIST, LIST_OTHER).ifPresent(target -> {
-            List<ActiveCondition> current = afflictions.conditions(target.character());
-            Map<String, String> player = Map.of("player", target.player().getName());
-            if (current.isEmpty()) {
-                send(sender, "list.none", player);
-                return;
-            }
-            send(sender, "list.header", player);
-            current.forEach(condition -> sendEntry(sender, condition));
-        });
-    }
-
-    // A direct award shows as list.entry, one only given as list.entry-given with
-    // {from}: the injuries and conditions that give it.
-    private void sendEntry(CommandSender sender, ActiveCondition condition) {
-        Component tag = texts.conditionTag(condition.condition(), condition.level());
-        if (condition.direct()) {
-            messages.get().send(sender, KEYS + "list.entry", Map.of(), Map.of("condition", tag));
+    private void search(CommandSender sender, String... args) {
+        if (args.length < 2) {
+            send(sender, "search-usage", Map.of());
             return;
         }
-        messages.get().send(sender, KEYS + "list.entry-given", Map.of(),
-                Map.of("condition", tag, "from", givers(condition)));
-    }
-
-    private Component givers(ActiveCondition condition) {
-        Stream<String> injuryNames = condition.fromInjuries().stream()
-                .flatMap(id -> afflictions.injuryDefinitions().get(id).stream()).map(InjuryDefinition::name);
-        Stream<String> conditionNames = condition.fromConditions().stream()
-                .flatMap(id -> afflictions.conditionDefinitions().get(id).stream()).map(ConditionDefinition::name);
-        List<Component> names = Stream.concat(injuryNames, conditionNames).map(MINI_MESSAGE::deserialize).toList();
-        return Component.join(JoinConfiguration.commas(true), names);
+        menu.openSearch(sender, String.join(" ", List.of(args).subList(1, args.length)));
     }
 
     private void award(CommandSender sender, String... args) {
@@ -202,11 +174,11 @@ public final class ConditionCommand implements TabExecutor {
         if (args.length == 1) {
             Stream<String> staff = Stream.of("award", "remove")
                     .filter(sub -> sender.hasPermission("skysongstats.condition." + sub));
-            return Stream.concat(Stream.of("list"), staff);
+            return Stream.concat(Stream.of("list", "search"), staff);
         }
         String sub = args[0].toLowerCase(Locale.ROOT);
         boolean staff = "award".equals(sub) || "remove".equals(sub);
-        if (args.length == 2 && (staff || "list".equals(sub))) {
+        if (args.length == 2 && staff) {
             return onlinePlayers.get().stream();
         }
         if (args.length == 3 && staff) {

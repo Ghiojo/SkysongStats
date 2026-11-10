@@ -18,7 +18,7 @@ class InjuryCommandTest extends AfflictionCommandFixture {
 
     @Test
     void unknownSubcommand() {
-        assertEquals(PREFIX + "Incorrect Arguments! Usage: /injury (list/award/remove/discover/forget)",
+        assertEquals(PREFIX + "Incorrect Arguments! Usage: /injury (list/search/award/remove/discover/forget)",
                 console("nope"));
     }
 
@@ -96,28 +96,10 @@ class InjuryCommandTest extends AfflictionCommandFixture {
     }
 
     @Test
-    void playersListTheirOwnInjuries() {
-        run(alice);
-        assertEquals(PREFIX + "Alice has no injuries.", next(alice));
-        afflictions.awardInjury(character(alice), "cut");
-        afflictions.awardInjury(character(alice), "bruise");
-        alice.nextComponentMessage();
-
-        run(alice, "list");
-        assertEquals(List.of(PREFIX + "Alice's injuries:", " - [Cut]", " - [Bruise]"), all(alice));
-    }
-
-    @Test
-    void listingSomeoneElseNeedsPermission() {
-        run(alice, "list", "Bob");
-        assertEquals(NO_PERMISSION, next(alice));
-    }
-
-    @Test
     void tabCompletesSubcommandsByPermissionAndInjuryIds() {
-        assertEquals(List.of("list"), complete(alice, ""));
-        assertEquals(List.of("list", "award", "remove", "discover", "forget"), complete(console, ""));
+        assertEquals(List.of("list", "search"), complete(alice, ""));
+        assertEquals(List.of("list", "search", "award", "remove", "discover", "forget"), complete(console, ""));
         assertEquals(List.of("broken-leg", "bruise"), complete(console, "award", "Alice", "b"));
-        assertEquals(List.of("Alice"), complete(console, "list", "Al"));
+        assertEquals(List.of("Alice"), complete(console, "award", "Al"));
     }
 }

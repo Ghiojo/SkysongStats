@@ -11,8 +11,8 @@ import org.jetbrains.annotations.NotNull;
 import java.util.List;
 import java.util.Objects;
 
-// A read-only menu that lists items over pages, like the /injuries and
-// /conditions menus: 45 slots, a border row at the top and bottom, 27 items per
+// A read-only menu that lists items over pages, like the /injury list and
+// /condition list menus: 45 slots, a border row at the top and bottom, 27 items per
 // page between them, and arrows in the bottom row to turn pages. Clicks are
 // handled by ListMenuListener.
 public final class ListMenu implements InventoryHolder {

@@ -7,11 +7,11 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-/** /conditions on the shared affliction fixtures. */
-class ConditionsMenuCommandTest extends AfflictionCommandFixture {
+/** /condition list and /condition search on the shared affliction fixtures. */
+class ConditionListTest extends AfflictionCommandFixture {
     @Override
     protected String commandName() {
-        return "conditions";
+        return "condition";
     }
 
     private ItemStack item(int slot) {
@@ -20,7 +20,7 @@ class ConditionsMenuCommandTest extends AfflictionCommandFixture {
 
     @Test
     void showsEveryConditionWithItsLevelAsValue() {
-        run(alice);
+        run(alice, "list");
         assertEquals("Conditions", plain(alice.getOpenInventory().title()));
         assertEquals("Bleeding", plain(item(9).getItemMeta().displayName()));
         assertEquals(List.of("Loses [value] blood", "ID: bleeding"),
@@ -44,13 +44,29 @@ class ConditionsMenuCommandTest extends AfflictionCommandFixture {
     }
 
     @Test
-    void wrongArgumentsShowTheUsage() {
-        run(alice, "nope");
-        assertEquals("[SkysongStats] Usage: /conditions [search (text)]", next(alice));
+    void aSearchNeedsText() {
+        run(alice, "search");
+        assertEquals("[SkysongStats] Usage: /condition search (text)", next(alice));
+    }
+
+    @Test
+    void noArgumentsOpenTheMenuToo() {
+        run(alice);
+        assertEquals("Conditions", plain(alice.getOpenInventory().title()));
+    }
+
+    @Test
+    void theMenuNeedsItsPermission() {
+        alice.addAttachment(plugin, ConditionMenu.PERMISSION, false);
+        run(alice, "list");
+        assertEquals("[SkysongStats] You don't have permission to use this command!", next(alice));
+        run(alice, "search", "weak");
+        assertEquals("[SkysongStats] You don't have permission to use this command!", next(alice));
+        assertNull(alice.nextComponentMessage(), "one message each");
     }
 
     @Test
     void theConsoleCantOpenIt() {
-        assertEquals("[SkysongStats] Only players can use this command!", console());
+        assertEquals("[SkysongStats] Only players can use this command!", console("list"));
     }
 }

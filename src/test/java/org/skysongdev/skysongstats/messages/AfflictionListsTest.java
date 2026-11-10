@@ -122,6 +122,27 @@ class AfflictionListsTest {
     }
 
     @Test
+    void givenConditionsNameWhatGivesThemOnHover() {
+        service.awardInjury(CHARACTER, "broken-leg");
+        service.awardCondition(CHARACTER, "bleeding", 2);
+        String hover = lists.resolve(CHARACTER, "conditions_hover").orElseThrow();
+        assertEquals("[Bleeding 2], [Weakened], [Dazed 2]", plain(MiniMessage.miniMessage().deserialize(hover)));
+        assertTrue(hover.contains("From: Broken Leg"), hover);
+        assertTrue(hover.contains("From: Weakened"), hover);
+        assertEquals(2, hover.split("From: ", -1).length - 1, "a direct award names nothing: " + hover);
+    }
+
+    @Test
+    void theStatSheetShowsTheAfflictionsAndTheCharacterSheetDoesnt() {
+        String stats = String.join("\n", messages.rawLines("stats.sheet"));
+        assertTrue(stats.contains("{injuries_hover_50}"), stats);
+        assertTrue(stats.contains("{conditions_hover_50}"), stats);
+        String character = String.join("\n", messages.rawLines("character.view.header"));
+        assertFalse(character.contains("{injuries"), character);
+        assertFalse(character.contains("{conditions"), character);
+    }
+
+    @Test
     void sheetsCanUseTheListsAsTags() {
         service.awardInjury(CHARACTER, "cut");
         OfflinePlayer player = MockBukkit.mock().addPlayer();

@@ -14,7 +14,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.function.Supplier;
 
-// The /injuries and /conditions menus: one item per injury or condition, with
+// The /injury list and /condition list menus: one item per injury or condition, with
 // its icon, its name, and as lore its description and the menu lines of
 // messages.yml (injury.menu, condition.menu).
 public final class AfflictionMenus {
