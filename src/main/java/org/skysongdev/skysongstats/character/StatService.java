@@ -87,6 +87,25 @@ public class StatService {
         return sheet;
     }
 
+    // Creates a new character like createCharacter, with some stats starting at the
+    // given base values (stat id -> value, like /stats set) instead of their
+    // stats.yml start. The other stats start as they would for a new profile,
+    // worked out from the given ones (a bar that starts full starts at the max the
+    // given stats make). Values are kept within each stat's min and max. No change
+    // events fire: the character is new. Throws for an id that isn't a stat.
+    public CharacterSheet createCharacter(ProfileKey character, Map<String, Integer> startingValues) {
+        Map<StatDefinition, Integer> given = new LinkedHashMap<>();
+        startingValues.forEach((id, value) -> given.put(definitions.get(id).orElseThrow(
+                () -> new IllegalArgumentException("Unknown stat: " + id)), value));
+        CharacterSheet sheet = new CharacterSheet(character, new StoredStats(Map.of(), List.of()));
+        given.forEach((stat, value) -> sheet.setValue(stat.id(), value));
+        saveMissingValues(sheet);
+        given.forEach((stat, value) -> change(sheet, stat, value));
+        fitBars(sheet);
+        sheets.put(character, sheet);
+        return sheet;
+    }
+
     // The character's sheet, created first if it has none yet: for profiles that
     // were made before the stat tables existed.
     public CharacterSheet ensureCharacter(ProfileKey character) {

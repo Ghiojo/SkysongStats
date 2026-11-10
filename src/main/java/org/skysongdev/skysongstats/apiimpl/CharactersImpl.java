@@ -1,0 +1,89 @@
+package org.skysongdev.skysongstats.apiimpl;
+
+import org.bukkit.plugin.Plugin;
+import org.jetbrains.annotations.NotNull;
+import org.skysongdev.skysongstats.api.CharacterId;
+import org.skysongdev.skysongstats.api.Characters;
+import org.skysongdev.skysongstats.api.Stat;
+import org.skysongdev.skysongstats.character.PluginCharacterService;
+import org.skysongdev.skysongstats.definition.StatDefinitions;
+
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.function.Supplier;
+
+// Plugin characters answered by the plugin character service. Owners are told
+// apart by their plugin.yml name.
+final class CharactersImpl implements Characters {
+    // The profile column is VARCHAR(20), as for players' profiles.
+    private static final int MAX_PROFILE_LENGTH = 20;
+
+    private final PluginCharacterService characters;
+    private final Supplier<StatDefinitions> stats;
+    private final MainThread mainThread;
+
+    CharactersImpl(PluginCharacterService characters, Supplier<StatDefinitions> stats, MainThread mainThread) {
+        this.characters = characters;
+        this.stats = stats;
+        this.mainThread = mainThread;
+    }
+
+    @Override
+    public boolean create(@NotNull Plugin owner, @NotNull CharacterId character,
+                          @NotNull Map<Stat, Integer> startingValues) {
+        Objects.requireNonNull(owner, "owner");
+        Objects.requireNonNull(character, "character");
+        Objects.requireNonNull(startingValues, "startingValues");
+        mainThread.check();
+        if (!owner.isEnabled()) {
+            throw new IllegalStateException(owner.getName() + " is not enabled: create characters once it has enabled");
+        }
+        String profile = character.profile();
+        if (profile.isEmpty() || profile.length() > MAX_PROFILE_LENGTH) {
+            throw new IllegalArgumentException("A character's profile name must be 1 to " + MAX_PROFILE_LENGTH
+                    + " characters long: '" + profile + "'");
+        }
+        return characters.create(owner.getName(), ApiTypes.key(character), statIds(startingValues));
+    }
+
+    @Override
+    public boolean delete(@NotNull Plugin owner, @NotNull CharacterId character) {
+        Objects.requireNonNull(owner, "owner");
+        Objects.requireNonNull(character, "character");
+        mainThread.check();
+        return characters.delete(owner.getName(), ApiTypes.key(character));
+    }
+
+    @Override
+    public @NotNull Optional<String> owner(@NotNull CharacterId character) {
+        Objects.requireNonNull(character, "character");
+        mainThread.check();
+        return characters.owner(ApiTypes.key(character));
+    }
+
+    @Override
+    public @NotNull List<CharacterId> ownedBy(@NotNull Plugin owner) {
+        Objects.requireNonNull(owner, "owner");
+        mainThread.check();
+        return characters.ownedBy(owner.getName()).stream().map(ApiTypes::character).toList();
+    }
+
+    // The values by stat id, checked against stats.yml as it is now: a Stat kept
+    // across /ssreload may have been removed from it.
+    private Map<String, Integer> statIds(Map<Stat, Integer> startingValues) {
+        StatDefinitions definitions = stats.get();
+        Map<String, Integer> values = new LinkedHashMap<>();
+        startingValues.forEach((stat, value) -> {
+            Objects.requireNonNull(stat, "stat");
+            Objects.requireNonNull(value, "value");
+            if (definitions.get(stat.id()).isEmpty()) {
+                throw new IllegalArgumentException("The stat " + stat.id() + " is not in stats.yml anymore");
+            }
+            values.put(stat.id(), value);
+        });
+        return values;
+    }
+}

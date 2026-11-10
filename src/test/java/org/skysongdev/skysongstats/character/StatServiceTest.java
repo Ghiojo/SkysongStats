@@ -500,4 +500,61 @@ class StatServiceTest {
         assertTrue(service.sheet(nobody).isEmpty());
         assertEquals(List.of(), changes);
     }
+
+    private static final ProfileKey GUARD = new ProfileKey(UUID.randomUUID(), "npc");
+
+    private int guardValue(String name) {
+        return service.value(GUARD, name).orElseThrow(() -> new AssertionError("no value " + name));
+    }
+
+    @Test
+    void startingValuesReplaceTheStartOfThoseStatsOnly() {
+        service.createCharacter(GUARD, Map.of("str", 4, "con", 2));
+
+        assertEquals(4, guardValue("str"));
+        assertEquals(2, guardValue("con"));
+        assertEquals(0, guardValue("dex"));
+        assertEquals(4, repository.values.get(GUARD).get("str"));
+        assertEquals(service.definitions().all().size(), repository.values.get(GUARD).size());
+    }
+
+    @Test
+    void aBarThatStartsFullStartsAtTheMaxTheStartingValuesMake() {
+        service.createCharacter(GUARD, Map.of("con", 2));
+
+        assertEquals(80, guardValue("max_hp"));
+        assertEquals(80, guardValue("hp"));
+    }
+
+    @Test
+    void aStartingBarValueIsKeptWithinItsMax() {
+        service.createCharacter(GUARD, Map.of("hp", 500));
+
+        assertEquals(60, guardValue("hp"));
+    }
+
+    @Test
+    void aGivenBarValueBelowItsMaxIsKept() {
+        service.createCharacter(GUARD, Map.of("hp", 25, "con", 1));
+
+        assertEquals(25, guardValue("hp"));
+        assertEquals(70, guardValue("max_hp"));
+    }
+
+    @Test
+    void creatingWithStartingValuesFiresNoChangeEvents() {
+        service.createCharacter(GUARD, Map.of("str", 4, "hp", 10));
+
+        assertEquals(List.of(), changes);
+    }
+
+    @Test
+    void anUnknownStartingStatIsRefusedBeforeAnythingIsCreated() {
+        Map<String, Integer> values = Map.of("luck", 3);
+
+        assertThrows(IllegalArgumentException.class, () -> service.createCharacter(GUARD, values));
+        assertTrue(service.sheet(GUARD).isEmpty());
+        assertFalse(repository.values.containsKey(GUARD));
+    }
 }
+

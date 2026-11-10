@@ -98,4 +98,11 @@ public interface SkysongStatsApi {
      * @since 1.2.0
      */
     @NotNull Conditions conditions();
+
+    /**
+     * Plugin characters: characters other plugins own, such as NPCs.
+     *
+     * @since 1.3.0
+     */
+    @NotNull Characters characters();
 }

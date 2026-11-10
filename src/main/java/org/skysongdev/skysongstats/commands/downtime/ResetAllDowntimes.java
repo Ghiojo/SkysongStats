@@ -32,7 +32,7 @@ public class ResetAllDowntimes implements CommandExecutor {
     /** Every player's profiles, so players without downtime rows get refilled too. */
     static Map<UUID, List<String>> knownProfiles() {
         Map<UUID, List<String>> profiles = new HashMap<>();
-        for (ProfileKey character : getPlugin().getStatService().characters()) {
+        for (ProfileKey character : getPlugin().playerCharacters()) {
             profiles.computeIfAbsent(character.player(), uuid -> new ArrayList<>()).add(character.profile());
         }
         return profiles;
