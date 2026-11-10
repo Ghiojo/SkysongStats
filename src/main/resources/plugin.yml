@@ -156,6 +156,9 @@ permissions:
   skysongstats.injuries:
     description: "Allows you to open the /injuries menu"
     default: true
+  skysongstats.injuries.all:
+    description: "Shows every injury in the /injuries menu, not only the ones your character knows"
+    default: op
   skysongstats.conditions:
     description: "Allows you to open the /conditions menu"
     default: true
@@ -185,4 +188,5 @@ permissions:
         skysongstats.condition.remove: true
         skysongstats.import: true
         skysongstats.injuries: true
+        skysongstats.injuries.all: true
         skysongstats.conditions: true
