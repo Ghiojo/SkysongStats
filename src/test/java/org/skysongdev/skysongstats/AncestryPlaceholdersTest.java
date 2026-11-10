@@ -81,6 +81,7 @@ class AncestryPlaceholdersTest {
         assertEquals("1", resolve("ancestry_con"));
         assertEquals("-1", resolve("ancestry_spd"));
         assertEquals("0", resolve("ancestry_str"));
+        assertEquals("1", resolve("ancestry_constitution"), "by alias too");
     }
 
     @Test

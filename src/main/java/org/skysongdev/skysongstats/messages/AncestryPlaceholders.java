@@ -65,7 +65,7 @@ public final class AncestryPlaceholders {
             case PREFIX + "_pending" -> Optional.of(Boolean.toString(
                     saved.filter(StoredAncestry::choicesPending).isPresent()));
             case PREFIX + "_adjustments" -> Optional.of(adjustments(definitions, saved));
-            default -> definitions.get(lower.substring(PREFIX.length() + 1))
+            default -> definitions.find(lower.substring(PREFIX.length() + 1))
                     .map(stat -> Integer.toString(total(definitions, saved, stat)));
         };
     }
