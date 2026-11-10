@@ -968,8 +968,10 @@ The plugin creates its tables itself.
 | `ss_conditions` | Directly given conditions per profile, with their level. Given ones are never saved. |
 | `ss_known_injuries` | Known injuries per profile, with when and how each was learnt. |
 | `ss_plugin_characters` | Which characters belong to another plugin (an NPC plugin's NPCs), with the owning plugin's name. |
+| `ss_ancestries` | The ancestry id per profile, and whether its choices are still to be made. |
+| `ss_ancestry_adjustments` | Every adjustment a profile's ancestry put on its base stats (stat, amount, and `fixed` or `choice:<n>`), as it was on the day. Changing or removing the ancestry takes exactly these off again. |
 
-Stats, skills, proficiencies, injuries and conditions go through a small connection pool (HikariCP, 4 connections) that replaces connections MySQL drops, and are written by one background writer in order. A save that fails is logged as `Could not save a change: ...`. The `skysong_*` tables still use the older single connection, which the plugin pings every 5 minutes (you'll see `[Skysong Stats] Database pinged!` in the console).
+Stats, skills, proficiencies, injuries, conditions and ancestries go through a small connection pool (HikariCP, 4 connections) that replaces connections MySQL drops, and are written by one background writer in order. A save that fails is logged as `Could not save a change: ...`. The `skysong_*` tables still use the older single connection, which the plugin pings every 5 minutes (you'll see `[Skysong Stats] Database pinged!` in the console).
 
 The old tables from before the refactor, `skysong_stats`, `skysong_modifiers` and `skysong_skills`, are no longer created or read. Since Skysong is restarting, you can drop them if your database still has them.
 
@@ -1112,6 +1114,7 @@ All code is under `src/main/java/org/skysongdev/skysongstats/`; default files ar
 | Sheets as lines, shared by the commands and the API | `commands/stat/StatSheet`, `commands/character/CharacterSheetLines`, `commands/proficiency/ProficiencySheet`, `messages/SheetText`; `apiimpl/SheetRendering` |
 | Proficiency rules (focus, training, tiers) | `character/ProficiencyService.java` |
 | Injury and condition rules (awards, given conditions, known injuries) | `character/AfflictionService.java`, `character/ConditionResolver.java` |
+| Ancestries: putting their adjustments on and taking them off, the no-stacking rule | `character/AncestryService.java`, `character/AncestryRules.java`; saved by `storage/SqlAncestryRepository.java` |
 | How injuries and conditions are shown (tags, announcement, lists) | `messages/AfflictionTexts.java`, `messages/AfflictionLists.java`, `messages/LineWrapper.java` |
 | /injury, /condition | `commands/affliction/` (menus drawn by `menu/`) |
 | /ssimport chattweaks | `commands/misc/ImportCommand`, the import itself in `importer/` |
