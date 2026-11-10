@@ -95,7 +95,7 @@ public final class AncestryCommand implements TabExecutor {
         if (!allowed(sender, PERMISSION + "choose")) {
             return;
         }
-        switch (prompt.openChoices(player)) {
+        switch (prompt.openChoices(player, ChangeCause.COMMAND)) {
             case NO_CHARACTER -> send(sender, "choose.no-character", Map.of());
             case NOTHING_PENDING -> send(sender, "choose.nothing-pending", Map.of());
             case ANCESTRY_GONE -> send(sender, "choose.ancestry-gone", Map.of());

@@ -35,7 +35,9 @@ public interface CharacterSheets {
      * @param value 1 to {@link SheetField#maxLength()} characters, not blank
      * @return the sheet after the change, empty when the character doesn't exist
      * @throws IllegalArgumentException when the value is blank or longer than the field takes
-     * @throws IllegalStateException    when the database refused the change; the sheet keeps its old value
+     * @throws IllegalStateException    when the database refused the change; the sheet keeps its old value.
+     *                                  Since 1.4.0 also for {@link SheetField#ANCESTRY} on a character with
+     *                                  an ancestry ({@link Ancestries}): its field then follows the ancestry
      */
     @NotNull Optional<CharacterSheet> set(@NotNull CharacterId character, @NotNull SheetField field,
                                           @NotNull String value);

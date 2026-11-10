@@ -105,4 +105,11 @@ public interface SkysongStatsApi {
      * @since 1.3.0
      */
     @NotNull Characters characters();
+
+    /**
+     * The ancestries of ancestries.yml, and each character's ancestry.
+     *
+     * @since 1.4.0
+     */
+    @NotNull Ancestries ancestries();
 }

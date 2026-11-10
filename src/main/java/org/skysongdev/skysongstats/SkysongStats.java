@@ -5,6 +5,7 @@ import org.bukkit.event.Event;
 import org.skysongdev.skysongstats.api.CharacterId;
 import org.skysongdev.skysongstats.api.event.ConditionAwardEvent;
 import org.skysongdev.skysongstats.api.event.ConditionRemoveEvent;
+import org.skysongdev.skysongstats.api.event.AncestryChangeEvent;
 import org.skysongdev.skysongstats.api.event.InjuryAwardEvent;
 import org.skysongdev.skysongstats.api.event.InjuryDiscoverEvent;
 import org.skysongdev.skysongstats.api.event.InjuryRemoveEvent;
@@ -52,6 +53,7 @@ import org.skysongdev.skysongstats.api.event.ProficiencyTierChangeEvent;
 import org.skysongdev.skysongstats.api.event.SkillChangeEvent;
 import org.skysongdev.skysongstats.api.event.StatChangeEvent;
 import org.skysongdev.skysongstats.api.event.SkysongStatsReloadEvent;
+import org.skysongdev.skysongstats.apiimpl.AncestryApiTypes;
 import org.skysongdev.skysongstats.apiimpl.ApiTypes;
 import org.skysongdev.skysongstats.apiimpl.SkysongStatsApiImpl;
 import org.skysongdev.skysongstats.character.ChangeCauses;
@@ -650,6 +652,10 @@ public class SkysongStats extends JavaPlugin {
         if (ancestryPrompt != null) {
             ancestryPrompt.onAncestryChanged(change);
         }
+        Bukkit.getPluginManager().callEvent(new AncestryChangeEvent(ApiTypes.character(change.character()),
+                change.before().map(before -> AncestryApiTypes.characterAncestry(before, ancestryDefinitions)).orElse(null),
+                change.after().map(after -> AncestryApiTypes.characterAncestry(after, ancestryDefinitions)).orElse(null),
+                changeCauses.current()));
         ProfileKey character = change.character();
         CharacterProfile profile = CharacterManager.characterProfiles == null ? null
                 : utils.getCharacterManager().findCharacterProfile(character.player().toString(), character.profile());

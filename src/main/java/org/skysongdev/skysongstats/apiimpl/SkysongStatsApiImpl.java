@@ -12,6 +12,7 @@ import org.skysongdev.skysongstats.commands.proficiency.ProficiencySheet;
 import org.skysongdev.skysongstats.commands.stat.StatSheet;
 import org.skysongdev.skysongstats.messages.PluginTexts;
 import org.skysongdev.skysongstats.api.CharacterSheets;
+import org.skysongdev.skysongstats.api.Ancestries;
 import org.skysongdev.skysongstats.api.Characters;
 import org.skysongdev.skysongstats.api.Conditions;
 import org.skysongdev.skysongstats.api.Downtime;
@@ -30,7 +31,7 @@ import org.skysongdev.skysongstats.api.Stats;
  */
 public final class SkysongStatsApiImpl implements SkysongStatsApi {
     /** The API version this implementation provides. See {@link SkysongStatsApi#apiVersion()}. */
-    public static final String API_VERSION = "1.3.0";
+    public static final String API_VERSION = "1.4.0";
 
     private final Profiles profiles;
     private final Skills skills;
@@ -43,6 +44,7 @@ public final class SkysongStatsApiImpl implements SkysongStatsApi {
     private final InjuriesImpl injuries;
     private final Conditions conditions;
     private final Characters characters;
+    private final Ancestries ancestries;
 
     /** An API reading through the plugin's services, guarded to the server's main thread. */
     public SkysongStatsApiImpl(SkysongStats plugin) {
@@ -57,7 +59,8 @@ public final class SkysongStatsApiImpl implements SkysongStatsApi {
         this.downtime = new DowntimeImpl(plugin.getDowntimeService(), plugin::playerCharacters,
                 plugin.getUtils().getProfileManager()::activeProfile, mainThread, plugin.getChangeCauses());
         this.sheets = new CharacterSheetsImpl(plugin.getUtils().getCharacterManager()::findCharacterProfile,
-                profile -> plugin.getDatabase().updateCharacterData(profile), sheetRendering(plugin), mainThread);
+                profile -> plugin.getDatabase().updateCharacterData(profile), sheetRendering(plugin), mainThread,
+                character -> plugin.getAncestryService().of(character).isPresent());
         this.itemSources = new ItemSourcesImpl(plugin.getItemSourceRegistry(), plugin.getItemTagListener()::recount,
                 Bukkit::getOnlinePlayers, mainThread);
         this.injuries = new InjuriesImpl(plugin::getAfflictionService, plugin.getStatService(),
@@ -66,6 +69,8 @@ public final class SkysongStatsApiImpl implements SkysongStatsApi {
                 plugin.getAfflictionTexts(), mainThread, plugin.getChangeCauses());
         this.characters = new CharactersImpl(plugin.getPluginCharacterService(),
                 () -> plugin.getStatService().definitions(), plugin.getItemTagListener()::count, mainThread);
+        this.ancestries = new AncestriesImpl(plugin::getAncestryService, plugin.getStatService(),
+                plugin::getAncestryPrompt, mainThread, plugin.getChangeCauses());
     }
 
     // The plugin's sheets, rendered for any character.
@@ -152,5 +157,10 @@ public final class SkysongStatsApiImpl implements SkysongStatsApi {
         services.unregister(SkysongStatsApi.class, this);
         HandlerList.unregisterAll(itemSources);
         HandlerList.unregisterAll(injuries);
+    }
+
+    @Override
+    public @NotNull Ancestries ancestries() {
+        return ancestries;
     }
 }

@@ -11,8 +11,10 @@ import org.skysongdev.skysongstats.database.CharacterProfile;
 
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -40,11 +42,29 @@ class CharacterSheetsImplTest {
     private final CharacterProfile profile = new CharacterProfile(PLAYER.toString(), "Mage", "<red>Aria", "30",
             "Female", "Elf", "she/her", "A quiet mage");
     private final List<CharacterProfile> saved = new ArrayList<>();
+    private final Set<ProfileKey> withAncestry = new HashSet<>();
     private final CharacterSheetsImpl sheets = sheets(saved::add, () -> true);
 
     private CharacterSheetsImpl sheets(CharacterSheetsImpl.SheetStore store, java.util.function.BooleanSupplier main) {
         return new CharacterSheetsImpl((uuid, name) -> uuid.equals(profile.getUuid())
-                && name.equals(profile.getProfile()) ? profile : null, store, NO_RENDERING, new MainThread(main));
+                && name.equals(profile.getProfile()) ? profile : null, store, NO_RENDERING, new MainThread(main),
+                withAncestry::contains);
+    }
+
+    @Test
+    void theAncestryFieldOfACharacterWithAnAncestryIsLocked() {
+        withAncestry.add(ApiTypes.key(MAGE));
+
+        assertThrows(IllegalStateException.class, () -> sheets.set(MAGE, SheetField.ANCESTRY, "Orc"));
+        assertEquals("Elf", profile.getAncestry());
+        assertTrue(saved.isEmpty());
+        assertTrue(sheets.set(MAGE, SheetField.NAME, "Bram").isPresent(), "the other fields stay free");
+    }
+
+    @Test
+    void theAncestryFieldIsFreeWithoutAnAncestry() {
+        assertTrue(sheets.set(MAGE, SheetField.ANCESTRY, "Orc").isPresent());
+        assertEquals("Orc", profile.getAncestry());
     }
 
     @Test

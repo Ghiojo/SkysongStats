@@ -22,4 +22,17 @@ public record StoredAncestryAdjustment(String stat, int amount, String source) {
     public boolean isFixed() {
         return FIXED.equals(source);
     }
+
+    // The position of the choice that gave it, counted from 0; -1 for the fixed
+    // stats: (and for a source this plugin didn't write).
+    public int choiceIndex() {
+        if (!source.startsWith(CHOICE_PREFIX)) {
+            return -1;
+        }
+        try {
+            return Integer.parseInt(source.substring(CHOICE_PREFIX.length())) - 1;
+        } catch (NumberFormatException e) {
+            return -1;
+        }
+    }
 }

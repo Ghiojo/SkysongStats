@@ -105,8 +105,8 @@ public final class AncestryPrompt implements Listener {
     }
 
     // Opens the choices page of the player's character, when it has choices
-    // pending; it has no Back button. Confirming makes the choices.
-    public Opened openChoices(Player player) {
+    // pending; it has no Back button. Confirming makes the choices, as cause.
+    public Opened openChoices(Player player, ChangeCause cause) {
         Optional<ProfileKey> character = players.activeCharacter().apply(player);
         if (character.isEmpty()) {
             return Opened.NO_CHARACTER;
@@ -119,16 +119,17 @@ public final class AncestryPrompt implements Listener {
             return Opened.ANCESTRY_GONE;
         }
         new AncestryChoicesMenu(ancestry.get(), stats.get(), texts, Optional.empty(),
-                (chooser, picks) -> choose(chooser, character.get(), ancestry.get(), picks)).open(player);
+                (chooser, picks) -> choose(chooser, character.get(), ancestry.get(), picks, cause)).open(player);
         return Opened.OPENED;
     }
 
-    private void choose(Player player, ProfileKey character, AncestryDefinition ancestry, AncestryPicks picks) {
+    private void choose(Player player, ProfileKey character, AncestryDefinition ancestry, AncestryPicks picks,
+                        ChangeCause cause) {
         String key;
         try {
             // Staff may have changed the ancestry while the page was open.
             boolean made = ancestries.definitionOf(character).filter(ancestry::equals).isPresent()
-                    && causes.during(ChangeCause.COMMAND, () -> ancestries.choose(character, picks)).isPresent();
+                    && causes.during(cause, () -> ancestries.choose(character, picks)).isPresent();
             key = made ? "done" : "changed";
         } catch (IllegalArgumentException e) {
             key = "changed";
