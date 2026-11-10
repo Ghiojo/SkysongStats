@@ -28,8 +28,11 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.UUID;
 
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * The listener puts the inventory's item tag counts on the player's active
@@ -167,4 +170,38 @@ class ItemTagListenerTest {
         }).recount(stranger);
         assertEquals(List.of(), asked);
     }
+
+    @Test
+    void countPutsTheGivenItemsOnACharacterWithoutAPlayer() {
+        ProfileKey guard = new ProfileKey(UUID.randomUUID(), "npc");
+        stats.createCharacter(guard);
+        List<ItemStack> items = new ArrayList<>(List.of(tagged(3, "arcrot", 2)));
+        items.add(null);
+
+        listener.count(guard, items);
+
+        assertEquals(6, stats.value(guard, "arcrot").orElseThrow());
+        assertEquals(0, value("arcrot"));
+    }
+
+    @Test
+    void countReplacesTheLastCount() {
+        ProfileKey guard = new ProfileKey(UUID.randomUUID(), "npc");
+        stats.createCharacter(guard);
+        listener.count(guard, List.of(tagged(3, "arcrot", 2)));
+
+        listener.count(guard, List.of(tagged(1, "arcrot", 2)));
+
+        assertEquals(2, stats.value(guard, "arcrot").orElseThrow());
+    }
+
+    @Test
+    void countDoesNothingForACharacterWithoutStats() {
+        ProfileKey nobody = new ProfileKey(UUID.randomUUID(), "npc");
+        List<ItemStack> items = List.of(tagged(3, "arcrot", 2));
+
+        assertDoesNotThrow(() -> listener.count(nobody, items));
+        assertTrue(stats.sheet(nobody).isEmpty());
+    }
 }
+

@@ -57,8 +57,17 @@ public final class ItemTagListener implements Listener {
     public void recount(Player player) {
         activeCharacter.apply(player)
                 .filter(character -> stats.sheet(character).isPresent())
-                .ifPresent(character -> stats.setItemCounts(character, ItemTagCounter.count(reader,
-                        items(player), ItemTagCounter.sources(stats.definitions()))));
+                .ifPresent(character -> count(character, items(player)));
+    }
+
+    // Counts these items as everything the character carries, for characters
+    // without a player behind them (another plugin's NPCs). Does nothing for a
+    // character without stats.
+    public void count(ProfileKey character, List<ItemStack> items) {
+        if (stats.sheet(character).isPresent()) {
+            stats.setItemCounts(character, ItemTagCounter.count(reader, items,
+                    ItemTagCounter.sources(stats.definitions())));
+        }
     }
 
     private List<ItemStack> items(Player player) {

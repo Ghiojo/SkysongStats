@@ -1,7 +1,9 @@
 package org.skysongdev.skysongstats.apiimpl;
 
+import org.bukkit.Material;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
+import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.Plugin;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -202,13 +204,36 @@ class CharactersImplTest {
     }
 
     @Test
+    void itemsAreCountedForAPluginCharacter() {
+        characters.create(npcs, guard);
+        List<ItemStack> items = new ArrayList<>(List.of(new ItemStack(Material.STICK, 3)));
+        items.add(null);
+
+        assertTrue(characters.setItems(guard, items));
+        // The test server has no SkysongItems, so no item carries a tag.
+        assertEquals(0, api.stats().get(guard, "arcrot").orElseThrow().items());
+    }
+
+    @Test
+    void itemsCannotBeSetForAPlayersProfile() {
+        CharacterId alice = new CharacterId(UUID.randomUUID(), "Default");
+        plugin.getStatService().createCharacter(new ProfileKey(alice.player(), alice.profile()));
+        List<ItemStack> items = List.of(new ItemStack(Material.STICK));
+
+        assertFalse(characters.setItems(alice, items));
+        assertFalse(characters.setItems(guard, items));
+    }
+
+    @Test
     void callsFromAnotherThreadAreRefused() {
         CharactersImpl offThread = new CharactersImpl(plugin.getPluginCharacterService(),
-                () -> plugin.getStatService().definitions(), new MainThread(() -> false));
+                () -> plugin.getStatService().definitions(), plugin.getItemTagListener()::count,
+                new MainThread(() -> false));
 
         assertThrows(IllegalStateException.class, () -> offThread.create(npcs, guard));
         assertThrows(IllegalStateException.class, () -> offThread.delete(npcs, guard));
         assertThrows(IllegalStateException.class, () -> offThread.owner(guard));
         assertThrows(IllegalStateException.class, () -> offThread.ownedBy(npcs));
+        assertThrows(IllegalStateException.class, () -> offThread.setItems(guard, List.of()));
     }
 }

@@ -61,7 +61,7 @@ public final class SkysongStatsApiImpl implements SkysongStatsApi {
         this.conditions = new ConditionsImpl(plugin::getAfflictionService, plugin.getStatService(),
                 plugin.getAfflictionTexts(), mainThread, plugin.getChangeCauses());
         this.characters = new CharactersImpl(plugin.getPluginCharacterService(),
-                () -> plugin.getStatService().definitions(), mainThread);
+                () -> plugin.getStatService().definitions(), plugin.getItemTagListener()::count, mainThread);
     }
 
     @Override
