@@ -57,7 +57,11 @@ public final class AncestryPlaceholders {
         if (service == null || definitions == null || !isAncestryName(lower)) {
             return Optional.empty();
         }
-        Optional<StoredAncestry> saved = service.of(character);
+        return value(service, definitions, service.of(character), lower);
+    }
+
+    private Optional<String> value(AncestryService service, StatDefinitions definitions,
+                                   Optional<StoredAncestry> saved, String lower) {
         return switch (lower) {
             case PREFIX -> Optional.of(saved.map(ancestry -> name(service, ancestry)).orElse(""));
             case PREFIX + "_name" -> Optional.of(saved.map(ancestry -> name(service, ancestry)).orElse(raw("none")));
