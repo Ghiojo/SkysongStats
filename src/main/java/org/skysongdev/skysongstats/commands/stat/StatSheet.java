@@ -3,8 +3,11 @@ package org.skysongdev.skysongstats.commands.stat;
 import org.bukkit.command.CommandSender;
 import org.skysongdev.skysongstats.character.StatService;
 import org.skysongdev.skysongstats.definition.StatDefinition;
+import org.skysongdev.skysongstats.messages.SheetPart;
 import org.skysongdev.skysongstats.placeholders.StatPlaceholders;
+import org.skysongdev.skysongstats.storage.ProfileKey;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -43,25 +46,35 @@ public final class StatSheet {
     }
 
     public void show(CommandSender to, CommandTargets.Target target) {
-        Map<String, String> values = values(target);
-        messages.send(to, SHEET, values, target.player());
+        for (SheetPart part : parts(target.character(), target.player().getName())) {
+            messages.send(to, part.key(), part.placeholders(), target.player());
+        }
+    }
+
+    // The sheet's keys in order, filled in for the character, with {player} set to
+    // name: stats.sheet, a sheet-auto line for each stat it doesn't show, the footer.
+    public List<SheetPart> parts(ProfileKey character, String name) {
+        Map<String, String> values = placeholders(character, name);
+        List<SheetPart> parts = new ArrayList<>();
+        parts.add(new SheetPart(SHEET, values));
         Set<String> shown = mentioned(messages.lines(SHEET));
         Set<String> hidden = hidden();
         for (StatDefinition stat : stats.definitions().all()) {
             if (!hidden.contains(stat.id()) && names(stat).noneMatch(shown::contains)) {
-                messages.send(to, stat.isBar() ? AUTO_BAR : AUTO_VALUE, autoLine(stat, values), target.player());
+                parts.add(new SheetPart(stat.isBar() ? AUTO_BAR : AUTO_VALUE, autoLine(stat, values)));
             }
         }
-        messages.send(to, FOOTER, values, target.player());
+        parts.add(new SheetPart(FOOTER, values));
+        return parts;
     }
 
-    // {player} and every stat placeholder of the character.
-    private Map<String, String> values(CommandTargets.Target target) {
+    // {player} (set to name) and every stat placeholder of the character.
+    public Map<String, String> placeholders(ProfileKey character, String name) {
         StatPlaceholders placeholders = new StatPlaceholders(stats);
         Map<String, String> values = new HashMap<>();
-        values.put("player", target.player().getName());
-        stats.definitions().all().stream().flatMap(StatSheet::names).forEach(name ->
-                placeholders.resolve(target.character(), name).ifPresent(value -> values.put(name, value)));
+        values.put("player", name);
+        stats.definitions().all().stream().flatMap(StatSheet::names).forEach(stat ->
+                placeholders.resolve(character, stat).ifPresent(value -> values.put(stat, value)));
         return values;
     }
 

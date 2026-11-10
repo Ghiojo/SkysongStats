@@ -7,8 +7,8 @@ import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.ConfigurationSection;
+import org.skysongdev.skysongstats.storage.ProfileKey;
 
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -96,7 +96,7 @@ public final class Messages {
     /** {@link #get(String, Map, Map)} with other plugins' %placeholders% filled in for {@code about}. */
     public Component get(String key, Map<String, String> placeholders, Map<String, Component> components,
                          OfflinePlayer about) {
-        return renderAbout(String.join("\n", rawLines(key)), placeholders, components, about);
+        return about(about).get(key, placeholders, components);
     }
 
     public List<Component> getLines(String key) {
@@ -115,9 +115,7 @@ public final class Messages {
     /** {@link #getLines(String, Map, Map)} with other plugins' %placeholders% filled in for {@code about}. */
     public List<Component> getLines(String key, Map<String, String> placeholders, Map<String, Component> components,
                                     OfflinePlayer about) {
-        return rawLines(key).stream()
-                .map(line -> renderAbout(line, placeholders, components, about))
-                .toList();
+        return about(about).getLines(key, placeholders, components);
     }
 
     public void send(CommandSender sender, String key) {
@@ -170,19 +168,26 @@ public final class Messages {
         }
     }
 
-    // A line about a player: other plugins' %placeholders% and the sheet tags
-    // ({injuries...}) for that player go in too.
-    private Component renderAbout(String text, Map<String, String> placeholders, Map<String, Component> components,
-                                  OfflinePlayer about) {
-        String filled = external.fill(about, text);
-        Map<String, Component> withTags = new HashMap<>(sheetTags.tags(about, filled));
-        withTags.putAll(components);
-        return render(filled, placeholders, withTags);
+    /**
+     * Texts about a player: other plugins' %placeholders% and the sheet tags
+     * ({injuries...}) for that player go in too.
+     */
+    public SheetText about(OfflinePlayer player) {
+        return new SheetText(this, line -> external.fill(player, line), line -> sheetTags.tags(player, line));
+    }
+
+    /**
+     * Texts about a character without a player, such as another plugin's NPC: the
+     * sheet tags for that character go in, other plugins' %placeholders% don't (they
+     * would show some player's values, not the character's).
+     */
+    public SheetText about(ProfileKey character) {
+        return new SheetText(this, line -> line, line -> sheetTags.tags(character, line));
     }
 
     // Text placeholders are written into the MiniMessage text, escaped. Component
     // placeholders become a <name> tag that MiniMessage fills with the component.
-    private Component render(String text, Map<String, String> placeholders, Map<String, Component> components) {
+    Component render(String text, Map<String, String> placeholders, Map<String, Component> components) {
         Matcher matcher = PLACEHOLDER.matcher(text);
         StringBuilder result = new StringBuilder();
         while (matcher.find()) {

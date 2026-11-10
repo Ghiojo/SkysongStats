@@ -7,6 +7,10 @@ import org.bukkit.plugin.ServicePriority;
 import org.bukkit.plugin.ServicesManager;
 import org.jetbrains.annotations.NotNull;
 import org.skysongdev.skysongstats.SkysongStats;
+import org.skysongdev.skysongstats.Utils.CharacterManager;
+import org.skysongdev.skysongstats.commands.proficiency.ProficiencySheet;
+import org.skysongdev.skysongstats.commands.stat.StatSheet;
+import org.skysongdev.skysongstats.messages.PluginTexts;
 import org.skysongdev.skysongstats.api.CharacterSheets;
 import org.skysongdev.skysongstats.api.Characters;
 import org.skysongdev.skysongstats.api.Conditions;
@@ -53,7 +57,7 @@ public final class SkysongStatsApiImpl implements SkysongStatsApi {
         this.downtime = new DowntimeImpl(plugin.getDowntimeService(), plugin::playerCharacters,
                 plugin.getUtils().getProfileManager()::activeProfile, mainThread, plugin.getChangeCauses());
         this.sheets = new CharacterSheetsImpl(plugin.getUtils().getCharacterManager()::findCharacterProfile,
-                profile -> plugin.getDatabase().updateCharacterData(profile), mainThread);
+                profile -> plugin.getDatabase().updateCharacterData(profile), sheetRendering(plugin), mainThread);
         this.itemSources = new ItemSourcesImpl(plugin.getItemSourceRegistry(), plugin.getItemTagListener()::recount,
                 Bukkit::getOnlinePlayers, mainThread);
         this.injuries = new InjuriesImpl(plugin::getAfflictionService, plugin.getStatService(),
@@ -62,6 +66,16 @@ public final class SkysongStatsApiImpl implements SkysongStatsApi {
                 plugin.getAfflictionTexts(), mainThread, plugin.getChangeCauses());
         this.characters = new CharactersImpl(plugin.getPluginCharacterService(),
                 () -> plugin.getStatService().definitions(), plugin.getItemTagListener()::count, mainThread);
+    }
+
+    // The plugin's sheets, rendered for any character.
+    private static SheetRendering sheetRendering(SkysongStats plugin) {
+        SheetRendering.Sources sources = new SheetRendering.Sources(plugin.getStatService(),
+                plugin::getProficiencyService, () -> plugin.getSkillService().config(), plugin::getMessages,
+                (uuid, profile) -> CharacterManager.characterProfiles == null ? null
+                        : plugin.getUtils().getCharacterManager().findCharacterProfile(uuid, profile));
+        return new SheetRendering(sources, new StatSheet(plugin.getStatService(), new PluginTexts(plugin::getMessages)),
+                new ProficiencySheet(plugin::getMessages));
     }
 
     @Override
