@@ -16,6 +16,7 @@ import org.skysongdev.skysongstats.storage.ProfileKey;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -31,16 +32,16 @@ public class SetupProfile {
     private Map<String, Integer> chosenStats = Map.of();
 
     // The ancestry picked on the first /setup screen, with its choices; empty when
-    // ancestries.yml offered none.
-    private Optional<AncestryDefinition> chosenAncestry = Optional.empty();
+    // ancestries.yml offered none (null here, empty from the getter).
+    private AncestryDefinition chosenAncestry;
     private AncestryPicks ancestryPicks = AncestryPicks.none();
 
     public Optional<AncestryDefinition> getChosenAncestry() {
-        return chosenAncestry;
+        return Optional.ofNullable(chosenAncestry);
     }
 
     public void setChosenAncestry(AncestryDefinition ancestry, AncestryPicks picks) {
-        this.chosenAncestry = Optional.of(ancestry);
+        this.chosenAncestry = Objects.requireNonNull(ancestry, "ancestry");
         this.ancestryPicks = picks;
     }
 
@@ -104,7 +105,7 @@ public class SetupProfile {
         ProfileKey character = new ProfileKey(UUID.fromString(uuid), profile);
         chosenStats.forEach((id, value) -> stats.definitions().get(id)
                 .ifPresent(stat -> stats.apply(character, stat, StatAction.SET, value)));
-        chosenAncestry.ifPresent(ancestry -> ancestries.set(character, ancestry, Optional.of(ancestryPicks)));
+        getChosenAncestry().ifPresent(ancestry -> ancestries.set(character, ancestry, Optional.of(ancestryPicks)));
         stats.fillBarsThatStartFull(character);
     }
 
