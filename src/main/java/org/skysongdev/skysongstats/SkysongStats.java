@@ -84,6 +84,8 @@ import org.skysongdev.skysongstats.database.SetupProfile;
 import org.skysongdev.skysongstats.definition.ConditionDefinitions;
 import org.skysongdev.skysongstats.definition.ConditionsConfigFile;
 import org.skysongdev.skysongstats.definition.DefinitionException;
+import org.skysongdev.skysongstats.definition.AncestriesConfigFile;
+import org.skysongdev.skysongstats.definition.AncestryDefinitions;
 import org.skysongdev.skysongstats.definition.InjuriesConfigFile;
 import org.skysongdev.skysongstats.definition.InjuryDefinitions;
 import org.skysongdev.skysongstats.definition.ProficienciesConfig;
@@ -161,6 +163,9 @@ public class SkysongStats extends JavaPlugin {
     // load first: injuries name them.
     private ConditionDefinitions conditionDefinitions;
     private InjuryDefinitions injuryDefinitions;
+    // The ancestries of ancestries.yml, picked at the start of /setup. They adjust
+    // the /setup stats, so they load after stats.yml.
+    private AncestryDefinitions ancestryDefinitions;
     private CharacterStorage storage;
     private StatService statService;
     private SkillService skillService;
@@ -199,6 +204,7 @@ public class SkysongStats extends JavaPlugin {
     public StatsConfig getStatsConfig() { return statsConfig; }
     public ConditionDefinitions getConditionDefinitions() { return conditionDefinitions; }
     public InjuryDefinitions getInjuryDefinitions() { return injuryDefinitions; }
+    public AncestryDefinitions getAncestryDefinitions() { return ancestryDefinitions; }
     public StatService getStatService() { return statService; }
     public SkillService getSkillService() { return skillService; }
     public ProficiencyService getProficiencyService() { return proficiencyService; }
@@ -234,6 +240,13 @@ public class SkysongStats extends JavaPlugin {
             statsConfig = loadStatsConfig();
         } catch (DefinitionException e) {
             getLogger().log(Level.SEVERE, "Fix stats.yml and restart the server. SkysongStats is disabled.", e);
+            getServer().getPluginManager().disablePlugin(this);
+            return;
+        }
+        try {
+            ancestryDefinitions = loadAncestriesConfig();
+        } catch (DefinitionException e) {
+            getLogger().log(Level.SEVERE, "Fix ancestries.yml and restart the server. SkysongStats is disabled.", e);
             getServer().getPluginManager().disablePlugin(this);
             return;
         }
@@ -740,6 +753,9 @@ public class SkysongStats extends JavaPlugin {
         if (!reloadStatsConfig()) {
             notReloaded.add(StatsConfigFile.FILE_NAME);
         }
+        if (!reloadAncestriesConfig()) {
+            notReloaded.add(AncestriesConfigFile.FILE_NAME);
+        }
         if (!reloadSkillsConfig()) {
             notReloaded.add(SkillsConfigFile.FILE_NAME);
         }
@@ -766,6 +782,19 @@ public class SkysongStats extends JavaPlugin {
             registerStatCommands();
             // A changed or removed scale: block applies at once.
             Bukkit.getOnlinePlayers().forEach(heightScaler::refresh);
+        }
+        return true;
+    }
+
+    // An ancestries.yml with mistakes, or naming a stat the stats now loaded don't
+    // have for /setup, is reported and the ancestries already loaded are kept.
+    // Characters keep what their ancestry gave them either way.
+    private boolean reloadAncestriesConfig(){
+        try {
+            ancestryDefinitions = loadAncestriesConfig();
+        } catch (DefinitionException e) {
+            getLogger().log(Level.WARNING, "ancestries.yml was not reloaded, keeping the ancestries from before", e);
+            return false;
         }
         return true;
     }
@@ -845,6 +874,11 @@ public class SkysongStats extends JavaPlugin {
     private ConditionDefinitions loadConditionsConfig(){
         return ConditionsConfigFile.load(new File(getDataFolder(), ConditionsConfigFile.FILE_NAME),
                 bundled(ConditionsConfigFile.FILE_NAME), statsConfig.stats());
+    }
+
+    private AncestryDefinitions loadAncestriesConfig(){
+        return AncestriesConfigFile.load(new File(getDataFolder(), AncestriesConfigFile.FILE_NAME),
+                bundled(AncestriesConfigFile.FILE_NAME), statsConfig.stats());
     }
 
     private InjuryDefinitions loadInjuriesConfig(ConditionDefinitions conditions){

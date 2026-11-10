@@ -1,0 +1,106 @@
+# Ancestries a player picks at the start of /setup. With none ("ancestries: {}"),
+# /setup skips the ancestry screens. The ancestries below are examples, one for
+# each way of adjusting stats: replace them with your own.
+#
+#   name         shown in the list, on the character sheet and in placeholders;
+#                at most 50 characters (it fills the character's ancestry field)
+#   icon, slot   the list screen's item (a Material or model:<namespace:id>), slot 9-44
+#   lore         extra lore lines under the generated adjustment lines
+#   permission   optional: only players with this node see and can pick it
+#   stats        fixed adjustments, stat: amount (negative takes off). Only stats
+#                with a setup: section in stats.yml, by id or alias.
+#   choices      picked on the choices page, in order, at most 5. Each is either
+#                  amount + picks (default 1) + from (any, or a list of up to 8
+#                  stats): amount goes on that many different stats, or
+#                  options: 2 to 8 packages (name, icon (default PAPER), stats);
+#                  the player takes one.
+#                A choice's name explains it on the choices page.
+#                stack: true lets the choice land on a stat this ancestry already
+#                raised (or lowered, for a negative amount).
+
+ancestries:
+  # Fixed adjustments only.
+  dwarf:
+    name: "Dwarf"
+    icon: IRON_PICKAXE
+    slot: 10
+    lore:
+      - "<gray>Stout folk of the deep halls."
+    stats:
+      con: 1
+      spd: -1
+
+  # A boost picked from a list.
+  elf:
+    name: "Elf"
+    icon: BOW
+    slot: 11
+    choices:
+      - name: "Grace"
+        amount: 1
+        picks: 1
+        from: [dex, foc]
+
+  # Boosts to any stat, more than one pick.
+  human:
+    name: "Human"
+    icon: PLAYER_HEAD
+    slot: 12
+    choices:
+      - name: "Versatile"
+        amount: 1
+        picks: 2
+        from: any
+
+  # A negative choice (a flaw).
+  goblin:
+    name: "Goblin"
+    icon: GOLD_NUGGET
+    slot: 13
+    stats:
+      dex: 1
+    choices:
+      - name: "Frail"
+        amount: -1
+        picks: 1
+        from: [str, con]
+
+  # Packages: take one.
+  orc:
+    name: "Orc"
+    icon: IRON_AXE
+    slot: 14
+    choices:
+      - name: "Upbringing"
+        options:
+          - name: "Brawler"
+            icon: IRON_AXE
+            stats: {str: 2}
+          - name: "Runner"
+            icon: FEATHER
+            stats: {dex: 1, spd: 1}
+
+  # Stacking allowed on purpose.
+  giant:
+    name: "Half-giant"
+    icon: COBBLESTONE
+    slot: 15
+    stats:
+      str: 1
+    choices:
+      - name: "Mighty"
+        amount: 1
+        picks: 1
+        from: [str, con]
+        stack: true
+
+  # Only for players with the permission.
+  dragonborn:
+    name: "Dragonborn"
+    icon: DRAGON_HEAD
+    slot: 16
+    permission: skysong.ancestry.dragonborn
+    stats:
+      str: 1
+      foc: 1
+      dex: -1

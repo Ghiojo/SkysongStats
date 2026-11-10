@@ -15,19 +15,20 @@ When this manual and the code disagree, the code wins. The last section, [Where 
 7. [skills.yml](#skillsyml)
 8. [proficiencies.yml](#proficienciesyml)
 9. [conditions.yml and injuries.yml](#conditionsyml-and-injuriesyml)
-10. [messages.yml](#messagesyml)
-11. [Profiles and characters](#profiles-and-characters)
-12. [The /setup flow](#the-setup-flow)
-13. [Commands](#commands)
-14. [Permissions and LuckPerms nodes](#permissions-and-luckperms-nodes)
-15. [Placeholders](#placeholders)
-16. [The API for other plugins](#the-api-for-other-plugins)
-17. [Events for other plugins](#events-for-other-plugins)
-18. [The database](#the-database)
-19. [Skysong Special Items compatibility](#skysong-special-items-compatibility)
-20. [How to make common changes](#how-to-make-common-changes)
-21. [Things to know (quirks and leftovers)](#things-to-know-quirks-and-leftovers)
-22. [Where things live in the code](#where-things-live-in-the-code)
+10. [ancestries.yml](#ancestriesyml)
+11. [messages.yml](#messagesyml)
+12. [Profiles and characters](#profiles-and-characters)
+13. [The /setup flow](#the-setup-flow)
+14. [Commands](#commands)
+15. [Permissions and LuckPerms nodes](#permissions-and-luckperms-nodes)
+16. [Placeholders](#placeholders)
+17. [The API for other plugins](#the-api-for-other-plugins)
+18. [Events for other plugins](#events-for-other-plugins)
+19. [The database](#the-database)
+20. [Skysong Special Items compatibility](#skysong-special-items-compatibility)
+21. [How to make common changes](#how-to-make-common-changes)
+22. [Things to know (quirks and leftovers)](#things-to-know-quirks-and-leftovers)
+23. [Where things live in the code](#where-things-live-in-the-code)
 
 ---
 
@@ -62,7 +63,7 @@ Paper downloads HikariCP (the database connection pool) by itself on the first s
 
 **Building:** run `./gradlew build` in the repository. The jar is `build/libs/SkysongStats-<version>.jar` (the version is in `build.gradle`). `./gradlew build test` also runs the unit tests. The build downloads the SkysongItems API from JitPack (`skysongItemsApi` in `build.gradle`: `com.github.Ghiojo:Skysong-Special-Items:<tag>`, currently `1.0.1`). After changing that tag, build once with `./gradlew build --refresh-dependencies`.
 
-**First start:** the plugin writes its default `config.yml`, `stats.yml`, `skills.yml`, `proficiencies.yml`, `conditions.yml`, `injuries.yml` and `messages.yml` into `plugins/SkysongStats/`. Fill in the `database:` section of `config.yml` and restart.
+**First start:** the plugin writes its default `config.yml`, `stats.yml`, `skills.yml`, `proficiencies.yml`, `conditions.yml`, `injuries.yml`, `ancestries.yml` and `messages.yml` into `plugins/SkysongStats/`. Fill in the `database:` section of `config.yml` and restart.
 
 ---
 
@@ -76,11 +77,12 @@ Paper downloads HikariCP (the database connection pool) by itself on the first s
 | `proficiencies.yml` | Tiers, costs, proficiencies, /setup proficiency picks | Yes |
 | `conditions.yml` | Conditions (bleeding, weakened...) and their effects | Yes |
 | `injuries.yml` | Injury severities, injuries and their effects | Yes |
+| `ancestries.yml` | Ancestries and the stats they adjust | Yes |
 | `messages.yml` | Every player-facing text | Yes |
 
 ### What `/ssreload` does
 
-`/ssreload` re-reads every file above in this order: `config.yml` (downtime limits only), `messages.yml`, `stats.yml`, `skills.yml`, `proficiencies.yml`, `conditions.yml`, `injuries.yml`.
+`/ssreload` re-reads every file above in this order: `config.yml` (downtime limits only), `messages.yml`, `stats.yml`, `ancestries.yml`, `skills.yml`, `proficiencies.yml`, `conditions.yml`, `injuries.yml`.
 
 - **A file with mistakes is not applied.** The plugin keeps using the version it already had, tells whoever ran the command `<file> has mistakes and was not reloaded`, and prints the full list of mistakes to the console. Fix them and run `/ssreload` again.
 - **At startup, a file with mistakes disables the plugin**, with the list of mistakes in the console. Fix it and restart.
@@ -91,6 +93,7 @@ Paper downloads HikariCP (the database connection pool) by itself on the first s
   - Everyone online gets their skill level and proficiency tier nodes recalculated for the new files.
 - Things removed from a file are **not deleted from the database**: their saved values stay, unused. If you add them back, the old values come back too.
 - `proficiencies.yml` is checked against the skills now loaded. If `skills.yml` failed to reload, proficiencies are checked against the old skills.
+- `ancestries.yml` is checked against the stats now loaded. Reloading it never changes characters that already have an ancestry.
 - `conditions.yml` and `injuries.yml` are checked against the stats now loaded, and `injuries.yml` against the conditions now loaded, in the same way.
 
 ### Missing messages are added for you
@@ -538,6 +541,58 @@ An id removed from either file stays saved on the characters that have it, but i
 4. The reply counts the definitions added and skipped, the known injuries imported (and those already known), and the rows skipped: profiles SkysongStats doesn't have, rows whose uuid isn't one, and nodes that match no injury. The console lists every one of them with the reason.
 
 Current injuries and conditions can't be imported: SkysongChatTweaks never saved them. The LuckPerms nodes it gave stay on players; nothing reads them any more. Only one import runs at a time.
+
+---
+
+## ancestries.yml
+
+The ancestries a player will pick from at the start of `/setup` (Dwarf, Elf...), each giving a few + and − to the stats of the [/setup point screen](#setup-a-stat-on-the-setup-point-screen). An ancestry only changes stats: no actions or traits. The file ships with one example ancestry for each way of adjusting stats (`dwarf`, `elf`, `human`, `goblin`, `orc`, `giant`, `dragonborn`); replace them with your own. `ancestries: {}` means no ancestries.
+
+> The `/setup` screens that use this file are not in the plugin yet. Until then the file is only read and checked.
+
+```yaml
+ancestries:
+  elf:
+    name: "Elf"
+    icon: BOW
+    slot: 11
+    lore:
+      - "<gray>Long-lived and quick."
+    permission: skysong.ancestry.elf   # optional
+    stats: {dex: 1, con: -1}
+    choices:
+      - name: "Grace"
+        amount: 1
+        picks: 1
+        from: [dex, foc]
+      - name: "Upbringing"
+        options:
+          - {name: "Brawler", icon: IRON_AXE, stats: {str: 2}}
+          - {name: "Runner", icon: FEATHER, stats: {foc: 1, spd: 1}}
+```
+
+### Ancestry fields
+
+| Field | Meaning |
+|---|---|
+| *(the key)* | The ancestry's id (`elf`): lowercase letters, digits, `_` and `-`. |
+| `name` | Shown in the ancestry list, on the character sheet and in placeholders. MiniMessage allowed. At most 50 characters, since it fills the character's ancestry field. Defaults to the id. |
+| `icon`, `slot` | The item in the ancestry list: a Material or `model:<namespace:id>`, in slot 9-44 (the top and bottom rows belong to the screen). Each ancestry needs its own slot. |
+| `lore` | Extra lore lines for its item. |
+| `permission` | Optional. Only players with this node see and can pick the ancestry. Leave it out for everyone. |
+| `stats` | Fixed adjustments, `stat: amount` (negative takes off, never 0). |
+| `choices` | What the player picks, at most 5 (see below). |
+
+Adjustments can only name stats that have a `setup:` section in `stats.yml` (by default `str`, `dex`, `con`, `foc`, `spd`), by id or alias. Other stats aren't picked in `/setup`, so `ancestries.yml` refuses them.
+
+### Choices
+
+A choice is one of two kinds, and its `name` explains it on the choices page:
+
+- **Stat picks:** `amount` goes on `picks` different stats (default 1), taken from `from`: a list of up to 8 stats, or `any` (every `/setup` stat).
+- **Packages:** `options` is a list of 2 to 8 packages, each with a `name`, an `icon` (default `PAPER`) and its own `stats:`. The player takes exactly one.
+
+**No stacking, by default.** As in Pathfinder 2e, one ancestry boosts a stat at most once: a choice can't land on a stat that the ancestry's `stats:` or an earlier choice already raised (for a + amount) or lowered (for a −). A − on a stat the ancestry raised, or the other way round, is always fine. Add `stack: true` to a choice to allow stacking on it. A choice that could never be completed because of this rule (`stats: {str: 1}` with a choice of `+1` `from: [str]`) is a mistake in the file.
 
 ---
 
@@ -1049,7 +1104,7 @@ All code is under `src/main/java/org/skysongdev/skysongstats/`; default files ar
 | Part | Package / file |
 |---|---|
 | Startup, reload, wiring | `SkysongStats.java` (`onEnable`, `reloadSettings`) |
-| Reading and checking stats.yml, skills.yml, proficiencies.yml, conditions.yml, injuries.yml | `definition/` (`*ConfigLoader`, `*Validator`; effects in `EffectModifierParser`, `GivenConditionsReader`, `ConditionLoops`) |
+| Reading and checking stats.yml, skills.yml, proficiencies.yml, conditions.yml, injuries.yml, ancestries.yml | `definition/` (`*ConfigLoader`, `*Validator`; effects in `EffectModifierParser`, `GivenConditionsReader`, `ConditionLoops`) |
 | Formulas | `formula/Formula.java` |
 | Stat rules (actions, limits, shields, modifiers, effects) | `character/StatService.java`, `character/StatCalculator.java` |
 | Skill XP rules | `character/SkillService.java` |
