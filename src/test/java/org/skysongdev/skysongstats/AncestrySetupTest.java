@@ -155,7 +155,7 @@ class AncestrySetupTest {
         alice.performCommand("setup");
         screen(AncestrySetupMenu.class).click(alice, 12, ClickType.LEFT);
         screen(AncestryChoicesMenu.class).click(alice, 0, ClickType.LEFT);
-        screen(AncestrySetupMenu.class);
+        assertNotNull(screen(AncestrySetupMenu.class));
     }
 
     @Test
