@@ -62,4 +62,15 @@ class StatsExpansionTest {
         assertEquals("0", expansion.onPlaceholderRequest(alice, "conditions_count"));
         assertNull(expansion.onPlaceholderRequest(null, "injuries"));
     }
+
+    @Test
+    void ancestryPlaceholdersAreForTheActiveCharacter() {
+        PlayerMock alice = MockBukkit.getMock().addPlayer("Alice");
+        ProfileManager.activeProfiles = new ArrayList<>(List.of(new ProfileIndex(alice.getUniqueId().toString(), "Default")));
+        assertEquals("", expansion.onPlaceholderRequest(alice, "ancestry"));
+        assertEquals("0", expansion.onPlaceholderRequest(alice, "ancestry_con"));
+        assertEquals("false", expansion.onPlaceholderRequest(alice, "ancestry_pending"));
+        assertNull(expansion.onPlaceholderRequest(alice, "ancestry_nonsense"));
+        assertNull(expansion.onPlaceholderRequest(null, "ancestry"));
+    }
 }

@@ -4,6 +4,8 @@ import net.kyori.adventure.text.Component;
 import org.bukkit.OfflinePlayer;
 import org.skysongdev.skysongstats.storage.ProfileKey;
 
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -16,6 +18,26 @@ public interface SheetTags {
     /** For tests and while nothing provides tags: no extra tags. */
     static SheetTags none() {
         return (player, line) -> Map.of();
+    }
+
+    /** Every tag of these, the first one winning when two know the same name. */
+    static SheetTags all(SheetTags... sources) {
+        List<SheetTags> list = List.of(sources);
+        return new SheetTags() {
+            @Override
+            public Map<String, Component> tags(OfflinePlayer player, String line) {
+                Map<String, Component> tags = new HashMap<>();
+                list.forEach(source -> source.tags(player, line).forEach(tags::putIfAbsent));
+                return tags;
+            }
+
+            @Override
+            public Map<String, Component> tags(ProfileKey character, String line) {
+                Map<String, Component> tags = new HashMap<>();
+                list.forEach(source -> source.tags(character, line).forEach(tags::putIfAbsent));
+                return tags;
+            }
+        };
     }
 
     /** The tags this line uses that this knows, by name, for the player. */

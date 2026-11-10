@@ -102,8 +102,8 @@ character:
     # (%vault_eco_balance%...) for the sheet's player.
     # {player}, {name}, {age}, {gender}, {pronouns}, {ancestry}, and the stats.yml
     # height: {height} in metres and {height_feet} in feet and inches. Like every
-    # sheet, it can also show the character's injuries and conditions (see the
-    # placeholders: section at the end of this file).
+    # sheet, it can also show the character's injuries, conditions and ancestry
+    # (see the placeholders: section at the end of this file).
     header:
       - "<#864811>|====================<<<#63C934>₪<#864811>>>====================|"
       - "                <#F6DA23>{player}' s <#864811>Character Sheet:"
@@ -112,6 +112,7 @@ character:
       - "<#D0530C><bold>Age:</bold> <#f8e886>{age}"
       - "<#D0530C><bold>Gender:</bold> <#f8e886>{gender}<#e7d462>({pronouns})"
       - "<#D0530C><bold>Ancestry:</bold> <#f8e886>{ancestry}"
+      - "<#D0530C><bold>Ancestry gave:</bold> <#f8e886>{ancestry_adjustments}"
       - "<#D0530C><bold>Height:</bold> <#f8e886>{height} m <#e7d462>({height_feet})"
       - "<#D0530C><bold>Description:</bold>"
     # {line}
@@ -664,3 +665,19 @@ placeholders:
   conditions:
     separator: "<gray>, </gray>"
     none: "<gray>None</gray>"
+  # The character's ancestry: %skysongstats_ancestry%, %skysongstats_ancestry_name%,
+  # _ancestry_id, _ancestry_pending (true/false), _ancestry_adjustments and
+  # _ancestry_<stat> (what it gave that stat), and the same as sheet tags in every
+  # sheet of this file: {ancestry_name}, {ancestry_adjustments}, {ancestry_con}...
+  # ({ancestry} on the character sheet is the character's ancestry field).
+  ancestry:
+    # {ancestry_name} and %skysongstats_ancestry_name% with no ancestry
+    # (%skysongstats_ancestry% is empty then).
+    none: "<gray>None</gray>"
+    # One adjustment in {ancestry_adjustments}: {amount} (+1, -1) and {stat}, its stats.yml name.
+    adjustment: "{amount} {stat}"
+    separator: "<gray>, </gray>"
+    # {ancestry_adjustments} when it gave nothing, or there is no ancestry.
+    no-adjustments: "<gray>None</gray>"
+    # After {ancestry_adjustments} while the ancestry's choices are still to be made.
+    pending: " <yellow>(choices to make: /ancestry choose)</yellow>"

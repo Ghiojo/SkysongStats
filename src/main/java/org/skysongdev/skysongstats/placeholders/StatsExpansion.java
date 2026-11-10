@@ -18,7 +18,8 @@ import java.util.function.Function;
 // StatPlaceholders): <stat>, <stat>_base, <stat>_modifiers, max_<bar>, max_<bar>_base... Then the
 // skill XP (<skill id> from skills.yml), the proficiencies (proficiency_..., see
 // ProficiencyPlaceholders), the injuries and conditions (injuries, conditions_hover_50...,
-// see AfflictionLists), the character sheet fields
+// see AfflictionLists), the ancestry (ancestry, ancestry_con..., see
+// AncestryPlaceholders), the character sheet fields
 // (character_<field>) and downtime (global_downtime, character_downtime).
 public class StatsExpansion extends PlaceholderExpansion {
 
@@ -81,7 +82,8 @@ public class StatsExpansion extends PlaceholderExpansion {
                 .flatMap(character -> stats.resolve(character, params)
                         .or(() -> skillXp(character, params))
                         .or(() -> proficiencies.resolve(character, params))
-                        .or(() -> plugin.getAfflictionLists().resolve(character, params)))
+                        .or(() -> plugin.getAfflictionLists().resolve(character, params))
+                        .or(() -> plugin.getAncestryPlaceholders().resolve(character, params)))
                 .orElseGet(() -> otherPlaceholder(player, params));
     }
 

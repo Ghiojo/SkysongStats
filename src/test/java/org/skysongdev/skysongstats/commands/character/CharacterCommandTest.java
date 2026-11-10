@@ -68,6 +68,7 @@ class CharacterCommandTest {
         assertEquals("Age: 30", next());
         assertEquals("Gender: Female(she/her)", next());
         assertEquals("Ancestry: Elf", next());
+        assertEquals("Ancestry gave: None", next());
         assertEquals("Height: 1.80 m (5'11\")", next());
         assertEquals("Description:", next());
         assertEquals("A quiet mage ", next());
