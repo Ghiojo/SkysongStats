@@ -21,8 +21,12 @@ final class ConfigReader {
     }
 
     Icon readIcon(ConfigurationSection section) {
-        String where = section.getCurrentPath() + ".icon";
-        String text = section.getString("icon");
+        return readIcon(section.getCurrentPath() + ".icon", section.getString("icon"));
+    }
+
+    // For an icon that isn't in a section of its own (inside a list of maps);
+    // where is the path the mistakes are reported with.
+    Icon readIcon(String where, String text) {
         if (text == null) {
             errors.add(where + ": missing, use a Material (IRON_SWORD) or model:<namespace:id>");
             return Icon.parse("BARRIER");
