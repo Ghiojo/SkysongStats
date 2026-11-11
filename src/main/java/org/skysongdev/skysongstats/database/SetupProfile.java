@@ -1,9 +1,12 @@
 package org.skysongdev.skysongstats.database;
 
 import org.bukkit.Bukkit;
+import org.skysongdev.skysongstats.character.AncestryPicks;
+import org.skysongdev.skysongstats.character.AncestryService;
 import org.skysongdev.skysongstats.character.ProficiencyService;
 import org.skysongdev.skysongstats.character.SkillService;
 import org.skysongdev.skysongstats.character.StatService;
+import org.skysongdev.skysongstats.definition.AncestryDefinition;
 import org.skysongdev.skysongstats.definition.ProficiencyDefinition;
 import org.skysongdev.skysongstats.definition.ProficiencyTier;
 import org.skysongdev.skysongstats.definition.ProficiencyTiers;
@@ -13,6 +16,8 @@ import org.skysongdev.skysongstats.storage.ProfileKey;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.UUID;
 
 import static org.skysongdev.skysongstats.SkysongStats.getPlugin;
@@ -22,8 +27,23 @@ public class SetupProfile {
     private String profile;
     private boolean isSetUp;
 
-    // The stat values picked on the /setup point screen, by stat id.
+    // The stat values picked on the /setup point screen, by stat id, without the
+    // ancestry.
     private Map<String, Integer> chosenStats = Map.of();
+
+    // The ancestry picked on the first /setup screen, with its choices; empty when
+    // ancestries.yml offered none (null here, empty from the getter).
+    private AncestryDefinition chosenAncestry;
+    private AncestryPicks ancestryPicks = AncestryPicks.none();
+
+    public Optional<AncestryDefinition> getChosenAncestry() {
+        return Optional.ofNullable(chosenAncestry);
+    }
+
+    public void setChosenAncestry(AncestryDefinition ancestry, AncestryPicks picks) {
+        this.chosenAncestry = Objects.requireNonNull(ancestry, "ancestry");
+        this.ancestryPicks = picks;
+    }
 
     public Map<String, Integer> getChosenStats() {
         return chosenStats;
@@ -59,12 +79,13 @@ public class SetupProfile {
         this.isSetUp = isSetUp;
     }
 
-    // Gives the character the stats picked on the point screen, the skills picked
-    // on the skill screen and the proficiencies from the proficiency screen, and
-    // marks the profile as set up.
-    public void finishProfileSetup(StatService stats, SkillService skills, List<SkillDefinition> pickedSkills,
-                                   ProficiencyService proficiencies, List<ProficiencyDefinition> startingProficiencies){
-        applyChosenStats(stats);
+    // Gives the character the ancestry and stats picked on the first screens, the
+    // skills picked on the skill screen and the proficiencies from the proficiency
+    // screen, and marks the profile as set up.
+    public void finishProfileSetup(StatService stats, AncestryService ancestries, SkillService skills,
+                                   List<SkillDefinition> pickedSkills, ProficiencyService proficiencies,
+                                   List<ProficiencyDefinition> startingProficiencies){
+        applyChosenStats(stats, ancestries);
         applyPickedSkills(skills, pickedSkills);
         applyStartingProficiencies(proficiencies, startingProficiencies);
 
@@ -77,12 +98,14 @@ public class SetupProfile {
     }
 
     // Sets the character's stats to the values picked on the point screen, then
-    // fills the bars that start full (HP) to their new max. A stat that left
+    // gives it the picked ancestry (which adds its adjustments to those values),
+    // then fills the bars that start full (HP) to their new max. A stat that left
     // stats.yml since then is skipped.
-    public void applyChosenStats(StatService stats){
+    public void applyChosenStats(StatService stats, AncestryService ancestries){
         ProfileKey character = new ProfileKey(UUID.fromString(uuid), profile);
         chosenStats.forEach((id, value) -> stats.definitions().get(id)
                 .ifPresent(stat -> stats.apply(character, stat, StatAction.SET, value)));
+        getChosenAncestry().ifPresent(ancestry -> ancestries.set(character, ancestry, Optional.of(ancestryPicks)));
         stats.fillBarsThatStartFull(character);
     }
 

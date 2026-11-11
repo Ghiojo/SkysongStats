@@ -94,13 +94,13 @@ class StatSetupMenuTest {
         assertEquals(Material.APPLE, item(13).getType());
         assertEquals(Material.ENDER_EYE, item(15).getType());
         assertEquals(Material.FEATHER, item(17).getType());
-        assertEquals("setup.stat.name{max=10, min=3, name=Speed, value=6}", name(17));
+        assertEquals("setup.stat.name{ancestry=, ancestry_amount=0, max=10, min=3, name=Speed, value=6}", name(17));
     }
 
     @Test
     void statLoreIsTheMessagesLinesThenTheStatsYmlLore() {
         List<Component> lore = item(9).getItemMeta().lore();
-        assertEquals("setup.stat.lore{max=4, min=-3, name=Strength, value=0}", plain(lore.get(0)));
+        assertEquals("setup.stat.lore{ancestry=, ancestry_amount=0, max=4, min=-3, name=Strength, value=0}", plain(lore.get(0)));
         assertEquals("Determines your character's Physical Strength", plain(lore.get(1)));
     }
 
@@ -112,7 +112,7 @@ class StatSetupMenuTest {
     @Test
     void hasTheHeaderConfirmButtonAndBorder() {
         assertEquals(Material.NETHER_STAR, item(StatSetup.HEADER_SLOT).getType());
-        assertEquals("setup.header.name{negative-points=3, points=7}", name(StatSetup.HEADER_SLOT));
+        assertEquals("setup.header.name{ancestry=, negative-points=3, points=7}", name(StatSetup.HEADER_SLOT));
         assertEquals(Material.LIME_STAINED_GLASS_PANE, item(StatSetup.CONFIRM_SLOT).getType());
         assertEquals("setup.confirm.name{}", name(StatSetup.CONFIRM_SLOT));
         assertEquals(Material.GRAY_STAINED_GLASS_PANE, item(0).getType());
@@ -127,7 +127,7 @@ class StatSetupMenuTest {
         click(13, ClickType.MIDDLE, 1);
         assertEquals(Map.of("str", 2, "dex", -1, "con", 0, "foc", 0, "spd", 6), menu.allocation().values());
         assertTrue(name(9).contains("value=2"), name(9));
-        assertEquals("setup.header.name{negative-points=2, points=6}", name(StatSetup.HEADER_SLOT));
+        assertEquals("setup.header.name{ancestry=, negative-points=2, points=6}", name(StatSetup.HEADER_SLOT));
     }
 
     @Test

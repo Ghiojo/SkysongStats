@@ -10,6 +10,7 @@ import org.jetbrains.annotations.Nullable;
 import org.skysongdev.skysongstats.Utils.CharacterManager;
 import org.skysongdev.skysongstats.messages.Messages;
 import org.skysongdev.skysongstats.database.CharacterProfile;
+import org.skysongdev.skysongstats.storage.ProfileKey;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -67,6 +68,12 @@ public class SetCharacterField implements TabExecutor {
                 profile.setPronouns(finalField);
                 break;
             case "ancestry":
+                // A character with an ancestry from /setup keeps its name here;
+                // only changing the ancestry changes it.
+                if(getPlugin().getAncestryService().of(new ProfileKey(player.getUniqueId(), profile.getProfile())).isPresent()){
+                    getPlugin().getMessages().send(commandSender, "character.set.ancestry-locked");
+                    return true;
+                }
                 if(field.length() > 50){
                     getPlugin().getMessages().send(commandSender, "character.set.ancestry-too-long");
                     return true;

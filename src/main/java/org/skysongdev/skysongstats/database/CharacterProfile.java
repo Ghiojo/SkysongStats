@@ -1,6 +1,9 @@
 package org.skysongdev.skysongstats.database;
 
 public class CharacterProfile {
+    // What every field holds until it is set.
+    public static final String NOT_SET = "[Not Set]";
+
     private String uuid;
     private String profile;
     private String name;
@@ -13,22 +16,22 @@ public class CharacterProfile {
     public CharacterProfile(String uuid) {
         this.uuid = uuid;
         this.profile = "Default";
-        this.name = "[Not Set]";
-        this.age = "[Not Set]";
-        this.gender = "[Not Set]";
-        this.ancestry = "[Not Set]";
-        this.pronouns = "[Not Set]";
-        this.description = "[Not Set]";
+        this.name = NOT_SET;
+        this.age = NOT_SET;
+        this.gender = NOT_SET;
+        this.ancestry = NOT_SET;
+        this.pronouns = NOT_SET;
+        this.description = NOT_SET;
     }
     public CharacterProfile(String uuid, String profile) {
         this.uuid = uuid;
         this.profile = profile;
-        this.name = "[Not Set]";
-        this.age = "[Not Set]";
-        this.gender = "[Not Set]";
-        this.ancestry = "[Not Set]";
-        this.pronouns = "[Not Set]";
-        this.description = "[Not Set]";
+        this.name = NOT_SET;
+        this.age = NOT_SET;
+        this.gender = NOT_SET;
+        this.ancestry = NOT_SET;
+        this.pronouns = NOT_SET;
+        this.description = NOT_SET;
     }
 
     public CharacterProfile(String uuid, String profile, String name, String age, String gender, String ancestry, String pronouns, String description) {

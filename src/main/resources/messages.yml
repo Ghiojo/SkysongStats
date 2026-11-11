@@ -126,6 +126,8 @@ character:
     gender-too-long: "{prefix}<red>Gender is too long!"
     pronouns-too-long: "{prefix}<red>Pronouns are too long!"
     ancestry-too-long: "{prefix}<red>Ancestry is too long!"
+    # A character whose ancestry was picked in /setup: the field follows the ancestry.
+    ancestry-locked: "{prefix}<red>Your ancestry comes from your character's setup and can't be changed here."
     invalid-field: "Invalid field!"
     failed: "{prefix}<red>Failed to update character data!"
     # {field}, {value}
@@ -367,7 +369,7 @@ setup:
   title: "Stat Points Allocation"
   header:
     name: "<gold>Stat Points Allocation"
-    # {points} {negative-points}
+    # {points} {negative-points} {ancestry} (the picked ancestry's name, empty without one)
     lore:
       - "<gray>Allocate your stat points to your character's base stats"
       - "<gray>You can lower a stat below its starting value"
@@ -375,15 +377,82 @@ setup:
       - "<gray>Points Remaining: <gold>{points}"
       - "<gray>Negative Points: <red>{negative-points}"
   stat:
-    # {name} {value} {min} {max}. The text takes the stat's colour from stats.yml;
-    # the stat's own lore lines from stats.yml come after these.
+    # {name} {value} {min} {max} {ancestry} {ancestry_amount} (+1, -1). {value},
+    # {min} and {max} include what the ancestry gives. The text takes the stat's
+    # colour from stats.yml; the stat's own lore lines from stats.yml come after these.
     name: "<bold>{name}:</bold> {value}"
     lore:
       - "<gold>Points Allocated: {value}"
       - "<gold>Left Click to Increase by 1, Right Click to Decrease by 1"
+    # Added under the lore when the ancestry changes this stat.
+    ancestry: "<gray>From your {ancestry} ancestry: <yellow>{ancestry_amount}"
   confirm:
     name: "<green>Confirm"
   points-left: "{prefix}<red>You still have points to allocate!"
+  # The first /setup screen: the ancestries of ancestries.yml the player may pick.
+  # Skipped when there are none.
+  ancestry:
+    title: "Ancestry Selection"
+    header:
+      name: "<gold>Ancestry Selection"
+      lore:
+        - "<gray>Pick your character's ancestry."
+        - "<gray>It changes your starting stats, and can't be changed later."
+    # {name}
+    item-name: "<bold>{name}</bold>"
+    # The lore of each ancestry starts with one adjustment line per fixed stat
+    # change and one line per choice, then its own lore from ancestries.yml, then click.
+    # {amount} (+1, -1) {stat}
+    adjustment: "<gray>{amount} {stat}"
+    # {name} {amount} {picks} {stats}
+    choice-stats: "<gray>{name}: {amount} to {picks} of {stats}"
+    # A choice with from: any. {name} {amount} {picks}
+    choice-any: "<gray>{name}: {amount} to {picks} stat(s) of your choice"
+    # {name} {options} (each package with what it gives)
+    choice-package: "<gray>{name}: one of {options}"
+    # A choice without a name in ancestries.yml. {number} (from 1)
+    default-choice-name: "Choice {number}"
+    # Between stats in {stats} and in a package's adjustments.
+    separator: ", "
+    # Between packages in {options}.
+    package-separator: " or "
+    click: "<yellow>Click to pick this ancestry"
+  # The page for an ancestry's choices, after picking it in /setup and for
+  # /ancestry choose. One row per choice.
+  ancestry-choices:
+    # {ancestry}
+    title: "{ancestry} Choices"
+    header:
+      name: "<gold>{ancestry} Choices"
+      lore:
+        - "<gray>Make every choice on the rows below, then confirm."
+    # The first item of a stat-pick row. {name} {amount} {picks} {left}
+    choice-stats:
+      name: "<gold>{name}"
+      lore:
+        - "<gray>{amount} to {picks} stat(s)"
+        - "<gray>Left to pick: <yellow>{left}"
+    # The first item of a package row. {name}
+    choice-package:
+      name: "<gold>{name}"
+      lore:
+        - "<gray>Take one of these"
+    # A stat to pick. {stat} {amount}
+    stat:
+      name: "<bold>{stat}</bold> <yellow>{amount}"
+    # A package to take. {name} {adjustments}
+    package:
+      name: "<bold>{name}</bold>"
+      lore:
+        - "<gray>{adjustments}"
+    picked: "<green>Picked. Click to undo."
+    open: "<yellow>Click to pick."
+    # The no-stacking rule: the ancestry already moves this stat the same way.
+    blocked: "<red>Your ancestry already gives this stat that."
+    confirm: "<green>Confirm"
+    back: "<red>Back to the ancestries"
+    # Confirming with a choice not finished. {choice}
+    incomplete: "{prefix}<red>Finish {choice} first."
 
 # Stat commands: /stats, and the command names in stats.yml (/heal, /damage...).
 # A stat action's messages are stats.<stat id>.<action> (set, add, reduce or

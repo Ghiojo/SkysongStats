@@ -12,7 +12,9 @@ import org.skysongdev.skysongstats.storage.StoredAncestryAdjustment;
 
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
@@ -95,6 +97,15 @@ public final class AncestryRules {
                     given.add(new StoredAncestryAdjustment(adjustment.stat(), adjustment.amount(), source))));
         }
         return given;
+    }
+
+    // What the ancestry gives each stat in total with these picks, by stat id.
+    public static Map<String, Integer> totals(AncestryDefinition ancestry, AncestryPicks picks) {
+        Map<String, Integer> totals = new LinkedHashMap<>();
+        List<StoredAncestryAdjustment> all = new ArrayList<>(fixedAdjustments(ancestry));
+        all.addAll(choiceAdjustments(ancestry, picks));
+        all.forEach(adjustment -> totals.merge(adjustment.stat(), adjustment.amount(), Integer::sum));
+        return totals;
     }
 
     private static List<AncestryAdjustment> adjustments(AncestryChoice choice, Pick pick) {
