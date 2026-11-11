@@ -22,6 +22,8 @@ import org.skysongdev.skysongstats.character.AfflictionChangeListener;
 import org.skysongdev.skysongstats.character.AfflictionService;
 import org.skysongdev.skysongstats.character.InjuryAward;
 import org.skysongdev.skysongstats.commands.affliction.ConditionCommand;
+import org.skysongdev.skysongstats.commands.ancestry.AncestryCommand;
+import org.skysongdev.skysongstats.commands.ancestry.AncestryPrompt;
 import org.skysongdev.skysongstats.commands.affliction.ConditionMenu;
 import org.skysongdev.skysongstats.commands.affliction.InjuryMenu;
 import org.skysongdev.skysongstats.menu.AfflictionMenus;
@@ -184,6 +186,7 @@ public class SkysongStats extends JavaPlugin {
     // Characters other plugins own, such as NPCs (API characters()).
     private PluginCharacterService pluginCharacterService;
     private AncestryService ancestryService;
+    private AncestryPrompt ancestryPrompt;
     private final AfflictionTexts afflictionTexts = new AfflictionTexts(this::getMessages, this::characterName);
     // A character's injuries and conditions as text, for placeholders and sheets.
     private final AfflictionLists afflictionLists = new AfflictionLists(this::getAfflictionService, afflictionTexts,
@@ -216,6 +219,7 @@ public class SkysongStats extends JavaPlugin {
     public AfflictionService getAfflictionService() { return afflictionService; }
     public PluginCharacterService getPluginCharacterService() { return pluginCharacterService; }
     public AncestryService getAncestryService() { return ancestryService; }
+    public AncestryPrompt getAncestryPrompt() { return ancestryPrompt; }
     public AfflictionTexts getAfflictionTexts() { return afflictionTexts; }
     public AfflictionLists getAfflictionLists() { return afflictionLists; }
     // Plugins that say injury award messages themselves (API announceAwards).
@@ -347,6 +351,8 @@ public class SkysongStats extends JavaPlugin {
         getCommand("condition").setExecutor(new ConditionCommand(afflictionService,
                 new ConditionMenu(afflictionService, this::getMessages, afflictionMenus), targets,
                 this::getMessages, afflictionTexts, onlinePlayers, getLogger()::info, changeCauses));
+        getCommand("ancestry").setExecutor(new AncestryCommand(ancestryService, ancestryPrompt, ancestryLookup(),
+                this::getMessages, onlinePlayers, getLogger()::info, changeCauses));
         getCommand("ssimport").setExecutor(new ImportCommand(chatTweaksImporter(), this::getMessages));
         getCommand("ssreload").setExecutor(new ReloadCommand());
         getCommand("schar").setExecutor(characterCommand);
@@ -385,6 +391,7 @@ public class SkysongStats extends JavaPlugin {
         getServer().getPluginManager().registerEvents(pendingFocusChanges, this);
         getServer().getPluginManager().registerEvents(new PlayerShiftRightClickListener(), this);
         getServer().getPluginManager().registerEvents(heightScaler, this);
+        getServer().getPluginManager().registerEvents(ancestryPrompt, this);
         itemSourceRegistry = new ItemSourceRegistry(getLogger()::warning);
         itemTagListener = new ItemTagListener(statService, utils.getProfileManager()::activeCharacter, itemTagReader(),
                 itemSourceRegistry::items);
@@ -602,6 +609,7 @@ public class SkysongStats extends JavaPlugin {
         AncestryRepository repository = storage.ancestryRepository();
         ancestryService = new AncestryService(ancestryDefinitions, repository, this::adjustBaseValue,
                 this::onAncestryChanged);
+        ancestryPrompt = ancestryPrompt();
         try {
             repository.createTables();
             ancestryService.load();
@@ -610,9 +618,31 @@ public class SkysongStats extends JavaPlugin {
         }
     }
 
+    // Tells players whose character has ancestry choices pending; also what
+    // /ancestry choose opens.
+    private AncestryPrompt ancestryPrompt(){
+        return new AncestryPrompt(ancestryService, () -> statsConfig.stats(), texts, this::getMessages,
+                new AncestryPrompt.Players(utils.getProfileManager()::activeCharacter, Bukkit::getPlayer),
+                task -> Bukkit.getScheduler().runTask(this, task), changeCauses);
+    }
+
+    // The player by name, online first, then anyone who joined before; their
+    // character is the profile they play now, when it has stats.
+    private AncestryCommand.Lookup ancestryLookup(){
+        return new AncestryCommand.Lookup(name -> {
+            Player online = Bukkit.getPlayerExact(name);
+            return Optional.ofNullable(online != null ? online : Bukkit.getOfflinePlayerIfCached(name));
+        }, player -> utils.getProfileManager().activeProfile(player)
+                .map(profile -> new ProfileKey(player, profile))
+                .filter(character -> statService.sheet(character).isPresent()));
+    }
+
     // The character's ancestry field follows its ancestry: the ancestry's name, or
     // back to "[Not Set]" (free text again) when it has none.
     private void onAncestryChanged(AncestryService.AncestryChange change){
+        if (ancestryPrompt != null) {
+            ancestryPrompt.onAncestryChanged(change);
+        }
         ProfileKey character = change.character();
         CharacterProfile profile = CharacterManager.characterProfiles == null ? null
                 : utils.getCharacterManager().findCharacterProfile(character.player().toString(), character.profile());

@@ -361,6 +361,43 @@ condition:
     id-line: "<gold>ID: {id}"
     previous-page: "<gray>Previous Page"
     next-page: "<gray>Next Page"
+ancestry:
+  # Sent while the player's character has ancestry choices to make (staff gave it
+  # an ancestry, or opened its choices again): when they join, when they switch to
+  # the character, and right away if they are playing it. {ancestry} is its name.
+  choices-pending: "{prefix}<yellow>Your ancestry, {ancestry}, has choices to make. <click:run_command:'/ancestry choose'><hover:show_text:'<green>Open the choices'><green><bold>[Choose]</bold></green></hover></click>"
+  command:
+    usage: "{prefix}<red>Usage: /ancestry (choose/set/rechoose/remove)"
+    # In the messages below {player} is the player as typed or known, {profile}
+    # their active character's profile and {ancestry} the ancestry's name.
+    player-not-found: "{prefix}<red>{player} has never played on this server."
+    no-character: "{prefix}<red>{player} isn't playing a character with stats."
+    unknown-ancestry: "{prefix}<red>There is no ancestry called {ancestry}!"
+    set:
+      usage: "{prefix}<red>Usage: /ancestry set (player) (ancestry)"
+      success: "{prefix}<green>{player}'s character {profile} is now {ancestry}."
+      success-pending: "{prefix}<green>{player}'s character {profile} is now {ancestry}; they still have to make its choices."
+      # Sent to the player, when someone else changed it.
+      player: "{prefix}<green>Your character's ancestry is now {ancestry}."
+    rechoose:
+      usage: "{prefix}<red>Usage: /ancestry rechoose (player)"
+      # The player gets choices-pending.
+      success: "{prefix}<green>{player} can make the {ancestry} choices of {profile} again."
+      none: "{prefix}<red>{player}'s character {profile} has no ancestry with choices to make."
+    remove:
+      usage: "{prefix}<red>Usage: /ancestry remove (player)"
+      success: "{prefix}<green>{player}'s character {profile} no longer has an ancestry ({ancestry} was taken off)."
+      none: "{prefix}<red>{player}'s character {profile} has no ancestry."
+      # Sent to the player, when someone else removed it.
+      player: "{prefix}<yellow>Your character no longer has an ancestry."
+    choose:
+      players-only: "{prefix}<red>Only players can make ancestry choices!"
+      no-character: "{prefix}<red>You aren't playing a character."
+      nothing-pending: "{prefix}<red>Your character has no ancestry choices to make."
+      ancestry-gone: "{prefix}<red>Your character's ancestry is no longer on this server. Ask staff for help."
+      # Staff changed the ancestry, or ancestries.yml changed, while the page was open.
+      changed: "{prefix}<red>Your ancestry changed while you were choosing. Run /ancestry choose again."
+      done: "{prefix}<green>Your {ancestry} choices are made."
 setup:
   already-set-up: "{prefix}<red>You have already set up your profile!"
   started: "{prefix}<red>You are now setting up your profile!"
