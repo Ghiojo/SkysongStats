@@ -31,12 +31,16 @@ import org.skysongdev.skysongstats.menu.ListMenuListener;
 import org.skysongdev.skysongstats.commands.affliction.InjuryCommand;
 import org.skysongdev.skysongstats.messages.AfflictionLists;
 import org.skysongdev.skysongstats.messages.AfflictionSheetTags;
+import org.skysongdev.skysongstats.messages.AncestryPlaceholders;
+import org.skysongdev.skysongstats.messages.AncestrySheetTags;
+import org.skysongdev.skysongstats.messages.SheetTags;
 import org.skysongdev.skysongstats.messages.AfflictionTexts;
 import org.skysongdev.skysongstats.storage.AfflictionRepository;
 import org.skysongdev.skysongstats.storage.AncestryRepository;
 import org.skysongdev.skysongstats.character.AncestryService;
 import net.luckperms.api.LuckPerms;
 import org.bukkit.Bukkit;
+import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.skysongdev.skysongstats.Utils.ProfileManager;
@@ -191,6 +195,8 @@ public class SkysongStats extends JavaPlugin {
     // A character's injuries and conditions as text, for placeholders and sheets.
     private final AfflictionLists afflictionLists = new AfflictionLists(this::getAfflictionService, afflictionTexts,
             this::getMessages);
+    private final AncestryPlaceholders ancestryPlaceholders = new AncestryPlaceholders(this::getAncestryService,
+            () -> statsConfig == null ? null : statsConfig.stats(), this::getMessages);
     // Skill level and proficiency tier nodes, in LuckPerms.
     private PlayerNodes playerNodes;
 
@@ -222,6 +228,7 @@ public class SkysongStats extends JavaPlugin {
     public AncestryPrompt getAncestryPrompt() { return ancestryPrompt; }
     public AfflictionTexts getAfflictionTexts() { return afflictionTexts; }
     public AfflictionLists getAfflictionLists() { return afflictionLists; }
+    public AncestryPlaceholders getAncestryPlaceholders() { return ancestryPlaceholders; }
     // Plugins that say injury award messages themselves (API announceAwards).
     private final AwardAnnouncers awardAnnouncers = new AwardAnnouncers();
     public AwardAnnouncers getAwardAnnouncers() { return awardAnnouncers; }
@@ -984,10 +991,15 @@ public class SkysongStats extends JavaPlugin {
 
     private void loadMessages(){
         messages = MessagesFile.load(new File(getDataFolder(), MessagesFile.FILE_NAME), bundled(MessagesFile.FILE_NAME), getLogger()::warning,
-                externalPlaceholders(), new AfflictionSheetTags(afflictionLists,
-                // The character an online player is playing; none for offline players.
-                player -> Optional.ofNullable(player.getPlayer()).filter(online -> utils != null)
-                        .flatMap(online -> utils.getProfileManager().activeCharacter(online))));
+                externalPlaceholders(), SheetTags.all(new AfflictionSheetTags(afflictionLists, this::sheetCharacter),
+                        new AncestrySheetTags(ancestryPlaceholders, this::sheetCharacter)));
+    }
+
+    // The character an online player is playing, for the sheet tags; none for
+    // offline players.
+    private Optional<ProfileKey> sheetCharacter(OfflinePlayer player){
+        return Optional.ofNullable(player.getPlayer()).filter(online -> utils != null)
+                .flatMap(online -> utils.getProfileManager().activeCharacter(online));
     }
 
     // Other plugins' %placeholders% on the sheets, when PlaceholderAPI is installed.

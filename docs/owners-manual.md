@@ -621,7 +621,7 @@ Every message players and staff see. Edit the text and run `/ssreload`.
 | `skills` | `/skills`, the skills book, the /setup skill screen (`skills.choice`) |
 | `proficiency` | `/proficiency`, its sheet, the /setup proficiency screen (`proficiency.choice`) |
 | `injury` | `/injury`, its menu (`injury.menu`), how an injury is shown everywhere (`injury.tag`: its name with the description on hover), the award announcement |
-| `placeholders` | The separator and "None" text of the injury and condition lists (placeholders and sheet tags) |
+| `placeholders` | The separator and "None" text of the injury and condition lists, and how the ancestry reads (`placeholders.ancestry`), for the placeholders and sheet tags |
 | `condition` | `/condition`, its menu (`condition.menu`), how a condition is shown (`condition.tag`, `given-tag`, `level-format`, `level-in-description`) |
 | `ancestry` | `/ancestry` (`ancestry.command`) and the pending choices prompt (`ancestry.choices-pending`) |
 | `setup` | `/setup`, its stat point screen, the ancestry list (`setup.ancestry`) and the ancestry choices page (`setup.ancestry-choices`) |
@@ -650,6 +650,10 @@ So to give `/heal` its own text you edit `stats.hp.add.player`; a new stat `mana
 #### Injuries and conditions on the sheets
 
 Every sheet (the character sheet, `stats.sheet`, `proficiency.sheet`, and the lines that go with them) can show the character's injuries and conditions with the same names as the placeholders, as `{tags}`: `{injuries}`, `{injuries_hover}`, `{injuries_50}`, `{injuries_hover_50}`, `{injuries_count}`, and the same for `{conditions...}`. They need no PlaceholderAPI. The default stat sheet (`stats.sheet`) has `Injuries:` and `Conditions:` lines at the end of its Afflictions part, with `{injuries_hover_50}` and `{conditions_hover_50}`; change their colours, move them to another sheet or remove them as you like. In the `_hover` lists, a condition that an injury or another condition gives uses `condition.given-tag`, whose hover adds "From:" and their names (`{from}`). The separator and the "None" text are in the `placeholders:` section at the end of messages.yml.
+
+#### The ancestry on the sheets
+
+The same way, every sheet can show the character's ancestry with the names of the [ancestry placeholders](#placeholders): `{ancestry_name}`, `{ancestry_id}`, `{ancestry_pending}`, `{ancestry_adjustments}` and `{ancestry_<stat>}` (`{ancestry_con}`). Plain `{ancestry}` is not one of them: on the character sheet it is the ancestry field. The default character sheet has an `Ancestry gave:` line with `{ancestry_adjustments}` under `Ancestry:`. The texts are in `placeholders.ancestry` at the end of messages.yml.
 
 #### Other plugins' placeholders on the sheets
 
@@ -883,6 +887,12 @@ So every stat can be checked both ways: `<stat>_base` / `<stat>` for a value, an
 | `injuries_<number>`, `injuries_hover_<number>` | Broken into lines of at most that many characters, e.g. `%skysongstats_injuries_hover_50%`. See below. |
 | `injuries_count` | How many. |
 | `conditions`, `conditions_hover`, `conditions_<number>`, `conditions_hover_<number>`, `conditions_count` | The same for current conditions (given ones included). A level above 1 follows the name (`Bleeding 2`); the hover shows the description with `$` as the level. |
+| `ancestry` | The ancestry's name from `ancestries.yml` (its id if it left the file); empty without one. |
+| `ancestry_name` | The same, but `placeholders.ancestry.none` ("None") without one. |
+| `ancestry_id` | Its id (`dwarf`); empty without one. |
+| `ancestry_pending` | `true` while its choices are still to be made, else `false`. |
+| `ancestry_adjustments` | What it gave, as saved: `+1 Constitution, -1 Speed` (`placeholders.ancestry.adjustment` and `separator`), followed by `placeholders.ancestry.pending` while choices are pending. `no-adjustments` ("None") when it gave nothing or there is no ancestry. |
+| `ancestry_<stat>` | What it gave that stat in all, by id or alias: `%skysongstats_ancestry_con%` → `1`, `0` for nothing. It's already inside `<stat>` and `<stat>_base`. |
 
 **Line lengths.** Only the visible text counts, never MiniMessage tags, so colours and hovers don't use up the length. Lines break only at spaces, never inside a word; a word longer than the limit gets a line of its own. The break is a MiniMessage `<br>`, so it works in SkysongStats' sheets and in any plugin that reads PlaceholderAPI output as MiniMessage (one that doesn't shows `<br>` as written). A name split over two lines keeps its hover on both.
 
@@ -1135,6 +1145,7 @@ All code is under `src/main/java/org/skysongdev/skysongstats/`; default files ar
 | Ancestries: putting their adjustments on and taking them off, the no-stacking rule | `character/AncestryService.java`, `character/AncestryRules.java`; saved by `storage/SqlAncestryRepository.java` |
 | The /setup ancestry list and choices page | `setup/AncestrySetupMenu.java`, `setup/AncestryChoicesMenu.java`, `setup/AncestryTexts.java`; the flow in `commands/setup/SetupCommand.java` |
 | How injuries and conditions are shown (tags, announcement, lists) | `messages/AfflictionTexts.java`, `messages/AfflictionLists.java`, `messages/LineWrapper.java` |
+| Ancestry placeholders and sheet tags | `messages/AncestryPlaceholders.java`, `messages/AncestrySheetTags.java` |
 | /injury, /condition | `commands/affliction/` (menus drawn by `menu/`) |
 | /ancestry and the pending choices prompt | `commands/ancestry/AncestryCommand.java`, `commands/ancestry/AncestryPrompt.java` |
 | /ssimport chattweaks | `commands/misc/ImportCommand`, the import itself in `importer/` |
