@@ -44,7 +44,6 @@ import static org.junit.jupiter.api.Assertions.*;
  * playing "Default"; the NPC plugin owns a guard with no player.
  */
 class AncestriesApiTest {
-    private ServerMock server;
     private SkysongStats plugin;
     private PlayerMock player;
     private CharacterId alice;
@@ -61,7 +60,7 @@ class AncestriesApiTest {
 
     @BeforeEach
     void setUp() {
-        server = MockBukkit.mock();
+        ServerMock server = MockBukkit.mock();
         plugin = OfflineSkysongStats.load();
         HandlerList.unregisterAll(plugin);
         player = server.addPlayer("Alice");
