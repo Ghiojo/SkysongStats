@@ -12,7 +12,7 @@ plugins {
 // Without a version JitPack sees the module as "api:unspecified", cannot match it to the
 // git tag, and publishes nothing but an empty root pom.
 group = System.getenv('JITPACK') ? 'com.github.Ghiojo.SkysongStats' : 'org.skysongdev.skysongstats'
-version = System.getenv('VERSION') ?: '1.3.0'
+version = System.getenv('VERSION') ?: '1.4.0'
 
 repositories {
     mavenCentral()

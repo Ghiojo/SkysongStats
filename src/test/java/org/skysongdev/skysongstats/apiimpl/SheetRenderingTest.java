@@ -163,7 +163,7 @@ class SheetRenderingTest {
                                                             List<String> lines, String name) {
                         return Optional.empty();
                     }
-                }, new MainThread(() -> false));
+                }, new MainThread(() -> false), character -> false);
         List<String> lines = List.of("{str}");
 
         assertThrows(IllegalStateException.class, () -> offThread.render(guard, SheetLayout.STATS, GUARD_NAME));

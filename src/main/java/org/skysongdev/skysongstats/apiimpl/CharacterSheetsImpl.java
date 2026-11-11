@@ -8,6 +8,7 @@ import org.skysongdev.skysongstats.api.CharacterSheets;
 import org.skysongdev.skysongstats.api.SheetField;
 import org.skysongdev.skysongstats.api.SheetLayout;
 import org.skysongdev.skysongstats.database.CharacterProfile;
+import org.skysongdev.skysongstats.storage.ProfileKey;
 
 import java.sql.SQLException;
 import java.util.EnumMap;
@@ -18,6 +19,7 @@ import java.util.Optional;
 import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
 import java.util.function.Function;
+import java.util.function.Predicate;
 
 // The sheet fields live in CharacterManager's loaded profiles and the
 // skysong_characters table, the same ones /character set changes.
@@ -50,13 +52,17 @@ final class CharacterSheetsImpl implements CharacterSheets {
     private final SheetStore store;
     private final SheetRenderer rendering;
     private final MainThread mainThread;
+    private final Predicate<ProfileKey> hasAncestry;
 
+    // hasAncestry: whether the character has an ancestry, whose name then is its
+    // ancestry field.
     CharacterSheetsImpl(BiFunction<String, String, CharacterProfile> profiles, SheetStore store,
-                        SheetRenderer rendering, MainThread mainThread) {
+                        SheetRenderer rendering, MainThread mainThread, Predicate<ProfileKey> hasAncestry) {
         this.profiles = Objects.requireNonNull(profiles, "profiles");
         this.store = Objects.requireNonNull(store, "store");
         this.rendering = Objects.requireNonNull(rendering, "rendering");
         this.mainThread = Objects.requireNonNull(mainThread, "mainThread");
+        this.hasAncestry = Objects.requireNonNull(hasAncestry, "hasAncestry");
     }
 
     @Override
@@ -74,6 +80,10 @@ final class CharacterSheetsImpl implements CharacterSheets {
         Objects.requireNonNull(value, "value");
         checkValue(field, value);
         mainThread.check();
+        if (field == SheetField.ANCESTRY && hasAncestry.test(ApiTypes.key(character))) {
+            throw new IllegalStateException("The ancestry field of " + character + " follows its ancestry;"
+                    + " change it with ancestries()");
+        }
         return profile(character).map(profile -> {
             String before = GETTERS.get(field).apply(profile);
             SETTERS.get(field).accept(profile, value);
