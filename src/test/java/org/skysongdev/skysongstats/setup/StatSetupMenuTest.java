@@ -94,13 +94,13 @@ class StatSetupMenuTest {
         assertEquals(Material.APPLE, item(13).getType());
         assertEquals(Material.ENDER_EYE, item(15).getType());
         assertEquals(Material.FEATHER, item(17).getType());
-        assertEquals("setup.stat.name{ancestry=, ancestry_amount=0, max=10, min=3, name=Speed, value=6}", name(17));
+        assertEquals("setup.stat.name{ancestry=, ancestry_amount=0, max=10, min=3, name=Speed, short=SPD, value=6}", name(17));
     }
 
     @Test
     void statLoreIsTheMessagesLinesThenTheStatsYmlLore() {
         List<Component> lore = item(9).getItemMeta().lore();
-        assertEquals("setup.stat.lore{ancestry=, ancestry_amount=0, max=4, min=-3, name=Strength, value=0}", plain(lore.get(0)));
+        assertEquals("setup.stat.lore{ancestry=, ancestry_amount=0, max=4, min=-3, name=Strength, short=STR, value=0}", plain(lore.get(0)));
         assertEquals("Determines your character's Physical Strength", plain(lore.get(1)));
     }
 

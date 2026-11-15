@@ -101,8 +101,8 @@ class AncestryMenusTest {
         Inventory inventory = menu.getInventory();
         assertEquals(Material.IRON_PICKAXE, inventory.getItem(10).getType());
         assertEquals("setup.ancestry.item-name{name=Dwarf}", name(inventory, 10));
-        assertEquals(List.of("setup.ancestry.adjustment{amount=+1, stat=Constitution}",
-                "setup.ancestry.adjustment{amount=-1, stat=Speed}",
+        assertEquals(List.of("setup.ancestry.adjustment{amount=+1, stat=Constitution, stat_short=CON}",
+                "setup.ancestry.adjustment{amount=-1, stat=Speed, stat_short=SPD}",
                 "Stout folk of the deep halls.",
                 "setup.ancestry.click{}"), lore(inventory, 10));
         assertEquals("setup.ancestry.header.name{}", name(inventory, AncestrySetupMenu.HEADER_SLOT));
@@ -139,7 +139,7 @@ class AncestryMenusTest {
                 name(inventory, 9));
         // from: any is every setup stat, in stats.yml order.
         assertEquals(Material.IRON_SWORD, inventory.getItem(slot(0, 0)).getType());
-        assertEquals("setup.ancestry-choices.stat.name{amount=+1, stat=Strength}", name(inventory, slot(0, 0)));
+        assertEquals("setup.ancestry-choices.stat.name{amount=+1, stat=Strength, stat_short=STR}", name(inventory, slot(0, 0)));
         assertEquals(List.of("setup.ancestry-choices.open{}"), lore(inventory, slot(0, 0)));
         assertNull(inventory.getItem(slot(0, 5)));
         assertEquals("setup.ancestry-choices.back{}", name(inventory, AncestryChoicesMenu.BACK_SLOT));

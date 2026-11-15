@@ -178,6 +178,7 @@ public final class StatModifierCommand implements TabExecutor {
         Map<String, String> values = new HashMap<>();
         values.put("target", modifier.target());
         values.put("name", displayName(modifier.target()));
+        values.put("short", shortName(modifier.target()));
         values.put("amount", Integer.toString(modifier.amount()));
         values.put("player", player);
         values.put("index", Integer.toString(index));
@@ -187,10 +188,16 @@ public final class StatModifierCommand implements TabExecutor {
     // The stat's name, or the bar's name for a max. A stat that has left stats.yml
     // shows its id.
     private String displayName(String target) {
-        return stats.definitions().get(target)
-                .or(() -> stats.definitions().findBarByMaxId(target))
-                .map(stat -> stat.display().name())
-                .orElse(target);
+        return statOf(target).map(stat -> stat.display().name()).orElse(target);
+    }
+
+    // The same for the short name.
+    private String shortName(String target) {
+        return statOf(target).map(stat -> stat.display().shortName()).orElse(target);
+    }
+
+    private Optional<StatDefinition> statOf(String target) {
+        return stats.definitions().get(target).or(() -> stats.definitions().findBarByMaxId(target));
     }
 
     private OptionalInt number(CommandSender sender, String text) {

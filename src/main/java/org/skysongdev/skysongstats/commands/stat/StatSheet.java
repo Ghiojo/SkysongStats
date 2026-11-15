@@ -75,6 +75,7 @@ public final class StatSheet {
         values.put("player", name);
         stats.definitions().all().stream().flatMap(StatSheet::names).forEach(stat ->
                 placeholders.resolve(character, stat).ifPresent(value -> values.put(stat, value)));
+        stats.definitions().all().forEach(stat -> values.putAll(StatPlaceholders.names(stat)));
         return values;
     }
 
@@ -82,6 +83,7 @@ public final class StatSheet {
         Map<String, String> line = new HashMap<>(values);
         line.put("stat", stat.id());
         line.put("name", stat.display().name());
+        line.put("short", stat.display().shortName());
         line.put("value", values.get(stat.id()));
         line.put("base", values.get(stat.id() + BASE));
         line.put("modifiers", values.get(stat.id() + MODIFIERS));

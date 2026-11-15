@@ -7,6 +7,7 @@ import org.skysongdev.skysongstats.definition.StatAction;
 
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -55,6 +56,20 @@ class StatSheetTest {
         assertEquals("5", values.get("max_hp_modifiers"));
         assertEquals(Integer.toString(fixture.value(fixture.alice, "max_hp")), values.get("max_hp"));
         assertEquals(Integer.toString(fixture.value(fixture.alice, "max_hp") - 5), values.get("max_hp_base"));
+        assertEquals("Strength", values.get("str_name"));
+        assertEquals("STR", values.get("str_short"));
+        assertEquals("THP", values.get("temphp_short"));
+    }
+
+    @Test
+    void mentioningOnlyAStatsNameStillGivesItAnAutomaticLine() {
+        List<String> lines = Stream.concat(everyStat().stream().filter(line -> !"{str}".equals(line)),
+                Stream.of("{str_short} {str_name}")).toList();
+        fixture.messages.texts.put(StatSheet.SHEET, lines);
+        fixture.sheet.show(fixture.alice, alice());
+        assertEquals(List.of(StatSheet.SHEET, StatSheet.AUTO_VALUE, StatSheet.FOOTER), fixture.messages.keys());
+        assertEquals("STR", fixture.messages.sent.get(1).placeholders().get("short"));
+        assertEquals("Strength", fixture.messages.sent.get(1).placeholders().get("name"));
     }
 
     @Test

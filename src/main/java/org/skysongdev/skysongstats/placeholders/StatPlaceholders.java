@@ -7,6 +7,7 @@ import org.skysongdev.skysongstats.height.HeightText;
 import org.skysongdev.skysongstats.storage.ProfileKey;
 
 import java.util.Locale;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.OptionalInt;
@@ -18,6 +19,8 @@ import java.util.OptionalInt;
 //   max_X            a bar's max (with the modifiers on max_X)
 //   max_X_base       a bar's max before its modifiers: the max formula alone
 //   max_X_modifiers  sum of the modifiers on a bar's max
+//   X_name           the stat's name from stats.yml, plain text
+//   X_short          its short-name ("STR"), the name when it has none
 // The height (the stat with a "scale:" block) shows X and X_base in metres
 // ("1.75") instead of centimetres, and also has:
 //   X_feet           feet and inches, with modifiers ("5'9\"")
@@ -31,6 +34,8 @@ public final class StatPlaceholders {
     private static final String MODIFIERS = "_modifiers";
     private static final String FEET = "_feet";
     private static final String SCALE = "_scale";
+    private static final String NAME = "_name";
+    private static final String SHORT = "_short";
 
     private final StatService stats;
 
@@ -49,8 +54,24 @@ public final class StatPlaceholders {
                 return height;
             }
             OptionalInt value = value(calculator, name);
-            return value.isPresent() ? Optional.of(Integer.toString(value.getAsInt())) : Optional.empty();
+            return value.isPresent() ? Optional.of(Integer.toString(value.getAsInt())) : text(name);
         });
+    }
+
+    // X_name and X_short of every stat, by placeholder name. They don't depend on
+    // the character.
+    public static Map<String, String> names(StatDefinition stat) {
+        return Map.of(stat.id() + NAME, stat.display().name(), stat.id() + SHORT, stat.display().shortName());
+    }
+
+    private Optional<String> text(String name) {
+        for (StatDefinition stat : stats.definitions().all()) {
+            String found = names(stat).get(name);
+            if (found != null) {
+                return Optional.of(found);
+            }
+        }
+        return Optional.empty();
     }
 
     private static Optional<String> height(StatCalculator calculator, StatDefinition stat, String name) {

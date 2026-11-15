@@ -87,9 +87,11 @@ public final class AncestryPlaceholders {
     }
 
     private String adjustment(StatDefinitions definitions, StoredAncestryAdjustment adjustment) {
-        String stat = definitions.get(adjustment.stat()).map(found -> found.display().name()).orElse(adjustment.stat());
+        Optional<StatDefinition> found = definitions.get(adjustment.stat());
+        String stat = found.map(definition -> definition.display().name()).orElse(adjustment.stat());
+        String shortName = found.map(definition -> definition.display().shortName()).orElse(adjustment.stat());
         String amount = adjustment.amount() > 0 ? "+" + adjustment.amount() : Integer.toString(adjustment.amount());
-        return raw("adjustment").replace("{amount}", amount).replace("{stat}", stat);
+        return raw("adjustment").replace("{amount}", amount).replace("{stat_short}", shortName).replace("{stat}", stat);
     }
 
     private static int total(StatDefinitions definitions, Optional<StoredAncestry> saved, StatDefinition stat) {

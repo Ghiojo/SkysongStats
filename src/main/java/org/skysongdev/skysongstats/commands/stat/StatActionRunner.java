@@ -47,7 +47,8 @@ public final class StatActionRunner {
             return;
         }
         if (action == StatAction.DAMAGE && !hasShield(stat)) {
-            messages.send(sender, ERRORS + "no-shield", Map.of("name", stat.display().name()));
+            messages.send(sender, ERRORS + "no-shield", Map.of("name", stat.display().name(),
+                    "short", stat.display().shortName()));
             return;
         }
         CommandTargets.Target resolved = target.orElseThrow();
@@ -150,6 +151,7 @@ public final class StatActionRunner {
         placeholders.put("player", target.getName());
         placeholders.put("sender", sender.getName());
         placeholders.put("name", stat.display().name());
+        placeholders.put("short", stat.display().shortName());
         placeholders.put("stat", stat.id());
         messages.send(target, base + ".player", placeholders);
         if (!target.equals(sender)) {
