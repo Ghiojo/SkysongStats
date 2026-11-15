@@ -198,7 +198,7 @@ public class SkysongStats extends JavaPlugin {
     private final AfflictionLists afflictionLists = new AfflictionLists(this::getAfflictionService, afflictionTexts,
             this::getMessages);
     private final AncestryPlaceholders ancestryPlaceholders = new AncestryPlaceholders(this::getAncestryService,
-            () -> statsConfig == null ? null : statsConfig.stats(), this::getMessages);
+            () -> statService == null ? null : statService.definitions(), this::getMessages);
     // Skill level and proficiency tier nodes, in LuckPerms.
     private PlayerNodes playerNodes;
 
@@ -630,7 +630,7 @@ public class SkysongStats extends JavaPlugin {
     // Tells players whose character has ancestry choices pending; also what
     // /ancestry choose opens.
     private AncestryPrompt ancestryPrompt(){
-        return new AncestryPrompt(ancestryService, () -> statsConfig.stats(), texts, this::getMessages,
+        return new AncestryPrompt(ancestryService, () -> statService.definitions(), texts, this::getMessages,
                 new AncestryPrompt.Players(utils.getProfileManager()::activeCharacter, Bukkit::getPlayer),
                 task -> Bukkit.getScheduler().runTask(this, task), changeCauses);
     }

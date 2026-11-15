@@ -31,11 +31,11 @@ import org.skysongdev.skysongstats.api.Stats;
  */
 public final class SkysongStatsApiImpl implements SkysongStatsApi {
     /** The API version this implementation provides. See {@link SkysongStatsApi#apiVersion()}. */
-    public static final String API_VERSION = "1.4.0";
+    public static final String API_VERSION = "1.5.0";
 
     private final Profiles profiles;
     private final Skills skills;
-    private final Stats stats;
+    private final StatsImpl stats;
     private final Modifiers modifiers;
     private final Proficiencies proficiencies;
     private final Downtime downtime;
@@ -52,7 +52,8 @@ public final class SkysongStatsApiImpl implements SkysongStatsApi {
         this.profiles = new ProfilesImpl(plugin.getUtils().getProfileManager(),
                 plugin::playerCharacters, mainThread);
         this.skills = new SkillsImpl(plugin.getSkillService(), mainThread, plugin.getChangeCauses());
-        this.stats = new StatsImpl(plugin.getStatService(), mainThread, plugin.getChangeCauses());
+        this.stats = new StatsImpl(plugin.getStatService(), mainThread, plugin.getChangeCauses(),
+                Bukkit.getPluginManager()::callEvent);
         this.modifiers = new ModifiersImpl(plugin.getStatService(), mainThread, plugin.getChangeCauses());
         this.proficiencies = new ProficienciesImpl(plugin.getProficiencyService(), plugin.getSkillService(),
                 mainThread, plugin.getChangeCauses());
@@ -147,6 +148,8 @@ public final class SkysongStatsApiImpl implements SkysongStatsApi {
     public void register(ServicesManager services, Plugin owner) {
         // Removes a plugin's item sources when it disables.
         owner.getServer().getPluginManager().registerEvents(itemSources, owner);
+        // And the short names it assigned.
+        owner.getServer().getPluginManager().registerEvents(stats, owner);
         // And its award announcers.
         owner.getServer().getPluginManager().registerEvents(injuries, owner);
         services.register(SkysongStatsApi.class, this, owner, ServicePriority.Normal);
@@ -156,6 +159,7 @@ public final class SkysongStatsApiImpl implements SkysongStatsApi {
     public void unregister(ServicesManager services) {
         services.unregister(SkysongStatsApi.class, this);
         HandlerList.unregisterAll(itemSources);
+        HandlerList.unregisterAll(stats);
         HandlerList.unregisterAll(injuries);
     }
 
