@@ -2,6 +2,7 @@ package org.skysongdev.skysongstats;
 
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
+import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.event.HandlerList;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -15,11 +16,15 @@ import org.skysongdev.skysongstats.database.ProfileIndex;
 import org.skysongdev.skysongstats.definition.AncestryDefinition;
 import org.skysongdev.skysongstats.messages.AncestryPlaceholders;
 import org.skysongdev.skysongstats.messages.AncestrySheetTags;
+import org.skysongdev.skysongstats.messages.Messages;
 import org.skysongdev.skysongstats.storage.ProfileKey;
 
+import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -82,6 +87,21 @@ class AncestryPlaceholdersTest {
         assertEquals("-1", resolve("ancestry_spd"));
         assertEquals("0", resolve("ancestry_str"));
         assertEquals("1", resolve("ancestry_constitution"), "by alias too");
+    }
+
+    @Test
+    void anAdjustmentCanShowTheStatsShortName() {
+        YamlConfiguration texts = new YamlConfiguration();
+        texts.set("placeholders.ancestry.adjustment", "{amount} {stat_short} ({stat})");
+        YamlConfiguration defaults = YamlConfiguration.loadConfiguration(new InputStreamReader(
+                Objects.requireNonNull(plugin.getResource("messages.yml")), StandardCharsets.UTF_8));
+        Messages messages = new Messages(texts, defaults, warning -> { });
+        AncestryPlaceholders shortNames = new AncestryPlaceholders(plugin::getAncestryService,
+                () -> plugin.getStatService().definitions(), () -> messages);
+        plugin.getAncestryService().set(character, ancestry("dwarf"), Optional.of(AncestryPicks.none()));
+
+        assertEquals(Optional.of("+1 CON (Constitution)<gray>, </gray>-1 SPD (Speed)"),
+                shortNames.resolve(character, "ancestry_adjustments"));
     }
 
     @Test

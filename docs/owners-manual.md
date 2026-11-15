@@ -185,6 +185,7 @@ Each key under `stats:` is a stat. The key is its **id**: lowercase letters, dig
 | `name` | all | Display name. |
 | `color` | all | MiniMessage colour, e.g. `"<red>"` or `"<#ff8800>"`. Used on the /setup button. |
 | `aliases` | all | Other names commands accept: `/stats set strength 2` works for `str`. Lowercase, no `max_` prefix, unique. |
+| `short-name` | all | A short name such as `"STR"`, for messages (`{short}`) and placeholders (`%skysongstats_str_short%`). Commands also accept it, ignoring case (`/stats set thp 3`), so it can't be another stat's id, alias or short name; it may repeat its own (`HP` for `hp`). One with a space or starting with `max_` is only display text. Left out, the short name is the `name`, and commands don't take it. The default file gives every stat one (STR, DEX, CON, FOC, SPD, HP, THP, AC, PS, ARC, FIC, HGT). |
 | `baseline` | all | The value a new character starts at (default 0). For value stats, /setup moves around it. |
 | `type` | all | `value` (default) or `bar`. |
 | `min` | all | Lowest total the stat can have. Bars default to 0; value stats have no floor unless you set one. |
@@ -631,7 +632,9 @@ Every message players and staff see. Edit the text and run `/ssreload`.
 
 ### Stat action messages
 
-For an action on a stat, the plugin looks for `stats.<stat id>.<action>` first and uses `stats.default.<action>` when it isn't there. `.player` goes to the player whose stat changed; `.sender` goes to whoever ran the command when that is someone else. They all get `{amount} {value} {old} {player} {sender} {name} {stat}`. For the height, `{amount} {value} {old}` are in metres (`1.75`), and `{amount_feet} {value_feet} {old_feet}` give the same in feet and inches (`5'9"`); the default file has its own `stats.height.set` texts.
+For an action on a stat, the plugin looks for `stats.<stat id>.<action>` first and uses `stats.default.<action>` when it isn't there. `.player` goes to the player whose stat changed; `.sender` goes to whoever ran the command when that is someone else. They all get `{amount} {value} {old} {player} {sender} {name} {short} {stat}` (`{short}` is the stat's `short-name`, its name when it has none). For the height, `{amount} {value} {old}` are in metres (`1.75`), and `{amount_feet} {value_feet} {old_feet}` give the same in feet and inches (`5'9"`); the default file has its own `stats.height.set` texts.
+
+Wherever else a message gets a stat's `{name}` (`modifier.*`, the /setup stat buttons `setup.stat.*`, `stats.errors.no-shield`), it also gets `{short}`; for a bar's max that is the bar's short name. The ancestry texts that get a stat's name in `{stat}` (`setup.ancestry.adjustment`, `setup.ancestry-choices.stat.name`, `placeholders.ancestry.adjustment`) also get `{stat_short}`. The default texts don't use them, so nothing changes until you add them.
 
 So to give `/heal` its own text you edit `stats.hp.add.player`; a new stat `mana` uses the default texts until you add `stats.mana.add`, etc.
 
@@ -639,8 +642,8 @@ So to give `/heal` its own text you edit `stats.hp.add.player`; a new stat `mana
 
 | Sheet | Key | Filled in |
 |---|---|---|
-| Stat sheet (`/stats`) | `stats.sheet` | `{player}` and every stat placeholder: `{str}`, `{str_base}`, `{str_modifiers}`, `{hp}`, `{max_hp}`, `{max_hp_base}`, `{max_hp_modifiers}`... (the same names as the PlaceholderAPI ones). |
-| | `stats.sheet-auto` | A stat that `stats.sheet` never mentions (one you just added) gets an automatic line, `value` or `bar`, under the sheet, so new stats always show. Mention the stat in `stats.sheet` to place it yourself. |
+| Stat sheet (`/stats`) | `stats.sheet` | `{player}` and every stat placeholder: `{str}`, `{str_base}`, `{str_modifiers}`, `{hp}`, `{max_hp}`, `{max_hp_base}`, `{max_hp_modifiers}`, `{str_name}`, `{str_short}`... (the same names as the PlaceholderAPI ones). |
+| | `stats.sheet-auto` | A stat that `stats.sheet` never mentions (one you just added) gets an automatic line, `value` or `bar`, under the sheet, so new stats always show. Mention the stat in `stats.sheet` to place it yourself (its `_name` and `_short` don't count). The lines get `{name} {short} {stat} {value} {base} {modifiers}`, and bars `{max} {max_base} {max_modifiers}`. |
 | | `stats.sheet-footer` | Last lines. |
 | | `stats.sheet-hidden` | Stat ids that never show on `/stats`, not even as a `sheet-auto` line. The default hides `height`, which is on the character sheet. |
 | Character sheet (`/char`) | `character.view.header`, `description-line`, `footer` | `{player} {name} {age} {gender} {pronouns} {ancestry}`, and `{height}` (metres) / `{height_feet}` from the stat with a `scale:` block (empty when there is none); the description is wrapped into lines of about 60 characters, one `description-line` each. |
@@ -869,6 +872,7 @@ With PlaceholderAPI installed: `%skysongstats_<name>%`, always for the player's 
 | `max_<bar>` | A bar's max **after modifiers** (its formula + the modifiers on `max_<bar>`). |
 | `max_<bar>_base` | A bar's max **before modifiers**: what its `max` formula gives, without the modifiers on `max_<bar>`. E.g. `%skysongstats_max_hp_base%`. |
 | `max_<bar>_modifiers` | Sum of the modifiers on the bar's max. |
+| `<stat>_name` / `<stat>_short` | The stat's `name` and `short-name` from stats.yml, plain text (`Strength`, `STR`). `_short` is the name when the stat has no `short-name`. |
 | `<height>` / `<height>_base` | For the stat with a `scale:` block (`height` by default): the height in metres, a bare number like `1.75`, with / before modifiers. |
 | `<height>_feet` / `<height>_feet_base` | The height in feet and inches (`5'9"`), with / before modifiers. |
 | `<height>_scale` | The Minecraft scale the height gives right now (`0.972`), after the limits. |
@@ -891,7 +895,7 @@ So every stat can be checked both ways: `<stat>_base` / `<stat>` for a value, an
 | `ancestry_name` | The same, but `placeholders.ancestry.none` ("None") without one. |
 | `ancestry_id` | Its id (`dwarf`); empty without one. |
 | `ancestry_pending` | `true` while its choices are still to be made, else `false`. |
-| `ancestry_adjustments` | What it gave, as saved: `+1 Constitution, -1 Speed` (`placeholders.ancestry.adjustment` and `separator`), followed by `placeholders.ancestry.pending` while choices are pending. `no-adjustments` ("None") when it gave nothing or there is no ancestry. |
+| `ancestry_adjustments` | What it gave, as saved: `+1 Constitution, -1 Speed` (`placeholders.ancestry.adjustment`, which gets `{amount} {stat} {stat_short}`, and `separator`), followed by `placeholders.ancestry.pending` while choices are pending. `no-adjustments` ("None") when it gave nothing or there is no ancestry. |
 | `ancestry_<stat>` | What it gave that stat in all, by id or alias: `%skysongstats_ancestry_con%` → `1`, `0` for nothing. It's already inside `<stat>` and `<stat>_base`. |
 
 **Line lengths.** Only the visible text counts, never MiniMessage tags, so colours and hovers don't use up the length. Lines break only at spaces, never inside a word; a word longer than the limit gets a line of its own. The break is a MiniMessage `<br>`, so it works in SkysongStats' sheets and in any plugin that reads PlaceholderAPI output as MiniMessage (one that doesn't shows `<br>` as written). A name split over two lines keeps its hover on both.

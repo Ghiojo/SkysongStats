@@ -48,6 +48,19 @@ final class StatsValidator {
                 checkAlias(stat, alias, owners);
             }
         }
+        for (StatDefinition stat : stats.values()) {
+            stat.display().shortNameInput().ifPresent(input -> checkShortName(stat, input, owners));
+        }
+    }
+
+    // A short name is also a name commands accept, so it can't be another stat's
+    // id, alias or short name. Matching its own id or alias is fine ("HP" for hp).
+    private void checkShortName(StatDefinition stat, String input, Map<String, String> owners) {
+        String owner = owners.putIfAbsent(input, stat.id());
+        if (owner != null && !owner.equals(stat.id())) {
+            errors.add(path(stat) + ".short-name: '" + stat.display().shortName()
+                    + "' is already a name of stat '" + owner + "' (commands accept short names)");
+        }
     }
 
     private void checkAlias(StatDefinition stat, String alias, Map<String, String> owners) {

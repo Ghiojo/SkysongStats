@@ -140,6 +140,7 @@ public final class StatSetupMenu implements SetupScreen {
         int ancestry = allocation.ancestry(stat);
         Map<String, String> values = Map.of(
                 "name", stat.display().name(),
+                "short", stat.display().shortName(),
                 "value", Integer.toString(allocation.value(stat)),
                 "min", Integer.toString(allocation.start(stat) + stat.setup().min()),
                 "max", Integer.toString(allocation.start(stat) + stat.setup().max()),

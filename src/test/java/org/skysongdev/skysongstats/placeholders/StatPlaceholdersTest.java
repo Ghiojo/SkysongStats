@@ -106,7 +106,12 @@ class StatPlaceholdersTest {
             "max_arcrot, 35",
             "max_arcrot_base, 35",
             "str_base, 0",
-            "MAX_HP, 95"
+            "MAX_HP, 95",
+            "str_short, STR",
+            "str_name, Strength",
+            "temphp_name, Temp HP",
+            "POTION_SHORT, PS",
+            "height_short, HGT"
     })
     void resolvesEveryGeneratedPlaceholder(String placeholder, String expected) {
         assertEquals(expected, resolve(placeholder), placeholder);
@@ -114,7 +119,7 @@ class StatPlaceholdersTest {
 
     @ParameterizedTest
     @ValueSource(strings = {"luck", "luck_base", "luck_modifiers", "max_str", "max_str_modifiers", "max_str_base",
-            "strength", "character_name", ""})
+            "strength", "character_name", "", "luck_short", "luck_name", "max_hp_short", "short", "_short"})
     void otherNamesAreNotStatPlaceholders(String placeholder) {
         assertEquals(Optional.empty(), placeholders.resolve(ALICE, placeholder), placeholder);
     }

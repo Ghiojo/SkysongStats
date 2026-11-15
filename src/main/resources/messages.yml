@@ -415,7 +415,7 @@ setup:
       - "<gray>Points Remaining: <gold>{points}"
       - "<gray>Negative Points: <red>{negative-points}"
   stat:
-    # {name} {value} {min} {max} {ancestry} {ancestry_amount} (+1, -1). {value},
+    # {name} {short} {value} {min} {max} {ancestry} {ancestry_amount} (+1, -1). {value},
     # {min} and {max} include what the ancestry gives. The text takes the stat's
     # colour from stats.yml; the stat's own lore lines from stats.yml come after these.
     name: "<bold>{name}:</bold> {value}"
@@ -440,7 +440,7 @@ setup:
     item-name: "<bold>{name}</bold>"
     # The lore of each ancestry starts with one adjustment line per fixed stat
     # change and one line per choice, then its own lore from ancestries.yml, then click.
-    # {amount} (+1, -1) {stat}
+    # {amount} (+1, -1) {stat} {stat_short}
     adjustment: "<gray>{amount} {stat}"
     # {name} {amount} {picks} {stats}
     choice-stats: "<gray>{name}: {amount} to {picks} of {stats}"
@@ -475,7 +475,7 @@ setup:
       name: "<gold>{name}"
       lore:
         - "<gray>Take one of these"
-    # A stat to pick. {stat} {amount}
+    # A stat to pick. {stat} {stat_short} {amount}
     stat:
       name: "<bold>{stat}</bold> <yellow>{amount}"
     # A package to take. {name} {adjustments}
@@ -497,7 +497,8 @@ setup:
 # damage) when they exist here, otherwise stats.default.<action>. ".player" goes
 # to the player whose stat changed, ".sender" to whoever ran the command when that
 # is someone else.
-# They get {amount} {value} (the new value) {old} {player} {sender} {name} {stat}.
+# They get {amount} {value} (the new value) {old} {player} {sender} {name} {short} {stat}.
+# {short} is the stat's short-name from stats.yml (its name when it has none).
 stats:
   default:
     set:
@@ -548,7 +549,7 @@ stats:
     unknown-command: "{prefix}<red>This command is no longer in stats.yml."
     # {input}
     negative-amount: "{prefix}<red>The amount can't be negative: {input}"
-    # {name}
+    # {name} {short}
     no-shield: "{prefix}<red>{name} can't be damaged, it has no shield. Use reduce instead."
     # {player}
     no-character: "{prefix}<red>{player} has no character with stats."
@@ -561,8 +562,8 @@ stats:
     # {min} in metres, {min_feet}
     too-short: "{prefix}<red>A character can't be shorter than <yellow>{min} m<red> ({min_feet})."
   # /stats view. The lines get {player} and every stat placeholder: {str},
-  # {str_base}, {str_modifiers}, {hp}, {max_hp}, {max_hp_base}, {max_hp_modifiers}... (the same
-  # names as the PlaceholderAPI ones). A stat these lines never mention gets a
+  # {str_base}, {str_modifiers}, {hp}, {max_hp}, {max_hp_base}, {max_hp_modifiers}, and the
+  # names {str_name} and {str_short}... (the same names as the PlaceholderAPI ones). A stat these lines never mention gets a
   # sheet-auto line under them, so new stats always show; sheet-footer comes last.
   # All of these lines also fill in other plugins' PlaceholderAPI placeholders
   # (%vault_eco_balance%...) for the sheet's player.
@@ -584,7 +585,7 @@ stats:
     - "<#B1262C><bold>Injuries:</bold> <#f8e886>{injuries_hover_50}"
     - "<#D4992C><bold>Conditions:</bold> <#f8e886>{conditions_hover_50}"
   sheet-auto:
-    # {name} {stat} {value} {base} {modifiers}, and for bars {max} {max_base} {max_modifiers}
+    # {name} {short} {stat} {value} {base} {modifiers}, and for bars {max} {max_base} {max_modifiers}
     value: "<#864811><bold>{name}:</bold> <#F6DA23>{value}<#864811> ({modifiers})"
     bar: "<#864811><bold>{name}:</bold> <#F6DA23>{value}<#864811>/<#F6DA23>{max}<#864811> ({modifiers}/{max_modifiers})"
   sheet-footer:
@@ -596,7 +597,8 @@ stats:
 
 # /modifier add|del|view. The "-max" messages are for modifiers on a bar's max
 # (max_hp...), so they can say "Max HP" in any language.
-# They get {target} (the stat id or max_<bar>) {name} {amount} {index} {player}.
+# They get {target} (the stat id or max_<bar>) {name} {short} {amount} {index} {player}.
+# {name} and {short} are the bar's for a max.
 modifier:
   added: "{prefix}<gold>{name} <gray>has been modified by <gold>{amount}"
   added-max: "{prefix}<gold>Max {name} <gray>has been modified by <gold>{amount}"
@@ -674,7 +676,8 @@ placeholders:
     # {ancestry_name} and %skysongstats_ancestry_name% with no ancestry
     # (%skysongstats_ancestry% is empty then).
     none: "<gray>None</gray>"
-    # One adjustment in {ancestry_adjustments}: {amount} (+1, -1) and {stat}, its stats.yml name.
+    # One adjustment in {ancestry_adjustments}: {amount} (+1, -1), {stat}, its stats.yml name,
+    # and {stat_short}, its short-name.
     adjustment: "{amount} {stat}"
     separator: "<gray>, </gray>"
     # {ancestry_adjustments} when it gave nothing, or there is no ancestry.

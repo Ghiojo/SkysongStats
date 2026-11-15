@@ -113,4 +113,14 @@ class StatsRootCommandTest {
         assertEquals(List.of("Bob"), stats.onTabComplete(fixture.alice, command, "stats", new String[]{"set", "str", "1", "b"}));
         assertTrue(stats.onTabComplete(fixture.alice, command, "stats", new String[]{"set", "str", ""}).isEmpty());
     }
+
+    @Test
+    void shortNamesAreTabCompletedAndTaken() {
+        assertEquals(List.of("temphp", "thp"),
+                stats.onTabComplete(fixture.alice, command, "stats", new String[]{"set", "t"}));
+        assertEquals(List.of("potion", "ps"),
+                stats.onTabComplete(fixture.alice, command, "stats", new String[]{"set", "p"}));
+        run("set", "THP", "3", "Alice");
+        assertEquals(3, fixture.value(fixture.alice, "temphp"));
+    }
 }

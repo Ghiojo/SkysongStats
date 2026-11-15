@@ -63,6 +63,8 @@ class StatModifierCommandTest {
         assertEquals("modifier.added", last().key());
         assertEquals("-1", last().placeholders().get("amount"));
         assertEquals("str", last().placeholders().get("target"));
+        assertEquals("Strength", last().placeholders().get("name"));
+        assertEquals("STR", last().placeholders().get("short"));
     }
 
     @Test
@@ -72,6 +74,7 @@ class StatModifierCommandTest {
         assertEquals(before + 5, fixture.value(fixture.alice, "max_hp"));
         assertEquals("modifier.added-max", last().key());
         assertEquals("max_hp", last().placeholders().get("target"));
+        assertEquals("HP", last().placeholders().get("short"));
     }
 
     @Test

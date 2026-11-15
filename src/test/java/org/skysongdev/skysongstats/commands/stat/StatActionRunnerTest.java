@@ -47,7 +47,7 @@ class StatActionRunnerTest {
         assertEquals(List.of("stats.default.add.player"), fixture.messages.keys());
         assertEquals("Alice", sent.to());
         assertEquals(Map.of("amount", "5", "value", "45", "old", "40", "player", "Alice", "sender", "Alice",
-                "name", "HP", "stat", "hp"), sent.placeholders());
+                "name", "HP", "short", "HP", "stat", "hp"), sent.placeholders());
     }
 
     @Test

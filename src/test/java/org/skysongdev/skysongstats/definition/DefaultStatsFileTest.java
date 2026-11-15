@@ -87,6 +87,15 @@ class DefaultStatsFileTest {
     }
 
     @Test
+    void everyStatHasAShortNameThatCommandsAccept() {
+        assertEquals(List.of("STR", "DEX", "CON", "FOC", "SPD", "HP", "THP", "AC", "PS", "ARC", "FIC", "HGT"),
+                config.stats().all().stream().map(stat -> stat.display().shortName()).toList());
+        assertEquals("temphp", config.stats().find("thp").orElseThrow().id());
+        assertEquals("potion", config.stats().find("PS").orElseThrow().id());
+        assertEquals("height", config.stats().find("hgt").orElseThrow().id());
+    }
+
+    @Test
     void longNamesAreAliases() {
         assertEquals("str", config.stats().find("strength").orElseThrow().id());
         assertEquals("dex", config.stats().find("Dexterity").orElseThrow().id());

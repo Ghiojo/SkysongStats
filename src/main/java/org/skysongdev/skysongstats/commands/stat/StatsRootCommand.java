@@ -109,6 +109,7 @@ public final class StatsRootCommand implements TabExecutor {
         for (StatDefinition stat : stats.definitions().all()) {
             names.add(stat.id());
             names.addAll(stat.display().aliases());
+            stat.display().shortNameInput().filter(input -> !names.contains(input)).ifPresent(names::add);
         }
         return names;
     }

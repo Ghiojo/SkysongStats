@@ -244,6 +244,7 @@ public final class AncestryChoicesMenu implements SetupScreen {
         boolean blocked = !picked && AncestryRules.conflicts(ancestry, picks, choiceIndex, stat, choice.amount());
         ItemStack item = MenuItems.icon(ancestryTexts.stat(stat).setup().icon());
         Map<String, String> values = Map.of("stat", ancestryTexts.statName(stat),
+                "stat_short", ancestryTexts.statShortName(stat),
                 "amount", AncestryTexts.signed(choice.amount()));
         item.editMeta(meta -> {
             meta.displayName(texts.line(CHOICES + "stat.name", values));

@@ -27,6 +27,10 @@ public final class StatDefinitions {
             stat.commands().forEach((action, labels) -> labels.forEach(
                     label -> byCommand.put(label, new CommandBinding(label, stat, action))));
         }
+        // After every id and alias, so a short name never hides one.
+        for (StatDefinition stat : stats) {
+            stat.display().shortNameInput().ifPresent(input -> byName.putIfAbsent(input, stat));
+        }
     }
 
     public List<StatDefinition> all() {
@@ -37,7 +41,8 @@ public final class StatDefinitions {
         return Optional.ofNullable(byId.get(normalize(id)));
     }
 
-    // Finds a stat by its id or one of its aliases, ignoring case ("STR", "strength").
+    // Finds a stat by its id, one of its aliases or its short name from stats.yml,
+    // ignoring case ("STR", "strength").
     public Optional<StatDefinition> find(String idOrAlias) {
         return Optional.ofNullable(byName.get(normalize(idOrAlias)));
     }

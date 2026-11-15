@@ -90,12 +90,26 @@ public final class StatsConfigLoader {
     }
 
     private StatDefinition readStat(String id, ConfigurationSection stat) {
-        StatDisplay display = new StatDisplay(stat.getString("name", id), stat.getString("color", ""),
-                ConfigReader.lowercase(stat.getStringList("aliases")));
+        StatDisplay display = readDisplay(id, stat);
         BarSettings bar = readType(id, stat);
         return new StatDefinition(id, display, reader.readInt(stat, "baseline", 0), readMin(stat, bar != null),
                 bar, readItemTags(stat), readCommands(stat), readSetup(id, stat, bar != null),
                 readPermissionDefault(stat), readScale(id, stat, bar != null));
+    }
+
+    private StatDisplay readDisplay(String id, ConfigurationSection stat) {
+        String name = stat.getString("name", id);
+        String color = stat.getString("color", "");
+        List<String> aliases = ConfigReader.lowercase(stat.getStringList("aliases"));
+        if (!stat.contains("short-name")) {
+            return new StatDisplay(name, color, aliases);
+        }
+        String shortName = String.valueOf(stat.get("short-name")).trim();
+        if (shortName.isEmpty()) {
+            errors.add(path(id) + ".short-name: can't be empty (leave it out to use the name)");
+            return new StatDisplay(name, color, aliases);
+        }
+        return new StatDisplay(name, color, aliases, shortName, true);
     }
 
     // Returns the height settings, or null when the stat is not a height.

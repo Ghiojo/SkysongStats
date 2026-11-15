@@ -48,6 +48,10 @@ final class AncestryTexts {
         return stats.get(id).map(stat -> stat.display().name()).orElse(id);
     }
 
+    String statShortName(String id) {
+        return stats.get(id).map(stat -> stat.display().shortName()).orElse(id);
+    }
+
     // "+2 Strength, +1 Dexterity".
     String adjustments(List<AncestryAdjustment> adjustments) {
         String separator = plain(texts.line(ANCESTRY + "separator", Map.of()));
@@ -60,7 +64,8 @@ final class AncestryTexts {
     List<Component> summary(AncestryDefinition ancestry) {
         List<Component> lines = new ArrayList<>();
         ancestry.adjustments().forEach(adjustment -> lines.add(texts.line(ANCESTRY + "adjustment", Map.of(
-                "amount", signed(adjustment.amount()), "stat", statName(adjustment.stat())))));
+                "amount", signed(adjustment.amount()), "stat", statName(adjustment.stat()),
+                "stat_short", statShortName(adjustment.stat())))));
         for (int index = 0; index < ancestry.choices().size(); index++) {
             lines.add(choiceSummary(ancestry.choices().get(index), index));
         }
