@@ -24,6 +24,7 @@ public final class Stat {
     private final StatType type;
     private final Integer minimum;
     private final String shield;
+    private final String shortName;
 
     /**
      * @param id      the stat's key in stats.yml, for example {@code hp}
@@ -37,6 +38,24 @@ public final class Stat {
      */
     public Stat(@NotNull String id, @NotNull String name, @NotNull String color, @NotNull List<String> aliases,
                 @NotNull StatType type, @Nullable Integer minimum, @Nullable String shield) {
+        this(id, name, color, aliases, type, minimum, shield, name);
+    }
+
+    /**
+     * @param id        the stat's key in stats.yml, for example {@code hp}
+     * @param name      its display name, plain text
+     * @param color     its color, a MiniMessage tag such as {@code <red>}
+     * @param aliases   the other names lookups accept
+     * @param type      a plain value or a bar
+     * @param minimum   the lowest its total can go, null when it has no floor
+     * @param shield    the id of the stat that absorbs damage first, null when none
+     * @param shortName its short name in effect, for example {@code STR}
+     * @throws NullPointerException when the id, name, color, aliases, type or short name is null
+     * @since 1.5.0
+     */
+    public Stat(@NotNull String id, @NotNull String name, @NotNull String color, @NotNull List<String> aliases,
+                @NotNull StatType type, @Nullable Integer minimum, @Nullable String shield,
+                @NotNull String shortName) {
         this.id = Objects.requireNonNull(id, "id");
         this.name = Objects.requireNonNull(name, "name");
         this.color = Objects.requireNonNull(color, "color");
@@ -44,6 +63,7 @@ public final class Stat {
         this.type = Objects.requireNonNull(type, "type");
         this.minimum = minimum;
         this.shield = shield;
+        this.shortName = Objects.requireNonNull(shortName, "shortName");
     }
 
     /** The stat's key in stats.yml, for example {@code hp}. */
@@ -54,6 +74,18 @@ public final class Stat {
     /** Its display name, plain text. */
     public @NotNull String name() {
         return name;
+    }
+
+    /**
+     * Its short name in effect, plain text, for example {@code STR}: the newest one a plugin
+     * assigned with {@link Stats#assignShortName}, else its {@code short-name} from stats.yml,
+     * else its {@link #name()}. Messages show it as {@code {short}}, placeholders as
+     * {@code %skysongstats_<id>_short%}.
+     *
+     * @since 1.5.0
+     */
+    public @NotNull String shortName() {
+        return shortName;
     }
 
     /** Its color, a MiniMessage tag such as {@code <red>}. */
@@ -102,7 +134,7 @@ public final class Stat {
     }
 
     private List<Object> parts() {
-        return Arrays.asList(id, name, color, aliases, type, minimum, shield);
+        return Arrays.asList(id, name, color, aliases, type, minimum, shield, shortName);
     }
 
     @Override

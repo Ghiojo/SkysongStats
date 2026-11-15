@@ -33,6 +33,15 @@ public final class StatDefinitions {
         }
     }
 
+    // These stats with the given short names (stat id to short name) in place of
+    // stats.yml's. ShortNameAssignments has checked they clash with no other name.
+    public StatDefinitions withShortNames(Map<String, String> shortNames) {
+        return new StatDefinitions(byId.values().stream().map(stat -> {
+            String shortName = shortNames.get(stat.id());
+            return shortName == null ? stat : stat.withDisplay(stat.display().withShortName(shortName));
+        }).toList());
+    }
+
     public List<StatDefinition> all() {
         return List.copyOf(byId.values());
     }

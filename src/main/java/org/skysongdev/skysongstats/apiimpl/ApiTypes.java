@@ -53,7 +53,8 @@ public final class ApiTypes {
 
     public static Stat stat(StatDefinition stat) {
         return new Stat(stat.id(), stat.display().name(), stat.display().color(), stat.display().aliases(),
-                stat.isBar() ? StatType.BAR : StatType.VALUE, stat.min(), stat.isBar() ? stat.bar().shield() : null);
+                stat.isBar() ? StatType.BAR : StatType.VALUE, stat.min(), stat.isBar() ? stat.bar().shield() : null,
+                stat.display().shortName());
     }
 
     public static StatChange statChange(org.skysongdev.skysongstats.character.StatChange change) {

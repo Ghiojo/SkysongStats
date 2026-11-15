@@ -23,9 +23,16 @@ public record StatDisplay(String name, String color, List<String> aliases, Strin
     // Empty when stats.yml doesn't set one, or when it has a space or starts with
     // "max_" and so can't be typed as one stat name.
     public Optional<String> shortNameInput() {
-        if (!customShortName) {
-            return Optional.empty();
-        }
+        return customShortName ? inputOf(shortName) : Optional.empty();
+    }
+
+    // The same display with another short name, which commands then accept too.
+    public StatDisplay withShortName(String newShortName) {
+        return new StatDisplay(name, color, aliases, newShortName, true);
+    }
+
+    // The word commands would accept for this short name, if any.
+    public static Optional<String> inputOf(String shortName) {
         String input = shortName.trim().toLowerCase(Locale.ROOT);
         if (input.isEmpty() || input.chars().anyMatch(Character::isWhitespace)
                 || input.startsWith(StatDefinition.MAX_PREFIX)) {

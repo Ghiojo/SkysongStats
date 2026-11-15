@@ -64,6 +64,12 @@ public record StatDefinition(
         return Optional.ofNullable(setup);
     }
 
+    // The same stat with another display (a short name a plugin assigned).
+    public StatDefinition withDisplay(StatDisplay newDisplay) {
+        return new StatDefinition(id, newDisplay, baseline, min, bar, itemTags, commands, setup, permissionDefault,
+                scale);
+    }
+
     public List<String> commandsFor(StatAction action) {
         return commands.getOrDefault(action, List.of());
     }

@@ -1,6 +1,7 @@
 package org.skysongdev.skysongstats.character;
 
 import org.skysongdev.skysongstats.definition.ItemTagSource;
+import org.skysongdev.skysongstats.definition.ShortNameAssignments;
 import org.skysongdev.skysongstats.definition.StatAction;
 import org.skysongdev.skysongstats.definition.StatDefinition;
 import org.skysongdev.skysongstats.definition.StatDefinitions;
@@ -32,10 +33,15 @@ public class StatService {
     private final StatChangeListener listener;
     private final Map<ProfileKey, CharacterSheet> sheets = new HashMap<>();
     // volatile: the API reads it from any thread, and /ssreload swaps it on the main thread.
+    // definitions is stats.yml (configDefinitions) with the short names plugins
+    // assigned through the API.
     private volatile StatDefinitions definitions;
+    private volatile StatDefinitions configDefinitions;
+    private final ShortNameAssignments<Object> shortNames = new ShortNameAssignments<>();
 
     public StatService(StatDefinitions definitions, StatRepository repository, StatChangeListener listener) {
-        this.definitions = Objects.requireNonNull(definitions, "definitions");
+        this.configDefinitions = Objects.requireNonNull(definitions, "definitions");
+        this.definitions = definitions;
         this.repository = Objects.requireNonNull(repository, "repository");
         this.listener = Objects.requireNonNull(listener, "listener");
     }
@@ -50,10 +56,27 @@ public class StatService {
         return definitions;
     }
 
-    // Swaps in a reloaded stats.yml. Stats new to the file are saved at their
-    // starting value, and bars that are now above their max are brought down to it.
+    // The stats as stats.yml has them, without assigned short names.
+    public StatDefinitions configDefinitions() {
+        return configDefinitions;
+    }
+
+    // The short names plugins assigned. Call refreshShortNames() after changing them.
+    public ShortNameAssignments<Object> shortNames() {
+        return shortNames;
+    }
+
+    // Puts the assigned short names in effect after they changed.
+    public void refreshShortNames() {
+        definitions = shortNames.apply(configDefinitions);
+    }
+
+    // Swaps in a reloaded stats.yml, keeping the assigned short names. Stats new to
+    // the file are saved at their starting value, and bars that are now above their
+    // max are brought down to it.
     public void setDefinitions(StatDefinitions definitions) {
-        this.definitions = Objects.requireNonNull(definitions, "definitions");
+        this.configDefinitions = Objects.requireNonNull(definitions, "definitions");
+        this.definitions = shortNames.apply(definitions);
         sheets.values().forEach(this::saveMissingValues);
         sheets.values().forEach(this::clampBars);
     }
